@@ -1,0 +1,21 @@
+[project]
+name = "patrols"
+channels = ["conda-forge"]
+platforms = ["linux-64", "linux-aarch64", "osx-arm64"]
+
+[dependencies]
+curl = "*"
+yq = "*"
+
+[tasks]
+
+recompile = { cmd = "./dev/recompile.sh patrols --lock" }
+recompile-carryover-lockfile = { cmd = "./dev/recompile.sh patrols --no-lock --carryover-lockfile" }
+
+pytest-app = { cmd = "./dev/pytest-examples.sh patrols 'app'" }
+pytest-cli = { cmd = "./dev/pytest-examples.sh patrols 'cli'" }
+
+docker-build = { cmd = "./dev/docker-build.sh patrols" }
+docker-run = { cmd = "./dev/docker-run.sh patrols" }
+
+curl-invoke = { cmd = "./dev/curl-invoke-docker.sh patrols" }
