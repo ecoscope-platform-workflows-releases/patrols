@@ -1,14 +1,20 @@
 [project]
 name = "patrols"
-channels = ["conda-forge"]
+channels = [
+    "https://repo.prefix.dev/ecoscope-workflows/",
+    "conda-forge",
+]
 platforms = ["linux-64", "linux-aarch64", "osx-arm64"]
 
 [dependencies]
+# todo: test env
 curl = "*"
 yq = "*"
+# todo: default env
+ecoscope-workflows-core = { version = "v0.0.2", channel = "https://repo.prefix.dev/ecoscope-workflows/" }
+ecoscope-workflows-ext-ecoscope = { version = "v0.0.2", channel = "https://repo.prefix.dev/ecoscope-workflows/" }
 
 [tasks]
-
 recompile = { cmd = "./dev/recompile.sh patrols --lock" }
 recompile-carryover-lockfile = { cmd = "./dev/recompile.sh patrols --no-lock --carryover-lockfile" }
 
