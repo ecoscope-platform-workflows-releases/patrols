@@ -15,8 +15,8 @@ ecoscope-workflows-core = { version = "v0.0.2", channel = "https://repo.prefix.d
 ecoscope-workflows-ext-ecoscope = { version = "v0.0.2", channel = "https://repo.prefix.dev/ecoscope-workflows/" }
 
 [tasks]
-recompile = { cmd = "./dev/recompile.sh patrols --lock" }
-recompile-carryover-lockfile = { cmd = "./dev/recompile.sh patrols --no-lock --carryover-lockfile" }
+recompile = { cmd = "./dev/recompile.sh --lock" }
+recompile-carryover-lockfile = { cmd = "./dev/recompile.sh --no-lock --carryover-lockfile" }
 
 pytest-app = { cmd = "./dev/pytest-examples.sh patrols 'app'" }
 pytest-cli = { cmd = "./dev/pytest-examples.sh patrols 'cli'" }
