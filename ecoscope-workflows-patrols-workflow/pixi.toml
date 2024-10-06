@@ -5,7 +5,7 @@
 [project]
 name = "ecoscope-workflows-patrols-workflow"
 channels = [
-    "file:///tmp/ecoscope-workflows/release/artifacts/",
+    # "file:///tmp/ecoscope-workflows/release/artifacts/",
     "https://repo.prefix.dev/ecoscope-workflows/",
     "conda-forge",
 ]
@@ -56,7 +56,7 @@ features = [
 solve-group = "default"
 
 [tasks]
-docker-build = "mkdir -p .tmp/ecoscope-workflows/release/artifacts/\n&& cp -r /tmp/ecoscope-workflows/release/artifacts/* .tmp/ecoscope-workflows/release/artifacts/\n&& docker buildx build -t ecoscope-workflows-patrols-workflow .\n"
+docker-build = "docker buildx build -t ecoscope-workflows-patrols-workflow ."
 
 [pypi-dependencies.ecoscope-workflows-patrols-workflow]
 path = "."
