@@ -10,10 +10,10 @@ RUN curl -fsSL https://pixi.sh/install.sh | bash
 FROM bitnami/minideb:bullseye as install
 COPY --from=fetch /root/.pixi /root/.pixi
 ENV PATH="/root/.pixi/bin:$PATH"
-COPY .tmp /tmp
+# COPY .tmp /tmp
 WORKDIR /app
 COPY . .
-RUN rm -rf .tmp
+# RUN rm -rf .tmp
 RUN pixi install -e default --locked
 
 FROM install as app
