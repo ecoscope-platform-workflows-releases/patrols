@@ -14,7 +14,7 @@ jobs:
       matrix:
         deployment: [
           "local",
-          # "docker",
+          "docker",
         ]
         api: [
           "app",
@@ -40,14 +40,13 @@ jobs:
         if: matrix.deployment == 'local'
         run: pixi run --manifest-path pixi.toml -e default pytest-${{ matrix.api }} ${{ matrix.execution-mode }}
       # 'docker' deployment test ------------------------------------------------------------------
-      # - name: Docker build + run
-      #   if: matrix.deployment == 'docker'
-      #   run: |
-      #     pixi run --manifest-path pixi.toml docker-build
-      #     pixi run --manifest-path pixi.toml docker-run
-      #     sleep 5
-      #     docker ps
-      #     docker logs ${{ matrix.example }}
-      # - name: Invoke container with curl
-      #   if: matrix.deployment == 'docker'
-      #   run:  pixi run --manifest-path pixi.toml curl-invoke-${{ matrix.example }} ${{ matrix.execution-mode }}
+      - name: Docker build + run
+        if: matrix.deployment == 'docker'
+        run: |
+          pixi run --manifest-path pixi.toml docker-build
+          pixi run --manifest-path pixi.toml docker-run
+          sleep 5
+          docker ps
+      - name: Invoke container with curl
+        if: matrix.deployment == 'docker'
+        run:  pixi run --manifest-path pixi.toml curl-invoke ${{ matrix.execution-mode }}

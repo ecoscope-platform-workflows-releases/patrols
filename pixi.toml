@@ -24,4 +24,4 @@ pytest-cli = { cmd = "./dev/pytest.sh patrols 'cli'" }
 docker-build = { cmd = "./dev/docker-build.sh patrols" }
 docker-run = { cmd = "./dev/docker-run.sh patrols" }
 
-curl-invoke = { cmd = "./dev/curl-invoke-docker.sh patrols" }
+curl-invoke = { cmd = "./dev/curl-invoke-docker.sh" }
