@@ -1,11 +1,11 @@
 id: patrols
 requirements:
   - name: ecoscope-workflows-core
-    version: "*"
-    channel: file:///tmp/ecoscope-workflows/release/artifacts/
+    version: v0.0.2
+    channel: https://repo.prefix.dev/ecoscope-workflows/
   - name: ecoscope-workflows-ext-ecoscope
-    version: "*"
-    channel: file:///tmp/ecoscope-workflows/release/artifacts/
+    version: v0.0.2
+    channel: https://repo.prefix.dev/ecoscope-workflows/
 workflow:
   # set 'global' groupers
   - name: Set Groupers
