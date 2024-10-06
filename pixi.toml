@@ -18,8 +18,8 @@ ecoscope-workflows-ext-ecoscope = { version = "v0.0.2", channel = "https://repo.
 recompile = { cmd = "./dev/recompile.sh --lock" }
 recompile-carryover-lockfile = { cmd = "./dev/recompile.sh --no-lock --carryover-lockfile" }
 
-pytest-app = { cmd = "./dev/pytest-examples.sh patrols 'app'" }
-pytest-cli = { cmd = "./dev/pytest-examples.sh patrols 'cli'" }
+pytest-app = { cmd = "./dev/pytest.sh patrols 'app'" }
+pytest-cli = { cmd = "./dev/pytest.sh patrols 'cli'" }
 
 docker-build = { cmd = "./dev/docker-build.sh patrols" }
 docker-run = { cmd = "./dev/docker-run.sh patrols" }
