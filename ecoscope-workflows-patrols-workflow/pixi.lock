@@ -2,7 +2,6 @@ version: 5
 environments:
   default:
     channels:
-    - url: file:///tmp/ecoscope-workflows/release/artifacts/
     - url: https://repo.prefix.dev/ecoscope-workflows/
     - url: https://conda.anaconda.org/conda-forge/
     indexes:
@@ -1225,7 +1224,6 @@ environments:
       - pypi: .
   test:
     channels:
-    - url: file:///tmp/ecoscope-workflows/release/artifacts/
     - url: https://repo.prefix.dev/ecoscope-workflows/
     - url: https://conda.anaconda.org/conda-forge/
     indexes:
