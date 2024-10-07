@@ -1,0 +1,62 @@
+# [generated]
+# by = { compiler = "ecoscope-workflows-core", version = "9999" }
+# from-spec-sha256 = "881001529f4a095ef7dc797142e113baf4380a57b2c6464c6550754fbde1d48d"
+
+[project]
+name = "ecoscope-workflows-patrols-workflow"
+channels = [
+    "https://repo.prefix.dev/ecoscope-workflows/",
+    "conda-forge",
+]
+platforms = [
+    "linux-64",
+    "linux-aarch64",
+    "osx-arm64",
+]
+
+[dependencies.fastapi]
+version = "*"
+
+[dependencies.httpx]
+version = "*"
+
+[dependencies.uvicorn]
+version = "*"
+
+[dependencies."ruamel.yaml"]
+version = "*"
+
+[dependencies.ecoscope-workflows-core]
+version = "==v0.0.3"
+channel = "https://repo.prefix.dev/ecoscope-workflows/"
+
+[dependencies.ecoscope-workflows-ext-ecoscope]
+version = "==v0.0.3"
+channel = "https://repo.prefix.dev/ecoscope-workflows/"
+
+[feature.test.dependencies.pytest]
+version = "*"
+
+[feature.test.tasks]
+test-all = "python -m pytest -v tests"
+test-app-async-mock-io = "python -m pytest -v tests/test_app.py -k 'async and mock-io'"
+test-app-sequential-mock-io = "python -m pytest -v tests/test_app.py -k 'sequential and mock-io'"
+test-cli-async-mock-io = "python -m pytest -v tests/test_cli.py -k 'async and mock-io'"
+test-cli-sequential-mock-io = "python -m pytest -v tests/test_cli.py -k 'sequential and mock-io'"
+
+[environments.default]
+features = []
+solve-group = "default"
+
+[environments.test]
+features = [
+    "test",
+]
+solve-group = "default"
+
+[tasks]
+docker-build = "docker buildx build -t ecoscope-workflows-patrols-workflow ."
+
+[pypi-dependencies.ecoscope-workflows-patrols-workflow]
+path = "."
+editable = true
