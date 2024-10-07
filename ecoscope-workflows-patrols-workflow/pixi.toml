@@ -1,11 +1,10 @@
 # [generated]
 # by = { compiler = "ecoscope-workflows-core", version = "9999" }
-# from-spec-sha256 = "0bda45c4386c6dd86edd8687f6a53f6c4a8a606268886aabf78a055665d6de72"
+# from-spec-sha256 = "881001529f4a095ef7dc797142e113baf4380a57b2c6464c6550754fbde1d48d"
 
 [project]
 name = "ecoscope-workflows-patrols-workflow"
 channels = [
-    # "file:///tmp/ecoscope-workflows/release/artifacts/",
     "https://repo.prefix.dev/ecoscope-workflows/",
     "conda-forge",
 ]
@@ -28,11 +27,11 @@ version = "*"
 version = "*"
 
 [dependencies.ecoscope-workflows-core]
-version = "==v0.0.2"
+version = "==v0.0.3"
 channel = "https://repo.prefix.dev/ecoscope-workflows/"
 
 [dependencies.ecoscope-workflows-ext-ecoscope]
-version = "==v0.0.2"
+version = "==v0.0.3"
 channel = "https://repo.prefix.dev/ecoscope-workflows/"
 
 [feature.test.dependencies.pytest]
