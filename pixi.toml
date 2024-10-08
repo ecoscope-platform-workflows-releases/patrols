@@ -11,8 +11,8 @@ platforms = ["linux-64", "linux-aarch64", "osx-arm64"]
 curl = "*"
 yq = "*"
 # todo: default env
-ecoscope-workflows-core = { version = "v0.0.3", channel = "https://repo.prefix.dev/ecoscope-workflows/" }
-ecoscope-workflows-ext-ecoscope = { version = "v0.0.3", channel = "https://repo.prefix.dev/ecoscope-workflows/" }
+ecoscope-workflows-core = { version = "v0.0.4", channel = "https://repo.prefix.dev/ecoscope-workflows/" }
+ecoscope-workflows-ext-ecoscope = { version = "v0.0.4", channel = "https://repo.prefix.dev/ecoscope-workflows/" }
 
 [tasks]
 recompile = { cmd = "./dev/recompile.sh --lock" }
