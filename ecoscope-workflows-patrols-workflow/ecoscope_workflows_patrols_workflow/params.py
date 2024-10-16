@@ -1,6 +1,6 @@
 # [generated]
 # by = { compiler = "ecoscope-workflows-core", version = "9999" }
-# from-spec-sha256 = "8fe92f758a82485e050f823e4d82e65f5f83ba38faa4b5b1d748e8711b53edbb"
+# from-spec-sha256 = "499e500721b4c9b81f1d0c4694a0d81665449c1e1e75772ff0718c6a16a82e6f"
 
 
 from __future__ import annotations
@@ -156,6 +156,27 @@ class PeAddTemporalIndex(BaseModel):
     )
 
 
+class PeColormap(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    input_column_name: str = Field(
+        ...,
+        description="The name of the column with categorical values.",
+        title="Input Column Name",
+    )
+    colormap: Optional[Union[str, List[str]]] = Field(
+        "viridis",
+        description="Either a named mpl.colormap or a list of string hex values.",
+        title="Colormap",
+    )
+    output_column_name: Optional[str] = Field(
+        None,
+        description="The dataframe column that will contain the color values.",
+        title="Output Column Name",
+    )
+
+
 class TrajPeEcomapHtmlUrls(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
@@ -204,26 +225,6 @@ class TotalPatrolTime(BaseModel):
     )
 
 
-class Operation(str, Enum):
-    add = "add"
-    subtract = "subtract"
-    multiply = "multiply"
-    divide = "divide"
-    floor_divide = "floor_divide"
-    modulo = "modulo"
-    power = "power"
-
-
-class TotalPatrolTimeConverted(BaseModel):
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    b: Union[float, int] = Field(..., description="The second number", title="B")
-    operation: Operation = Field(
-        ..., description="The arithmetic operation to apply", title="Operation"
-    )
-
-
 class TotalPatrolTimeSvWidgets(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
@@ -242,16 +243,6 @@ class TotalPatrolDist(BaseModel):
     )
     column_name: str = Field(
         ..., description="Column to aggregate", title="Column Name"
-    )
-
-
-class TotalPatrolDistConverted(BaseModel):
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    b: Union[float, int] = Field(..., description="The second number", title="B")
-    operation: Operation = Field(
-        ..., description="The arithmetic operation to apply", title="Operation"
     )
 
 
@@ -369,12 +360,33 @@ class Td(BaseModel):
         250.0, description="Pixel size for raster profile.", title="Pixel Size"
     )
     crs: Optional[str] = Field("ESRI:102022", title="Crs")
-    nodata_value: Optional[float] = Field("nan", title="Nodata Value")
+    nodata_value: Optional[Union[float, str]] = Field("nan", title="Nodata Value")
     band_count: Optional[int] = Field(1, title="Band Count")
     max_speed_factor: Optional[float] = Field(1.05, title="Max Speed Factor")
     expansion_factor: Optional[float] = Field(1.3, title="Expansion Factor")
     percentiles: Optional[List[float]] = Field(
         [50.0, 60.0, 70.0, 80.0, 90.0, 95.0], title="Percentiles"
+    )
+
+
+class TdColormap(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    input_column_name: str = Field(
+        ...,
+        description="The name of the column with categorical values.",
+        title="Input Column Name",
+    )
+    colormap: Optional[Union[str, List[str]]] = Field(
+        "viridis",
+        description="Either a named mpl.colormap or a list of string hex values.",
+        title="Colormap",
+    )
+    output_column_name: Optional[str] = Field(
+        None,
+        description="The dataframe column that will contain the color values.",
+        title="Output Column Name",
     )
 
 
@@ -453,7 +465,7 @@ class PointLayerStyle(BaseModel):
         "pixels", title="Line Width Units"
     )
     layer_type: Literal["point"] = Field("point", title="Layer Type")
-    get_radius: Optional[float] = Field(1, title="Get Radius")
+    get_radius: Optional[float] = Field(5, title="Get Radius")
     radius_units: Optional[RadiusUnits] = Field("pixels", title="Radius Units")
 
 
@@ -499,7 +511,7 @@ class PolylineLayerStyle(BaseModel):
     get_color: Optional[Union[str, List[int], List[List[int]]]] = Field(
         None, title="Get Color"
     )
-    get_width: Optional[float] = Field(1, title="Get Width")
+    get_width: Optional[float] = Field(3, title="Get Width")
     color_column: Optional[str] = Field(None, title="Color Column")
     width_units: Optional[WidthUnits] = Field("pixels", title="Width Units")
     cap_rounded: Optional[bool] = Field(True, title="Cap Rounded")
@@ -528,6 +540,11 @@ class LegendStyle(BaseModel):
 class NorthArrowStyle(BaseModel):
     placement: Optional[Placement] = Field("top-left", title="Placement")
     style: Optional[Dict[str, Any]] = Field({"transform": "scale(0.8)"}, title="Style")
+
+
+class TileLayer(BaseModel):
+    name: str = Field(..., title="Name")
+    opacity: Optional[float] = Field(1, title="Opacity")
 
 
 class WidgetType(str, Enum):
@@ -658,8 +675,10 @@ class TrajPatrolEventsEcomap(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    tile_layer: Optional[str] = Field(
-        "", description="A named tile layer, ie OpenStreetMap.", title="Tile Layer"
+    tile_layers: Optional[List[TileLayer]] = Field(
+        [],
+        description="A list of named tile layer with opacity, ie OpenStreetMap.",
+        title="Tile Layers",
     )
     static: Optional[bool] = Field(
         False, description="Set to true to disable map pan/zoom.", title="Static"
@@ -678,6 +697,54 @@ class TrajPatrolEventsEcomap(BaseModel):
         ),
         description="Additional arguments for configuring the legend.",
         title="Legend Style",
+    )
+
+
+class TotalPatrolTimeConverted(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    original_unit: Optional[Unit] = Field(
+        None, description="The original unit of measurement.", title="Original Unit"
+    )
+    new_unit: Optional[Unit] = Field(
+        None, description="The unit to convert to.", title="New Unit"
+    )
+
+
+class TotalPatrolDistConverted(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    original_unit: Optional[Unit] = Field(
+        None, description="The original unit of measurement.", title="Original Unit"
+    )
+    new_unit: Optional[Unit] = Field(
+        None, description="The unit to convert to.", title="New Unit"
+    )
+
+
+class AverageSpeedConverted(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    original_unit: Optional[Unit] = Field(
+        None, description="The original unit of measurement.", title="Original Unit"
+    )
+    new_unit: Optional[Unit] = Field(
+        None, description="The unit to convert to.", title="New Unit"
+    )
+
+
+class MaxSpeedConverted(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    original_unit: Optional[Unit] = Field(
+        None, description="The original unit of measurement.", title="Original Unit"
+    )
+    new_unit: Optional[Unit] = Field(
+        None, description="The unit to convert to.", title="New Unit"
     )
 
 
@@ -730,8 +797,10 @@ class TdEcomap(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    tile_layer: Optional[str] = Field(
-        "", description="A named tile layer, ie OpenStreetMap.", title="Tile Layer"
+    tile_layers: Optional[List[TileLayer]] = Field(
+        [],
+        description="A list of named tile layer with opacity, ie OpenStreetMap.",
+        title="Tile Layers",
     )
     static: Optional[bool] = Field(
         False, description="Set to true to disable map pan/zoom.", title="Static"
@@ -839,6 +908,7 @@ class Params(BaseModel):
     pe_add_temporal_index: Optional[PeAddTemporalIndex] = Field(
         None, title="Add temporal index to Patrol Events"
     )
+    pe_colormap: Optional[PeColormap] = Field(None, title="Patrol Events Colormap")
     split_pe_groups: Optional[Dict[str, Any]] = Field(
         None, title="Split Patrol Events by Group"
     )
@@ -896,6 +966,9 @@ class Params(BaseModel):
     avg_speed: Optional[AvgSpeed] = Field(
         None, title="Calculate Average Speed Per Group"
     )
+    average_speed_converted: Optional[AverageSpeedConverted] = Field(
+        None, title="Convert Average Speed units"
+    )
     avg_speed_sv_widgets: Optional[AvgSpeedSvWidgets] = Field(
         None, title="Create Single Value Widgets for Avg Speed Per Group"
     )
@@ -903,6 +976,9 @@ class Params(BaseModel):
         None, title="Merge per group Avg Speed SV widgets"
     )
     max_speed: Optional[MaxSpeed] = Field(None, title="Calculate Max Speed Per Group")
+    max_speed_converted: Optional[MaxSpeedConverted] = Field(
+        None, title="Convert Max Speed units"
+    )
     max_speed_sv_widgets: Optional[MaxSpeedSvWidgets] = Field(
         None, title="Create Single Value Widgets for Max Speed Per Group"
     )
@@ -931,6 +1007,7 @@ class Params(BaseModel):
         None, title="Merge Pie Chart Widget Views"
     )
     td: Optional[Td] = Field(None, title="Calculate Time Density from Trajectory")
+    td_colormap: Optional[TdColormap] = Field(None, title="Time Density Colormap")
     td_map_layer: Optional[TdMapLayer] = Field(
         None, title="Create map layer from Time Density"
     )

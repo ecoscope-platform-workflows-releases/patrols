@@ -438,6 +438,43 @@
       "type": "object",
       "description": "Create map layers for each group of patrol events.",
       "properties": {
+        "pe_colormap": {
+          "additionalProperties": false,
+          "properties": {
+            "input_column_name": {
+              "title": "Input Column Name",
+              "type": "string",
+              "description": "The name of the column with categorical values."
+            },
+            "colormap": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              ],
+              "default": "viridis",
+              "title": "Colormap",
+              "description": "Either a named mpl.colormap or a list of string hex values."
+            },
+            "output_column_name": {
+              "default": null,
+              "title": "Output Column Name",
+              "type": "string",
+              "description": "The dataframe column that will contain the color values."
+            }
+          },
+          "required": [
+            "input_column_name"
+          ],
+          "type": "object",
+          "title": "Patrol Events Colormap"
+        },
         "split_pe_groups": {
           "additionalProperties": false,
           "properties": {},
@@ -483,6 +520,7 @@
       },
       "uiSchema": {
         "ui:order": [
+          "pe_colormap",
           "split_pe_groups",
           "patrol_events_map_layers"
         ]
@@ -502,11 +540,14 @@
         "traj_patrol_events_ecomap": {
           "additionalProperties": false,
           "properties": {
-            "tile_layer": {
-              "default": "",
-              "title": "Tile Layer",
-              "type": "string",
-              "description": "A named tile layer, ie OpenStreetMap."
+            "tile_layers": {
+              "default": [],
+              "items": {
+                "$ref": "#/$defs/TileLayer"
+              },
+              "title": "Tile Layers",
+              "type": "array",
+              "description": "A list of named tile layer with opacity, ie OpenStreetMap."
             },
             "static": {
               "default": false,
@@ -676,37 +717,28 @@
         "total_patrol_time_converted": {
           "additionalProperties": false,
           "properties": {
-            "b": {
-              "anyOf": [
+            "original_unit": {
+              "allOf": [
                 {
-                  "type": "number"
-                },
-                {
-                  "type": "integer"
+                  "$ref": "#/$defs/Unit"
                 }
               ],
-              "title": "B",
-              "description": "The second number"
+              "default": null,
+              "title": "Original Unit",
+              "description": "The original unit of measurement."
             },
-            "operation": {
-              "enum": [
-                "add",
-                "subtract",
-                "multiply",
-                "divide",
-                "floor_divide",
-                "modulo",
-                "power"
+            "new_unit": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/Unit"
+                }
               ],
-              "title": "Operation",
-              "type": "string",
-              "description": "The arithmetic operation to apply"
+              "default": null,
+              "title": "New Unit",
+              "description": "The unit to convert to."
             }
           },
-          "required": [
-            "b",
-            "operation"
-          ],
+          "required": [],
           "type": "object",
           "title": "Convert total patrol time units"
         },
@@ -770,37 +802,28 @@
         "total_patrol_dist_converted": {
           "additionalProperties": false,
           "properties": {
-            "b": {
-              "anyOf": [
+            "original_unit": {
+              "allOf": [
                 {
-                  "type": "number"
-                },
-                {
-                  "type": "integer"
+                  "$ref": "#/$defs/Unit"
                 }
               ],
-              "title": "B",
-              "description": "The second number"
+              "default": null,
+              "title": "Original Unit",
+              "description": "The original unit of measurement."
             },
-            "operation": {
-              "enum": [
-                "add",
-                "subtract",
-                "multiply",
-                "divide",
-                "floor_divide",
-                "modulo",
-                "power"
+            "new_unit": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/Unit"
+                }
               ],
-              "title": "Operation",
-              "type": "string",
-              "description": "The arithmetic operation to apply"
+              "default": null,
+              "title": "New Unit",
+              "description": "The unit to convert to."
             }
           },
-          "required": [
-            "b",
-            "operation"
-          ],
+          "required": [],
           "type": "object",
           "title": "Convert total patrol distance units"
         },
@@ -861,6 +884,34 @@
           "type": "object",
           "title": "Calculate Average Speed Per Group"
         },
+        "average_speed_converted": {
+          "additionalProperties": false,
+          "properties": {
+            "original_unit": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/Unit"
+                }
+              ],
+              "default": null,
+              "title": "Original Unit",
+              "description": "The original unit of measurement."
+            },
+            "new_unit": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/Unit"
+                }
+              ],
+              "default": null,
+              "title": "New Unit",
+              "description": "The unit to convert to."
+            }
+          },
+          "required": [],
+          "type": "object",
+          "title": "Convert Average Speed units"
+        },
         "avg_speed_sv_widgets": {
           "additionalProperties": false,
           "properties": {
@@ -893,6 +944,7 @@
       "uiSchema": {
         "ui:order": [
           "avg_speed",
+          "average_speed_converted",
           "avg_speed_sv_widgets",
           "avg_speed_grouped_widget"
         ]
@@ -916,6 +968,34 @@
           ],
           "type": "object",
           "title": "Calculate Max Speed Per Group"
+        },
+        "max_speed_converted": {
+          "additionalProperties": false,
+          "properties": {
+            "original_unit": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/Unit"
+                }
+              ],
+              "default": null,
+              "title": "Original Unit",
+              "description": "The original unit of measurement."
+            },
+            "new_unit": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/Unit"
+                }
+              ],
+              "default": null,
+              "title": "New Unit",
+              "description": "The unit to convert to."
+            }
+          },
+          "required": [],
+          "type": "object",
+          "title": "Convert Max Speed units"
         },
         "max_speed_sv_widgets": {
           "additionalProperties": false,
@@ -949,6 +1029,7 @@
       "uiSchema": {
         "ui:order": [
           "max_speed",
+          "max_speed_converted",
           "max_speed_sv_widgets",
           "max_speed_grouped_widget"
         ]
@@ -1200,9 +1281,16 @@
               "type": "string"
             },
             "nodata_value": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "string"
+                }
+              ],
               "default": "nan",
-              "title": "Nodata Value",
-              "type": "number"
+              "title": "Nodata Value"
             },
             "band_count": {
               "default": 1,
@@ -1238,6 +1326,43 @@
           "required": [],
           "type": "object",
           "title": "Calculate Time Density from Trajectory"
+        },
+        "td_colormap": {
+          "additionalProperties": false,
+          "properties": {
+            "input_column_name": {
+              "title": "Input Column Name",
+              "type": "string",
+              "description": "The name of the column with categorical values."
+            },
+            "colormap": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              ],
+              "default": "viridis",
+              "title": "Colormap",
+              "description": "Either a named mpl.colormap or a list of string hex values."
+            },
+            "output_column_name": {
+              "default": null,
+              "title": "Output Column Name",
+              "type": "string",
+              "description": "The dataframe column that will contain the color values."
+            }
+          },
+          "required": [
+            "input_column_name"
+          ],
+          "type": "object",
+          "title": "Time Density Colormap"
         },
         "td_map_layer": {
           "additionalProperties": false,
@@ -1277,11 +1402,14 @@
         "td_ecomap": {
           "additionalProperties": false,
           "properties": {
-            "tile_layer": {
-              "default": "",
-              "title": "Tile Layer",
-              "type": "string",
-              "description": "A named tile layer, ie OpenStreetMap."
+            "tile_layers": {
+              "default": [],
+              "items": {
+                "$ref": "#/$defs/TileLayer"
+              },
+              "title": "Tile Layers",
+              "type": "array",
+              "description": "A list of named tile layer with opacity, ie OpenStreetMap."
             },
             "static": {
               "default": false,
@@ -1360,6 +1488,7 @@
       "uiSchema": {
         "ui:order": [
           "td",
+          "td_colormap",
           "td_map_layer",
           "td_ecomap",
           "td_ecomap_html_url",
@@ -1561,7 +1690,7 @@
           "type": "string"
         },
         "get_radius": {
-          "default": 1,
+          "default": 5,
           "title": "Get Radius",
           "type": "number"
         },
@@ -1757,7 +1886,7 @@
           "title": "Get Color"
         },
         "get_width": {
-          "default": 1,
+          "default": 3,
           "title": "Get Width",
           "type": "number"
         },
@@ -1872,6 +2001,24 @@
         }
       },
       "title": "NorthArrowStyle",
+      "type": "object"
+    },
+    "TileLayer": {
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "opacity": {
+          "default": 1,
+          "title": "Opacity",
+          "type": "number"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "TileLayer",
       "type": "object"
     },
     "WidgetSingleView": {

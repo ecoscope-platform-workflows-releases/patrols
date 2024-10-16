@@ -1,6 +1,6 @@
 # [generated]
 # by = { compiler = "ecoscope-workflows-core", version = "9999" }
-# from-spec-sha256 = "8fe92f758a82485e050f823e4d82e65f5f83ba38faa4b5b1d748e8711b53edbb"
+# from-spec-sha256 = "499e500721b4c9b81f1d0c4694a0d81665449c1e1e75772ff0718c6a16a82e6f"
 
 # ruff: noqa: E402
 
@@ -38,6 +38,7 @@ get_patrol_events = create_task_magicmock(  # 🧪
 from ecoscope_workflows_ext_ecoscope.tasks.transformation import (
     apply_reloc_coord_filter,
 )
+from ecoscope_workflows_ext_ecoscope.tasks.transformation import apply_color_map
 from ecoscope_workflows_core.tasks.groupby import groupbykey
 from ecoscope_workflows_ext_ecoscope.tasks.results import draw_ecomap
 from ecoscope_workflows_core.tasks.io import persist_text
@@ -46,7 +47,7 @@ from ecoscope_workflows_core.tasks.results import merge_widget_views
 from ecoscope_workflows_core.tasks.analysis import dataframe_column_nunique
 from ecoscope_workflows_core.tasks.results import create_single_value_widget_single_view
 from ecoscope_workflows_core.tasks.analysis import dataframe_column_sum
-from ecoscope_workflows_core.tasks.analysis import apply_arithmetic_operation
+from ecoscope_workflows_core.tasks.transformation import with_unit
 from ecoscope_workflows_core.tasks.analysis import dataframe_column_mean
 from ecoscope_workflows_core.tasks.analysis import dataframe_column_max
 from ecoscope_workflows_ext_ecoscope.tasks.results import draw_time_series_bar_chart
@@ -74,7 +75,8 @@ def main(params: Params):
         "patrol_events": [],
         "filter_patrol_events": ["patrol_events"],
         "pe_add_temporal_index": ["filter_patrol_events"],
-        "split_pe_groups": ["pe_add_temporal_index", "groupers"],
+        "pe_colormap": ["pe_add_temporal_index"],
+        "split_pe_groups": ["pe_colormap", "groupers"],
         "patrol_events_map_layers": ["split_pe_groups"],
         "combined_traj_and_pe_map_layers": [
             "patrol_traj_map_layers",
@@ -96,10 +98,12 @@ def main(params: Params):
         "total_patrol_dist_sv_widgets": ["total_patrol_dist_converted"],
         "patrol_dist_grouped_widget": ["total_patrol_dist_sv_widgets"],
         "avg_speed": ["split_patrol_traj_groups"],
-        "avg_speed_sv_widgets": ["avg_speed"],
+        "average_speed_converted": ["avg_speed"],
+        "avg_speed_sv_widgets": ["average_speed_converted"],
         "avg_speed_grouped_widget": ["avg_speed_sv_widgets"],
         "max_speed": ["split_patrol_traj_groups"],
-        "max_speed_sv_widgets": ["max_speed"],
+        "max_speed_converted": ["max_speed"],
+        "max_speed_sv_widgets": ["max_speed_converted"],
         "max_speed_grouped_widget": ["max_speed_sv_widgets"],
         "patrol_events_bar_chart": ["filter_patrol_events"],
         "patrol_events_bar_chart_html_url": ["patrol_events_bar_chart"],
@@ -109,7 +113,8 @@ def main(params: Params):
         "patrol_events_pie_chart_widgets": ["pe_pie_chart_html_urls"],
         "patrol_events_pie_widget_grouped": ["patrol_events_pie_chart_widgets"],
         "td": ["patrol_traj"],
-        "td_map_layer": ["td"],
+        "td_colormap": ["td"],
+        "td_map_layer": ["td_colormap"],
         "td_ecomap": ["td_map_layer"],
         "td_ecomap_html_url": ["td_ecomap"],
         "td_map_widget": ["td_ecomap_html_url"],
@@ -201,10 +206,18 @@ def main(params: Params):
             | params_dict["pe_add_temporal_index"],
             method="call",
         ),
+        "pe_colormap": Node(
+            async_task=apply_color_map.validate().set_executor("lithops"),
+            partial={
+                "df": DependsOn("pe_add_temporal_index"),
+            }
+            | params_dict["pe_colormap"],
+            method="call",
+        ),
         "split_pe_groups": Node(
             async_task=split_groups.validate().set_executor("lithops"),
             partial={
-                "df": DependsOn("pe_add_temporal_index"),
+                "df": DependsOn("pe_colormap"),
                 "groupers": DependsOn("groupers"),
             }
             | params_dict["split_pe_groups"],
@@ -308,11 +321,11 @@ def main(params: Params):
             },
         ),
         "total_patrol_time_converted": Node(
-            async_task=apply_arithmetic_operation.validate().set_executor("lithops"),
+            async_task=with_unit.validate().set_executor("lithops"),
             partial=params_dict["total_patrol_time_converted"],
             method="mapvalues",
             kwargs={
-                "argnames": ["a"],
+                "argnames": ["value"],
                 "argvalues": DependsOn("total_patrol_time"),
             },
         ),
@@ -345,11 +358,11 @@ def main(params: Params):
             },
         ),
         "total_patrol_dist_converted": Node(
-            async_task=apply_arithmetic_operation.validate().set_executor("lithops"),
+            async_task=with_unit.validate().set_executor("lithops"),
             partial=params_dict["total_patrol_dist_converted"],
             method="mapvalues",
             kwargs={
-                "argnames": ["a"],
+                "argnames": ["value"],
                 "argvalues": DependsOn("total_patrol_dist"),
             },
         ),
@@ -381,6 +394,15 @@ def main(params: Params):
                 "argvalues": DependsOn("split_patrol_traj_groups"),
             },
         ),
+        "average_speed_converted": Node(
+            async_task=with_unit.validate().set_executor("lithops"),
+            partial=params_dict["average_speed_converted"],
+            method="mapvalues",
+            kwargs={
+                "argnames": ["value"],
+                "argvalues": DependsOn("avg_speed"),
+            },
+        ),
         "avg_speed_sv_widgets": Node(
             async_task=create_single_value_widget_single_view.validate().set_executor(
                 "lithops"
@@ -389,7 +411,7 @@ def main(params: Params):
             method="map",
             kwargs={
                 "argnames": ["view", "data"],
-                "argvalues": DependsOn("avg_speed"),
+                "argvalues": DependsOn("average_speed_converted"),
             },
         ),
         "avg_speed_grouped_widget": Node(
@@ -409,6 +431,15 @@ def main(params: Params):
                 "argvalues": DependsOn("split_patrol_traj_groups"),
             },
         ),
+        "max_speed_converted": Node(
+            async_task=with_unit.validate().set_executor("lithops"),
+            partial=params_dict["max_speed_converted"],
+            method="mapvalues",
+            kwargs={
+                "argnames": ["value"],
+                "argvalues": DependsOn("max_speed"),
+            },
+        ),
         "max_speed_sv_widgets": Node(
             async_task=create_single_value_widget_single_view.validate().set_executor(
                 "lithops"
@@ -417,7 +448,7 @@ def main(params: Params):
             method="map",
             kwargs={
                 "argnames": ["view", "data"],
-                "argvalues": DependsOn("max_speed"),
+                "argvalues": DependsOn("max_speed_converted"),
             },
         ),
         "max_speed_grouped_widget": Node(
@@ -503,10 +534,18 @@ def main(params: Params):
             | params_dict["td"],
             method="call",
         ),
+        "td_colormap": Node(
+            async_task=apply_color_map.validate().set_executor("lithops"),
+            partial={
+                "df": DependsOn("td"),
+            }
+            | params_dict["td_colormap"],
+            method="call",
+        ),
         "td_map_layer": Node(
             async_task=create_map_layer.validate().set_executor("lithops"),
             partial={
-                "geodataframe": DependsOn("td"),
+                "geodataframe": DependsOn("td_colormap"),
             }
             | params_dict["td_map_layer"],
             method="call",
