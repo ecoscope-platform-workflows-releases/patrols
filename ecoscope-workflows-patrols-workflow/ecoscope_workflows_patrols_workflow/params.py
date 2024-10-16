@@ -1,6 +1,6 @@
 # [generated]
 # by = { compiler = "ecoscope-workflows-core", version = "9999" }
-# from-spec-sha256 = "8fe92f758a82485e050f823e4d82e65f5f83ba38faa4b5b1d748e8711b53edbb"
+# from-spec-sha256 = "b7babc0b9d54387115d82f6e7844d61c64512184164bc472dd281b52e904d323"
 
 
 from __future__ import annotations
@@ -369,7 +369,7 @@ class Td(BaseModel):
         250.0, description="Pixel size for raster profile.", title="Pixel Size"
     )
     crs: Optional[str] = Field("ESRI:102022", title="Crs")
-    nodata_value: Optional[float] = Field("nan", title="Nodata Value")
+    nodata_value: Optional[Union[float, str]] = Field("nan", title="Nodata Value")
     band_count: Optional[int] = Field(1, title="Band Count")
     max_speed_factor: Optional[float] = Field(1.05, title="Max Speed Factor")
     expansion_factor: Optional[float] = Field(1.3, title="Expansion Factor")
@@ -453,7 +453,7 @@ class PointLayerStyle(BaseModel):
         "pixels", title="Line Width Units"
     )
     layer_type: Literal["point"] = Field("point", title="Layer Type")
-    get_radius: Optional[float] = Field(1, title="Get Radius")
+    get_radius: Optional[float] = Field(5, title="Get Radius")
     radius_units: Optional[RadiusUnits] = Field("pixels", title="Radius Units")
 
 
@@ -499,7 +499,7 @@ class PolylineLayerStyle(BaseModel):
     get_color: Optional[Union[str, List[int], List[List[int]]]] = Field(
         None, title="Get Color"
     )
-    get_width: Optional[float] = Field(1, title="Get Width")
+    get_width: Optional[float] = Field(3, title="Get Width")
     color_column: Optional[str] = Field(None, title="Color Column")
     width_units: Optional[WidthUnits] = Field("pixels", title="Width Units")
     cap_rounded: Optional[bool] = Field(True, title="Cap Rounded")
@@ -528,6 +528,11 @@ class LegendStyle(BaseModel):
 class NorthArrowStyle(BaseModel):
     placement: Optional[Placement] = Field("top-left", title="Placement")
     style: Optional[Dict[str, Any]] = Field({"transform": "scale(0.8)"}, title="Style")
+
+
+class TileLayer(BaseModel):
+    name: str = Field(..., title="Name")
+    opacity: Optional[float] = Field(1, title="Opacity")
 
 
 class WidgetType(str, Enum):
@@ -658,8 +663,10 @@ class TrajPatrolEventsEcomap(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    tile_layer: Optional[str] = Field(
-        "", description="A named tile layer, ie OpenStreetMap.", title="Tile Layer"
+    tile_layers: Optional[List[TileLayer]] = Field(
+        [],
+        description="A list of named tile layer with opacity, ie OpenStreetMap.",
+        title="Tile Layers",
     )
     static: Optional[bool] = Field(
         False, description="Set to true to disable map pan/zoom.", title="Static"
@@ -730,8 +737,10 @@ class TdEcomap(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    tile_layer: Optional[str] = Field(
-        "", description="A named tile layer, ie OpenStreetMap.", title="Tile Layer"
+    tile_layers: Optional[List[TileLayer]] = Field(
+        [],
+        description="A list of named tile layer with opacity, ie OpenStreetMap.",
+        title="Tile Layers",
     )
     static: Optional[bool] = Field(
         False, description="Set to true to disable map pan/zoom.", title="Static"

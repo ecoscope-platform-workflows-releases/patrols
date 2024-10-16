@@ -1,6 +1,6 @@
 # [generated]
 # by = { compiler = "ecoscope-workflows-core", version = "9999" }
-# from-spec-sha256 = "8fe92f758a82485e050f823e4d82e65f5f83ba38faa4b5b1d748e8711b53edbb"
+# from-spec-sha256 = "b7babc0b9d54387115d82f6e7844d61c64512184164bc472dd281b52e904d323"
 
 
 # ruff: noqa: E402
@@ -315,7 +315,7 @@ combined_traj_and_pe_map_layers = groupbykey.partial(
 # parameters
 
 traj_patrol_events_ecomap_params = dict(
-    tile_layer=...,
+    tile_layers=...,
     static=...,
     title=...,
     north_arrow_style=...,
@@ -901,7 +901,7 @@ td_map_layer = create_map_layer.partial(geodataframe=td, **td_map_layer_params).
 # parameters
 
 td_ecomap_params = dict(
-    tile_layer=...,
+    tile_layers=...,
     static=...,
     title=...,
     north_arrow_style=...,
