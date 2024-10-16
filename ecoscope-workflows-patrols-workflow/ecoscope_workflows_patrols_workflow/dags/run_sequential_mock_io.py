@@ -1,6 +1,6 @@
 # [generated]
 # by = { compiler = "ecoscope-workflows-core", version = "9999" }
-# from-spec-sha256 = "b7babc0b9d54387115d82f6e7844d61c64512184164bc472dd281b52e904d323"
+# from-spec-sha256 = "499e500721b4c9b81f1d0c4694a0d81665449c1e1e75772ff0718c6a16a82e6f"
 
 # ruff: noqa: E402
 
@@ -36,6 +36,7 @@ get_patrol_events = create_task_magicmock(  # 🧪
 from ecoscope_workflows_ext_ecoscope.tasks.transformation import (
     apply_reloc_coord_filter,
 )
+from ecoscope_workflows_ext_ecoscope.tasks.transformation import apply_color_map
 from ecoscope_workflows_core.tasks.groupby import groupbykey
 from ecoscope_workflows_ext_ecoscope.tasks.results import draw_ecomap
 from ecoscope_workflows_core.tasks.io import persist_text
@@ -44,7 +45,7 @@ from ecoscope_workflows_core.tasks.results import merge_widget_views
 from ecoscope_workflows_core.tasks.analysis import dataframe_column_nunique
 from ecoscope_workflows_core.tasks.results import create_single_value_widget_single_view
 from ecoscope_workflows_core.tasks.analysis import dataframe_column_sum
-from ecoscope_workflows_core.tasks.analysis import apply_arithmetic_operation
+from ecoscope_workflows_core.tasks.transformation import with_unit
 from ecoscope_workflows_core.tasks.analysis import dataframe_column_mean
 from ecoscope_workflows_core.tasks.analysis import dataframe_column_max
 from ecoscope_workflows_ext_ecoscope.tasks.results import draw_time_series_bar_chart
@@ -117,13 +118,15 @@ def main(params: Params):
         .call()
     )
 
+    pe_colormap = (
+        apply_color_map.validate()
+        .partial(df=pe_add_temporal_index, **params_dict["pe_colormap"])
+        .call()
+    )
+
     split_pe_groups = (
         split_groups.validate()
-        .partial(
-            df=pe_add_temporal_index,
-            groupers=groupers,
-            **params_dict["split_pe_groups"],
-        )
+        .partial(df=pe_colormap, groupers=groupers, **params_dict["split_pe_groups"])
         .call()
     )
 
@@ -200,9 +203,9 @@ def main(params: Params):
     )
 
     total_patrol_time_converted = (
-        apply_arithmetic_operation.validate()
+        with_unit.validate()
         .partial(**params_dict["total_patrol_time_converted"])
-        .mapvalues(argnames=["a"], argvalues=total_patrol_time)
+        .mapvalues(argnames=["value"], argvalues=total_patrol_time)
     )
 
     total_patrol_time_sv_widgets = (
@@ -227,9 +230,9 @@ def main(params: Params):
     )
 
     total_patrol_dist_converted = (
-        apply_arithmetic_operation.validate()
+        with_unit.validate()
         .partial(**params_dict["total_patrol_dist_converted"])
-        .mapvalues(argnames=["a"], argvalues=total_patrol_dist)
+        .mapvalues(argnames=["value"], argvalues=total_patrol_dist)
     )
 
     total_patrol_dist_sv_widgets = (
@@ -253,10 +256,16 @@ def main(params: Params):
         .mapvalues(argnames=["df"], argvalues=split_patrol_traj_groups)
     )
 
+    average_speed_converted = (
+        with_unit.validate()
+        .partial(**params_dict["average_speed_converted"])
+        .mapvalues(argnames=["value"], argvalues=avg_speed)
+    )
+
     avg_speed_sv_widgets = (
         create_single_value_widget_single_view.validate()
         .partial(**params_dict["avg_speed_sv_widgets"])
-        .map(argnames=["view", "data"], argvalues=avg_speed)
+        .map(argnames=["view", "data"], argvalues=average_speed_converted)
     )
 
     avg_speed_grouped_widget = (
@@ -273,10 +282,16 @@ def main(params: Params):
         .mapvalues(argnames=["df"], argvalues=split_patrol_traj_groups)
     )
 
+    max_speed_converted = (
+        with_unit.validate()
+        .partial(**params_dict["max_speed_converted"])
+        .mapvalues(argnames=["value"], argvalues=max_speed)
+    )
+
     max_speed_sv_widgets = (
         create_single_value_widget_single_view.validate()
         .partial(**params_dict["max_speed_sv_widgets"])
-        .map(argnames=["view", "data"], argvalues=max_speed)
+        .map(argnames=["view", "data"], argvalues=max_speed_converted)
     )
 
     max_speed_grouped_widget = (
@@ -350,9 +365,13 @@ def main(params: Params):
         .call()
     )
 
+    td_colormap = (
+        apply_color_map.validate().partial(df=td, **params_dict["td_colormap"]).call()
+    )
+
     td_map_layer = (
         create_map_layer.validate()
-        .partial(geodataframe=td, **params_dict["td_map_layer"])
+        .partial(geodataframe=td_colormap, **params_dict["td_map_layer"])
         .call()
     )
 

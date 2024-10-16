@@ -1,6 +1,6 @@
 # [generated]
 # by = { compiler = "ecoscope-workflows-core", version = "9999" }
-# from-spec-sha256 = "b7babc0b9d54387115d82f6e7844d61c64512184164bc472dd281b52e904d323"
+# from-spec-sha256 = "499e500721b4c9b81f1d0c4694a0d81665449c1e1e75772ff0718c6a16a82e6f"
 
 
 # ruff: noqa: E402
@@ -26,6 +26,7 @@ from ecoscope_workflows_ext_ecoscope.tasks.io import get_patrol_events
 from ecoscope_workflows_ext_ecoscope.tasks.transformation import (
     apply_reloc_coord_filter,
 )
+from ecoscope_workflows_ext_ecoscope.tasks.transformation import apply_color_map
 from ecoscope_workflows_core.tasks.groupby import groupbykey
 from ecoscope_workflows_ext_ecoscope.tasks.results import draw_ecomap
 from ecoscope_workflows_core.tasks.io import persist_text
@@ -34,7 +35,7 @@ from ecoscope_workflows_core.tasks.results import merge_widget_views
 from ecoscope_workflows_core.tasks.analysis import dataframe_column_nunique
 from ecoscope_workflows_core.tasks.results import create_single_value_widget_single_view
 from ecoscope_workflows_core.tasks.analysis import dataframe_column_sum
-from ecoscope_workflows_core.tasks.analysis import apply_arithmetic_operation
+from ecoscope_workflows_core.tasks.transformation import with_unit
 from ecoscope_workflows_core.tasks.analysis import dataframe_column_mean
 from ecoscope_workflows_core.tasks.analysis import dataframe_column_max
 from ecoscope_workflows_ext_ecoscope.tasks.results import draw_time_series_bar_chart
@@ -254,6 +255,27 @@ pe_add_temporal_index = add_temporal_index.partial(
 
 
 # %% [markdown]
+# ## Patrol Events Colormap
+
+# %%
+# parameters
+
+pe_colormap_params = dict(
+    input_column_name=...,
+    colormap=...,
+    output_column_name=...,
+)
+
+# %%
+# call the task
+
+
+pe_colormap = apply_color_map.partial(
+    df=pe_add_temporal_index, **pe_colormap_params
+).call()
+
+
+# %% [markdown]
 # ## Split Patrol Events by Group
 
 # %%
@@ -266,7 +288,7 @@ split_pe_groups_params = dict()
 
 
 split_pe_groups = split_groups.partial(
-    df=pe_add_temporal_index, groupers=groupers, **split_pe_groups_params
+    df=pe_colormap, groupers=groupers, **split_pe_groups_params
 ).call()
 
 
@@ -469,17 +491,17 @@ total_patrol_time = dataframe_column_sum.partial(**total_patrol_time_params).map
 # parameters
 
 total_patrol_time_converted_params = dict(
-    b=...,
-    operation=...,
+    original_unit=...,
+    new_unit=...,
 )
 
 # %%
 # call the task
 
 
-total_patrol_time_converted = apply_arithmetic_operation.partial(
+total_patrol_time_converted = with_unit.partial(
     **total_patrol_time_converted_params
-).mapvalues(argnames=["a"], argvalues=total_patrol_time)
+).mapvalues(argnames=["value"], argvalues=total_patrol_time)
 
 
 # %% [markdown]
@@ -545,17 +567,17 @@ total_patrol_dist = dataframe_column_sum.partial(**total_patrol_dist_params).map
 # parameters
 
 total_patrol_dist_converted_params = dict(
-    b=...,
-    operation=...,
+    original_unit=...,
+    new_unit=...,
 )
 
 # %%
 # call the task
 
 
-total_patrol_dist_converted = apply_arithmetic_operation.partial(
+total_patrol_dist_converted = with_unit.partial(
     **total_patrol_dist_converted_params
-).mapvalues(argnames=["a"], argvalues=total_patrol_dist)
+).mapvalues(argnames=["value"], argvalues=total_patrol_dist)
 
 
 # %% [markdown]
@@ -615,6 +637,26 @@ avg_speed = dataframe_column_mean.partial(**avg_speed_params).mapvalues(
 
 
 # %% [markdown]
+# ## Convert Average Speed units
+
+# %%
+# parameters
+
+average_speed_converted_params = dict(
+    original_unit=...,
+    new_unit=...,
+)
+
+# %%
+# call the task
+
+
+average_speed_converted = with_unit.partial(**average_speed_converted_params).mapvalues(
+    argnames=["value"], argvalues=avg_speed
+)
+
+
+# %% [markdown]
 # ## Create Single Value Widgets for Avg Speed Per Group
 
 # %%
@@ -631,7 +673,7 @@ avg_speed_sv_widgets_params = dict(
 
 avg_speed_sv_widgets = create_single_value_widget_single_view.partial(
     **avg_speed_sv_widgets_params
-).map(argnames=["view", "data"], argvalues=avg_speed)
+).map(argnames=["view", "data"], argvalues=average_speed_converted)
 
 
 # %% [markdown]
@@ -671,6 +713,26 @@ max_speed = dataframe_column_max.partial(**max_speed_params).mapvalues(
 
 
 # %% [markdown]
+# ## Convert Max Speed units
+
+# %%
+# parameters
+
+max_speed_converted_params = dict(
+    original_unit=...,
+    new_unit=...,
+)
+
+# %%
+# call the task
+
+
+max_speed_converted = with_unit.partial(**max_speed_converted_params).mapvalues(
+    argnames=["value"], argvalues=max_speed
+)
+
+
+# %% [markdown]
 # ## Create Single Value Widgets for Max Speed Per Group
 
 # %%
@@ -687,7 +749,7 @@ max_speed_sv_widgets_params = dict(
 
 max_speed_sv_widgets = create_single_value_widget_single_view.partial(
     **max_speed_sv_widgets_params
-).map(argnames=["view", "data"], argvalues=max_speed)
+).map(argnames=["view", "data"], argvalues=max_speed_converted)
 
 
 # %% [markdown]
@@ -877,6 +939,25 @@ td = calculate_time_density.partial(trajectory_gdf=patrol_traj, **td_params).cal
 
 
 # %% [markdown]
+# ## Time Density Colormap
+
+# %%
+# parameters
+
+td_colormap_params = dict(
+    input_column_name=...,
+    colormap=...,
+    output_column_name=...,
+)
+
+# %%
+# call the task
+
+
+td_colormap = apply_color_map.partial(df=td, **td_colormap_params).call()
+
+
+# %% [markdown]
 # ## Create map layer from Time Density
 
 # %%
@@ -891,7 +972,9 @@ td_map_layer_params = dict(
 # call the task
 
 
-td_map_layer = create_map_layer.partial(geodataframe=td, **td_map_layer_params).call()
+td_map_layer = create_map_layer.partial(
+    geodataframe=td_colormap, **td_map_layer_params
+).call()
 
 
 # %% [markdown]
