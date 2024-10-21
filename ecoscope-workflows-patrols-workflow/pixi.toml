@@ -60,3 +60,6 @@ docker-build = "docker buildx build -t ecoscope-workflows-patrols-workflow ."
 [pypi-dependencies.ecoscope-workflows-patrols-workflow]
 path = "."
 editable = true
+
+[system-requirements]
+linux="4.4.0"
