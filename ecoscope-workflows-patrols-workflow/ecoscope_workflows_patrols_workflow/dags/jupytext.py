@@ -1,6 +1,6 @@
 # [generated]
 # by = { compiler = "ecoscope-workflows-core", version = "9999" }
-# from-spec-sha256 = "80be953de845c95c3cbd1eaf9e3527b2a83b6166f794d9dd3c27d44ce5003da3"
+# from-spec-sha256 = "d79d4617f5a8656f3be56171174970b8feeeba5aa2e2debca2aaab5e3f6659e6"
 
 
 # ruff: noqa: E402
@@ -14,6 +14,7 @@
 
 import os
 from ecoscope_workflows_core.tasks.groupby import set_groupers
+from ecoscope_workflows_core.tasks.filter import set_time_range
 from ecoscope_workflows_ext_ecoscope.tasks.io import get_patrol_observations
 from ecoscope_workflows_ext_ecoscope.tasks.preprocessing import process_relocations
 from ecoscope_workflows_ext_ecoscope.tasks.preprocessing import (
@@ -62,6 +63,25 @@ groupers = set_groupers.partial(**groupers_params).call()
 
 
 # %% [markdown]
+# ## Set Time Range Filters
+
+# %%
+# parameters
+
+time_range_params = dict(
+    since=...,
+    until=...,
+    time_format=...,
+)
+
+# %%
+# call the task
+
+
+time_range = set_time_range.partial(**time_range_params).call()
+
+
+# %% [markdown]
 # ## Get Patrol Observations from EarthRanger
 
 # %%
@@ -69,8 +89,6 @@ groupers = set_groupers.partial(**groupers_params).call()
 
 patrol_obs_params = dict(
     client=...,
-    since=...,
-    until=...,
     patrol_type=...,
     status=...,
     include_patrol_details=...,
@@ -80,7 +98,9 @@ patrol_obs_params = dict(
 # call the task
 
 
-patrol_obs = get_patrol_observations.partial(**patrol_obs_params).call()
+patrol_obs = get_patrol_observations.partial(
+    time_range=time_range, **patrol_obs_params
+).call()
 
 
 # %% [markdown]
@@ -195,8 +215,6 @@ patrol_traj_map_layers = create_map_layer.partial(
 
 patrol_events_params = dict(
     client=...,
-    since=...,
-    until=...,
     patrol_type=...,
     status=...,
 )
@@ -205,7 +223,9 @@ patrol_events_params = dict(
 # call the task
 
 
-patrol_events = get_patrol_events.partial(**patrol_events_params).call()
+patrol_events = get_patrol_events.partial(
+    time_range=time_range, **patrol_events_params
+).call()
 
 
 # %% [markdown]
@@ -1067,5 +1087,6 @@ patrol_dashboard = gather_dashboard.partial(
         max_speed_grouped_widget,
     ],
     groupers=groupers,
+    time_range=time_range,
     **patrol_dashboard_params,
 ).call()

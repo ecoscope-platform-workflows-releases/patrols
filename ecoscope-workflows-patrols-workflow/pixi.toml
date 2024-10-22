@@ -1,6 +1,6 @@
 # [generated]
 # by = { compiler = "ecoscope-workflows-core", version = "9999" }
-# from-spec-sha256 = "80be953de845c95c3cbd1eaf9e3527b2a83b6166f794d9dd3c27d44ce5003da3"
+# from-spec-sha256 = "d79d4617f5a8656f3be56171174970b8feeeba5aa2e2debca2aaab5e3f6659e6"
 
 [project]
 name = "ecoscope-workflows-patrols-workflow"
@@ -27,11 +27,11 @@ version = "*"
 version = "*"
 
 [dependencies.ecoscope-workflows-core]
-version = "==v0.0.6"
+version = "==v0.0.7"
 channel = "https://repo.prefix.dev/ecoscope-workflows/"
 
 [dependencies.ecoscope-workflows-ext-ecoscope]
-version = "==v0.0.6"
+version = "==v0.0.7"
 channel = "https://repo.prefix.dev/ecoscope-workflows/"
 
 [feature.test.dependencies.pytest]
@@ -39,6 +39,7 @@ version = "*"
 
 [feature.test.tasks]
 test-all = "python -m pytest -v tests"
+test-app-params = "python -m pytest -v tests/test_app.py -k 'params or formdata'"
 test-app-async-mock-io = "python -m pytest -v tests/test_app.py -k 'async and mock-io'"
 test-app-sequential-mock-io = "python -m pytest -v tests/test_app.py -k 'sequential and mock-io'"
 test-cli-async-mock-io = "python -m pytest -v tests/test_cli.py -k 'async and mock-io'"
@@ -60,6 +61,3 @@ docker-build = "docker buildx build -t ecoscope-workflows-patrols-workflow ."
 [pypi-dependencies.ecoscope-workflows-patrols-workflow]
 path = "."
 editable = true
-
-[system-requirements]
-linux="4.4.0"
