@@ -1,6 +1,6 @@
 # [generated]
 # by = { compiler = "ecoscope-workflows-core", version = "9999" }
-# from-spec-sha256 = "d79d4617f5a8656f3be56171174970b8feeeba5aa2e2debca2aaab5e3f6659e6"
+# from-spec-sha256 = "d0d6fbaebf97df068d2a82cc842bda1ceb49040d757cbcf4f8e7ac99b3e74f2f"
 
 
 from pathlib import Path
@@ -55,11 +55,12 @@ def test_validate_formdata(client: TestClient, case: TestCase, formdata: dict):
     response = client.post("/params", json=formdata)
     assert response.status_code == 200
 
+    assert set(response.json()) == set(case.params)
+
     if set(formdata) != set(case.params):
-        # this workflow uses task groups, so make a few extra asserts
+        # this workflow uses task groups, so make one other assert
         # task groups are not required, so these asserts are skipped
         # for workflows that simply use a flat layout
-        assert set(response.json()) == set(case.params)
 
         with pytest.raises(pydantic.ValidationError):
             Params(**formdata)
