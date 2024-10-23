@@ -1,6 +1,6 @@
 # [generated]
 # by = { compiler = "ecoscope-workflows-core", version = "9999" }
-# from-spec-sha256 = "d0d6fbaebf97df068d2a82cc842bda1ceb49040d757cbcf4f8e7ac99b3e74f2f"
+# from-spec-sha256 = "c53fa0a46d60eabf4859e5bc642b45b597aad503d2f675132245b3ae5a54a2b4"
 
 [project]
 name = "ecoscope-workflows-patrols-workflow"
@@ -13,6 +13,9 @@ platforms = [
     "linux-aarch64",
     "osx-arm64",
 ]
+
+[system-requirements]
+linux = "4.4.0"
 
 [dependencies.fastapi]
 version = "*"
@@ -27,11 +30,11 @@ version = "*"
 version = "*"
 
 [dependencies.ecoscope-workflows-core]
-version = "==v0.0.8"
+version = "==v0.0.10"
 channel = "https://repo.prefix.dev/ecoscope-workflows/"
 
 [dependencies.ecoscope-workflows-ext-ecoscope]
-version = "==v0.0.8"
+version = "==v0.0.10"
 channel = "https://repo.prefix.dev/ecoscope-workflows/"
 
 [feature.test.dependencies.pytest]
