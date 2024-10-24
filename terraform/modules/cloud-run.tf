@@ -4,6 +4,10 @@ resource "google_cloud_run_v2_service" "default" {
   location = var.location
   ingress  = var.ingress
 
+  custom_audiences = [
+    var.workflows_services_custom_audience
+  ]
+
   template {
     service_account = google_service_account.default.email
 
@@ -27,6 +31,11 @@ resource "google_cloud_run_v2_service" "default" {
         limits            = var.limits
         cpu_idle          = true
         startup_cpu_boost = true
+      }
+
+      env {
+        name  = "WORKFLOW_RESULTS_ROOT_PATH"
+        value = var.workflows_results_bucket
       }
     }
   }
