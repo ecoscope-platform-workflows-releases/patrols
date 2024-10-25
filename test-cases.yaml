@@ -109,7 +109,6 @@ test1:
         - name: "TERRAIN"
           opacity: 0.5
       static: False # (<class 'bool'>, FieldInfo(annotation=NoneType, required=False))
-      title: "Trajectories & Patrol Events" # (<class 'str'>, FieldInfo(annotation=NoneType, required=False))
 
     # Parameters for 'Persist Patrols Ecomap as Text' using task `persist_text`.
     traj_pe_ecomap_html_urls: {}
