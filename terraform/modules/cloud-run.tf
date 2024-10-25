@@ -9,7 +9,8 @@ resource "google_cloud_run_v2_service" "default" {
   ]
 
   template {
-    service_account = google_service_account.default.email
+    service_account                  = google_service_account.default.email
+    max_instance_request_concurrency = var.max_instance_request_concurrency
 
     scaling {
       min_instance_count = var.min_instance_count
