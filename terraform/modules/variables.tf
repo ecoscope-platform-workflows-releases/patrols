@@ -29,7 +29,13 @@ variable "min_instance_count" {
 variable "max_instance_count" {
   type        = number
   description = "Maximum number of serving instances that this resource should have."
-  default     = "2"
+  default     = "5"
+}
+
+variable "max_instance_request_concurrency" {
+  type        = number
+  description = "Sets the maximum number of requests that each serving instance can receive"
+  default     = 2
 }
 
 variable "image" {
