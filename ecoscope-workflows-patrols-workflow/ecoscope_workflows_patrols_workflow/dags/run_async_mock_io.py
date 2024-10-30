@@ -1,6 +1,6 @@
 # [generated]
 # by = { compiler = "ecoscope-workflows-core", version = "9999" }
-# from-spec-sha256 = "319c8321b437814c5959d1039b588476ffbe5c1bd8b0c36ba4fe12936d3529e2"
+# from-spec-sha256 = "0eff8f382be6bfe74cdaab238f6b5c6b70126e7269e68cf342092f04ba2e052b"
 
 # ruff: noqa: E402
 
@@ -17,6 +17,7 @@ from ecoscope_workflows_core.testing import create_task_magicmock  # 🧪
 
 from ecoscope_workflows_core.graph import DependsOn, DependsOnSequence, Graph, Node
 
+from ecoscope_workflows_core.tasks.config import set_workflow_details
 from ecoscope_workflows_core.tasks.groupby import set_groupers
 from ecoscope_workflows_core.tasks.filter import set_time_range
 
@@ -66,6 +67,7 @@ def main(params: Params):
     params_dict = json.loads(params.model_dump_json(exclude_unset=True))
 
     dependencies = {
+        "workflow_details": [],
         "groupers": [],
         "time_range": [],
         "patrol_obs": ["time_range"],
@@ -121,6 +123,7 @@ def main(params: Params):
         "td_ecomap_html_url": ["td_ecomap"],
         "td_map_widget": ["td_ecomap_html_url"],
         "patrol_dashboard": [
+            "workflow_details",
             "traj_pe_grouped_map_widget",
             "td_map_widget",
             "patrol_events_bar_chart_widget",
@@ -136,6 +139,11 @@ def main(params: Params):
     }
 
     nodes = {
+        "workflow_details": Node(
+            async_task=set_workflow_details.validate().set_executor("lithops"),
+            partial=params_dict["workflow_details"],
+            method="call",
+        ),
         "groupers": Node(
             async_task=set_groupers.validate().set_executor("lithops"),
             partial=params_dict["groupers"],
@@ -592,6 +600,7 @@ def main(params: Params):
         "patrol_dashboard": Node(
             async_task=gather_dashboard.validate().set_executor("lithops"),
             partial={
+                "details": DependsOn("workflow_details"),
                 "widgets": DependsOnSequence(
                     [
                         DependsOn("traj_pe_grouped_map_widget"),
