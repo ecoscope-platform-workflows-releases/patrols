@@ -1,6 +1,6 @@
 # [generated]
 # by = { compiler = "ecoscope-workflows-core", version = "9999" }
-# from-spec-sha256 = "b7fe20d8920b7330322b27e679fbe8558f2e1822c0016cfed5291b7735a20ce3"
+# from-spec-sha256 = "07ffd4fc8e89019bbd0086333f0cbead53561801e3c1cd3bba81063c45abdb28"
 import json
 import os
 
@@ -15,13 +15,14 @@ from ecoscope_workflows_ext_ecoscope.tasks.preprocessing import (
     relocations_to_trajectory,
 )
 from ecoscope_workflows_core.tasks.transformation import add_temporal_index
-from ecoscope_workflows_core.tasks.groupby import split_groups
-from ecoscope_workflows_ext_ecoscope.tasks.results import create_map_layer
 from ecoscope_workflows_ext_ecoscope.tasks.io import get_patrol_events
 from ecoscope_workflows_ext_ecoscope.tasks.transformation import (
     apply_reloc_coord_filter,
 )
 from ecoscope_workflows_ext_ecoscope.tasks.transformation import apply_color_map
+from ecoscope_workflows_core.tasks.groupby import split_groups
+from ecoscope_workflows_ext_ecoscope.tasks.results import create_point_layer
+from ecoscope_workflows_ext_ecoscope.tasks.results import create_polyline_layer
 from ecoscope_workflows_core.tasks.groupby import groupbykey
 from ecoscope_workflows_ext_ecoscope.tasks.results import draw_ecomap
 from ecoscope_workflows_core.tasks.io import persist_text
@@ -37,6 +38,7 @@ from ecoscope_workflows_ext_ecoscope.tasks.results import draw_time_series_bar_c
 from ecoscope_workflows_core.tasks.results import create_plot_widget_single_view
 from ecoscope_workflows_ext_ecoscope.tasks.results import draw_pie_chart
 from ecoscope_workflows_ext_ecoscope.tasks.analysis import calculate_time_density
+from ecoscope_workflows_ext_ecoscope.tasks.results import create_polygon_layer
 from ecoscope_workflows_core.tasks.results import gather_dashboard
 
 from ..params import Params
@@ -52,15 +54,15 @@ def main(params: Params):
         "patrol_obs": ["time_range"],
         "patrol_reloc": ["patrol_obs"],
         "patrol_traj": ["patrol_reloc"],
-        "traj_add_temporal_index": ["patrol_traj"],
-        "split_patrol_traj_groups": ["traj_add_temporal_index", "groupers"],
-        "patrol_traj_map_layers": ["split_patrol_traj_groups"],
+        "traj_add_temporal_index": ["patrol_traj", "groupers"],
         "patrol_events": ["time_range"],
         "filter_patrol_events": ["patrol_events"],
-        "pe_add_temporal_index": ["filter_patrol_events"],
+        "pe_add_temporal_index": ["filter_patrol_events", "groupers"],
         "pe_colormap": ["pe_add_temporal_index"],
         "split_pe_groups": ["pe_colormap", "groupers"],
         "patrol_events_map_layers": ["split_pe_groups"],
+        "split_patrol_traj_groups": ["traj_add_temporal_index", "groupers"],
+        "patrol_traj_map_layers": ["split_patrol_traj_groups"],
         "combined_traj_and_pe_map_layers": [
             "patrol_traj_map_layers",
             "patrol_events_map_layers",
@@ -120,17 +122,17 @@ def main(params: Params):
     nodes = {
         "workflow_details": Node(
             async_task=set_workflow_details.validate().set_executor("lithops"),
-            partial=params_dict["workflow_details"],
+            partial=(params_dict.get("workflow_details") or {}),
             method="call",
         ),
         "groupers": Node(
             async_task=set_groupers.validate().set_executor("lithops"),
-            partial=params_dict["groupers"],
+            partial=(params_dict.get("groupers") or {}),
             method="call",
         ),
         "time_range": Node(
             async_task=set_time_range.validate().set_executor("lithops"),
-            partial=params_dict["time_range"],
+            partial=(params_dict.get("time_range") or {}),
             method="call",
         ),
         "patrol_obs": Node(
@@ -138,15 +140,31 @@ def main(params: Params):
             partial={
                 "time_range": DependsOn("time_range"),
             }
-            | params_dict["patrol_obs"],
+            | (params_dict.get("patrol_obs") or {}),
             method="call",
         ),
         "patrol_reloc": Node(
             async_task=process_relocations.validate().set_executor("lithops"),
             partial={
                 "observations": DependsOn("patrol_obs"),
+                "relocs_columns": [
+                    "patrol_id",
+                    "patrol_start_time",
+                    "patrol_end_time",
+                    "patrol_type__display",
+                    "groupby_col",
+                    "fixtime",
+                    "junk_status",
+                    "extra__source",
+                    "geometry",
+                ],
+                "filter_point_coords": [
+                    {"x": 180.0, "y": 90.0},
+                    {"x": 0.0, "y": 0.0},
+                    {"x": 1.0, "y": 1.0},
+                ],
             }
-            | params_dict["patrol_reloc"],
+            | (params_dict.get("patrol_reloc") or {}),
             method="call",
         ),
         "patrol_traj": Node(
@@ -154,41 +172,25 @@ def main(params: Params):
             partial={
                 "relocations": DependsOn("patrol_reloc"),
             }
-            | params_dict["patrol_traj"],
+            | (params_dict.get("patrol_traj") or {}),
             method="call",
         ),
         "traj_add_temporal_index": Node(
             async_task=add_temporal_index.validate().set_executor("lithops"),
             partial={
                 "df": DependsOn("patrol_traj"),
-            }
-            | params_dict["traj_add_temporal_index"],
-            method="call",
-        ),
-        "split_patrol_traj_groups": Node(
-            async_task=split_groups.validate().set_executor("lithops"),
-            partial={
-                "df": DependsOn("traj_add_temporal_index"),
+                "time_col": "extra__patrol_start_time",
                 "groupers": DependsOn("groupers"),
             }
-            | params_dict["split_patrol_traj_groups"],
+            | (params_dict.get("traj_add_temporal_index") or {}),
             method="call",
-        ),
-        "patrol_traj_map_layers": Node(
-            async_task=create_map_layer.validate().set_executor("lithops"),
-            partial=params_dict["patrol_traj_map_layers"],
-            method="mapvalues",
-            kwargs={
-                "argnames": ["geodataframe"],
-                "argvalues": DependsOn("split_patrol_traj_groups"),
-            },
         ),
         "patrol_events": Node(
             async_task=get_patrol_events.validate().set_executor("lithops"),
             partial={
                 "time_range": DependsOn("time_range"),
             }
-            | params_dict["patrol_events"],
+            | (params_dict.get("patrol_events") or {}),
             method="call",
         ),
         "filter_patrol_events": Node(
@@ -196,23 +198,28 @@ def main(params: Params):
             partial={
                 "df": DependsOn("patrol_events"),
             }
-            | params_dict["filter_patrol_events"],
+            | (params_dict.get("filter_patrol_events") or {}),
             method="call",
         ),
         "pe_add_temporal_index": Node(
             async_task=add_temporal_index.validate().set_executor("lithops"),
             partial={
                 "df": DependsOn("filter_patrol_events"),
+                "time_col": "time",
+                "groupers": DependsOn("groupers"),
             }
-            | params_dict["pe_add_temporal_index"],
+            | (params_dict.get("pe_add_temporal_index") or {}),
             method="call",
         ),
         "pe_colormap": Node(
             async_task=apply_color_map.validate().set_executor("lithops"),
             partial={
                 "df": DependsOn("pe_add_temporal_index"),
+                "input_column_name": "event_type",
+                "colormap": "tab20b",
+                "output_column_name": "event_type_colormap",
             }
-            | params_dict["pe_colormap"],
+            | (params_dict.get("pe_colormap") or {}),
             method="call",
         ),
         "split_pe_groups": Node(
@@ -221,16 +228,37 @@ def main(params: Params):
                 "df": DependsOn("pe_colormap"),
                 "groupers": DependsOn("groupers"),
             }
-            | params_dict["split_pe_groups"],
+            | (params_dict.get("split_pe_groups") or {}),
             method="call",
         ),
         "patrol_events_map_layers": Node(
-            async_task=create_map_layer.validate().set_executor("lithops"),
-            partial=params_dict["patrol_events_map_layers"],
+            async_task=create_point_layer.validate().set_executor("lithops"),
+            partial={
+                "layer_style": {"fill_color_column": "event_type_colormap"},
+            }
+            | (params_dict.get("patrol_events_map_layers") or {}),
             method="mapvalues",
             kwargs={
                 "argnames": ["geodataframe"],
                 "argvalues": DependsOn("split_pe_groups"),
+            },
+        ),
+        "split_patrol_traj_groups": Node(
+            async_task=split_groups.validate().set_executor("lithops"),
+            partial={
+                "df": DependsOn("traj_add_temporal_index"),
+                "groupers": DependsOn("groupers"),
+            }
+            | (params_dict.get("split_patrol_traj_groups") or {}),
+            method="call",
+        ),
+        "patrol_traj_map_layers": Node(
+            async_task=create_polyline_layer.validate().set_executor("lithops"),
+            partial=(params_dict.get("patrol_traj_map_layers") or {}),
+            method="mapvalues",
+            kwargs={
+                "argnames": ["geodataframe"],
+                "argvalues": DependsOn("split_patrol_traj_groups"),
             },
         ),
         "combined_traj_and_pe_map_layers": Node(
@@ -243,12 +271,15 @@ def main(params: Params):
                     ],
                 ),
             }
-            | params_dict["combined_traj_and_pe_map_layers"],
+            | (params_dict.get("combined_traj_and_pe_map_layers") or {}),
             method="call",
         ),
         "traj_patrol_events_ecomap": Node(
             async_task=draw_ecomap.validate().set_executor("lithops"),
-            partial=params_dict["traj_patrol_events_ecomap"],
+            partial={
+                "static": False,
+            }
+            | (params_dict.get("traj_patrol_events_ecomap") or {}),
             method="mapvalues",
             kwargs={
                 "argnames": ["geo_layers"],
@@ -260,7 +291,7 @@ def main(params: Params):
             partial={
                 "root_path": os.environ["ECOSCOPE_WORKFLOWS_RESULTS"],
             }
-            | params_dict["traj_pe_ecomap_html_urls"],
+            | (params_dict.get("traj_pe_ecomap_html_urls") or {}),
             method="mapvalues",
             kwargs={
                 "argnames": ["text"],
@@ -269,7 +300,10 @@ def main(params: Params):
         ),
         "traj_pe_map_widgets_single_views": Node(
             async_task=create_map_widget_single_view.validate().set_executor("lithops"),
-            partial=params_dict["traj_pe_map_widgets_single_views"],
+            partial={
+                "title": "Trajectories & Patrol Events Map",
+            }
+            | (params_dict.get("traj_pe_map_widgets_single_views") or {}),
             method="map",
             kwargs={
                 "argnames": ["view", "data"],
@@ -281,12 +315,15 @@ def main(params: Params):
             partial={
                 "widgets": DependsOn("traj_pe_map_widgets_single_views"),
             }
-            | params_dict["traj_pe_grouped_map_widget"],
+            | (params_dict.get("traj_pe_grouped_map_widget") or {}),
             method="call",
         ),
         "total_patrols": Node(
             async_task=dataframe_column_nunique.validate().set_executor("lithops"),
-            partial=params_dict["total_patrols"],
+            partial={
+                "column_name": "extra__patrol_id",
+            }
+            | (params_dict.get("total_patrols") or {}),
             method="mapvalues",
             kwargs={
                 "argnames": ["df"],
@@ -297,7 +334,10 @@ def main(params: Params):
             async_task=create_single_value_widget_single_view.validate().set_executor(
                 "lithops"
             ),
-            partial=params_dict["total_patrols_sv_widgets"],
+            partial={
+                "title": "Total Patrols",
+            }
+            | (params_dict.get("total_patrols_sv_widgets") or {}),
             method="map",
             kwargs={
                 "argnames": ["view", "data"],
@@ -309,12 +349,15 @@ def main(params: Params):
             partial={
                 "widgets": DependsOn("total_patrols_sv_widgets"),
             }
-            | params_dict["total_patrols_grouped_sv_widget"],
+            | (params_dict.get("total_patrols_grouped_sv_widget") or {}),
             method="call",
         ),
         "total_patrol_time": Node(
             async_task=dataframe_column_sum.validate().set_executor("lithops"),
-            partial=params_dict["total_patrol_time"],
+            partial={
+                "column_name": "timespan_seconds",
+            }
+            | (params_dict.get("total_patrol_time") or {}),
             method="mapvalues",
             kwargs={
                 "argnames": ["df"],
@@ -323,7 +366,7 @@ def main(params: Params):
         ),
         "total_patrol_time_converted": Node(
             async_task=with_unit.validate().set_executor("lithops"),
-            partial=params_dict["total_patrol_time_converted"],
+            partial=(params_dict.get("total_patrol_time_converted") or {}),
             method="mapvalues",
             kwargs={
                 "argnames": ["value"],
@@ -334,7 +377,10 @@ def main(params: Params):
             async_task=create_single_value_widget_single_view.validate().set_executor(
                 "lithops"
             ),
-            partial=params_dict["total_patrol_time_sv_widgets"],
+            partial={
+                "title": "Total Time",
+            }
+            | (params_dict.get("total_patrol_time_sv_widgets") or {}),
             method="map",
             kwargs={
                 "argnames": ["view", "data"],
@@ -346,12 +392,15 @@ def main(params: Params):
             partial={
                 "widgets": DependsOn("total_patrol_time_sv_widgets"),
             }
-            | params_dict["patrol_time_grouped_widget"],
+            | (params_dict.get("patrol_time_grouped_widget") or {}),
             method="call",
         ),
         "total_patrol_dist": Node(
             async_task=dataframe_column_sum.validate().set_executor("lithops"),
-            partial=params_dict["total_patrol_dist"],
+            partial={
+                "column_name": "dist_meters",
+            }
+            | (params_dict.get("total_patrol_dist") or {}),
             method="mapvalues",
             kwargs={
                 "argnames": ["df"],
@@ -360,7 +409,7 @@ def main(params: Params):
         ),
         "total_patrol_dist_converted": Node(
             async_task=with_unit.validate().set_executor("lithops"),
-            partial=params_dict["total_patrol_dist_converted"],
+            partial=(params_dict.get("total_patrol_dist_converted") or {}),
             method="mapvalues",
             kwargs={
                 "argnames": ["value"],
@@ -371,7 +420,10 @@ def main(params: Params):
             async_task=create_single_value_widget_single_view.validate().set_executor(
                 "lithops"
             ),
-            partial=params_dict["total_patrol_dist_sv_widgets"],
+            partial={
+                "title": "Total Distance",
+            }
+            | (params_dict.get("total_patrol_dist_sv_widgets") or {}),
             method="map",
             kwargs={
                 "argnames": ["view", "data"],
@@ -383,12 +435,15 @@ def main(params: Params):
             partial={
                 "widgets": DependsOn("total_patrol_dist_sv_widgets"),
             }
-            | params_dict["patrol_dist_grouped_widget"],
+            | (params_dict.get("patrol_dist_grouped_widget") or {}),
             method="call",
         ),
         "avg_speed": Node(
             async_task=dataframe_column_mean.validate().set_executor("lithops"),
-            partial=params_dict["avg_speed"],
+            partial={
+                "column_name": "speed_kmhr",
+            }
+            | (params_dict.get("avg_speed") or {}),
             method="mapvalues",
             kwargs={
                 "argnames": ["df"],
@@ -397,7 +452,7 @@ def main(params: Params):
         ),
         "average_speed_converted": Node(
             async_task=with_unit.validate().set_executor("lithops"),
-            partial=params_dict["average_speed_converted"],
+            partial=(params_dict.get("average_speed_converted") or {}),
             method="mapvalues",
             kwargs={
                 "argnames": ["value"],
@@ -408,7 +463,10 @@ def main(params: Params):
             async_task=create_single_value_widget_single_view.validate().set_executor(
                 "lithops"
             ),
-            partial=params_dict["avg_speed_sv_widgets"],
+            partial={
+                "title": "Average Speed",
+            }
+            | (params_dict.get("avg_speed_sv_widgets") or {}),
             method="map",
             kwargs={
                 "argnames": ["view", "data"],
@@ -420,12 +478,15 @@ def main(params: Params):
             partial={
                 "widgets": DependsOn("avg_speed_sv_widgets"),
             }
-            | params_dict["avg_speed_grouped_widget"],
+            | (params_dict.get("avg_speed_grouped_widget") or {}),
             method="call",
         ),
         "max_speed": Node(
             async_task=dataframe_column_max.validate().set_executor("lithops"),
-            partial=params_dict["max_speed"],
+            partial={
+                "column_name": "speed_kmhr",
+            }
+            | (params_dict.get("max_speed") or {}),
             method="mapvalues",
             kwargs={
                 "argnames": ["df"],
@@ -434,7 +495,7 @@ def main(params: Params):
         ),
         "max_speed_converted": Node(
             async_task=with_unit.validate().set_executor("lithops"),
-            partial=params_dict["max_speed_converted"],
+            partial=(params_dict.get("max_speed_converted") or {}),
             method="mapvalues",
             kwargs={
                 "argnames": ["value"],
@@ -445,7 +506,10 @@ def main(params: Params):
             async_task=create_single_value_widget_single_view.validate().set_executor(
                 "lithops"
             ),
-            partial=params_dict["max_speed_sv_widgets"],
+            partial={
+                "title": "Max Speed",
+            }
+            | (params_dict.get("max_speed_sv_widgets") or {}),
             method="map",
             kwargs={
                 "argnames": ["view", "data"],
@@ -457,15 +521,20 @@ def main(params: Params):
             partial={
                 "widgets": DependsOn("max_speed_sv_widgets"),
             }
-            | params_dict["max_speed_grouped_widget"],
+            | (params_dict.get("max_speed_grouped_widget") or {}),
             method="call",
         ),
         "patrol_events_bar_chart": Node(
             async_task=draw_time_series_bar_chart.validate().set_executor("lithops"),
             partial={
                 "dataframe": DependsOn("filter_patrol_events"),
+                "x_axis": "time",
+                "y_axis": "event_type",
+                "category": "event_type",
+                "agg_function": "count",
+                "plot_style": {"xperiodalignment": "middle"},
             }
-            | params_dict["patrol_events_bar_chart"],
+            | (params_dict.get("patrol_events_bar_chart") or {}),
             method="call",
         ),
         "patrol_events_bar_chart_html_url": Node(
@@ -474,7 +543,7 @@ def main(params: Params):
                 "text": DependsOn("patrol_events_bar_chart"),
                 "root_path": os.environ["ECOSCOPE_WORKFLOWS_RESULTS"],
             }
-            | params_dict["patrol_events_bar_chart_html_url"],
+            | (params_dict.get("patrol_events_bar_chart_html_url") or {}),
             method="call",
         ),
         "patrol_events_bar_chart_widget": Node(
@@ -483,13 +552,18 @@ def main(params: Params):
             ),
             partial={
                 "data": DependsOn("patrol_events_bar_chart_html_url"),
+                "title": "Patrol Events Bar Chart",
             }
-            | params_dict["patrol_events_bar_chart_widget"],
+            | (params_dict.get("patrol_events_bar_chart_widget") or {}),
             method="call",
         ),
         "patrol_events_pie_chart": Node(
             async_task=draw_pie_chart.validate().set_executor("lithops"),
-            partial=params_dict["patrol_events_pie_chart"],
+            partial={
+                "value_column": "event_type",
+                "plot_style": {"textinfo": "value"},
+            }
+            | (params_dict.get("patrol_events_pie_chart") or {}),
             method="mapvalues",
             kwargs={
                 "argnames": ["dataframe"],
@@ -501,7 +575,7 @@ def main(params: Params):
             partial={
                 "root_path": os.environ["ECOSCOPE_WORKFLOWS_RESULTS"],
             }
-            | params_dict["pe_pie_chart_html_urls"],
+            | (params_dict.get("pe_pie_chart_html_urls") or {}),
             method="mapvalues",
             kwargs={
                 "argnames": ["text"],
@@ -512,7 +586,10 @@ def main(params: Params):
             async_task=create_plot_widget_single_view.validate().set_executor(
                 "lithops"
             ),
-            partial=params_dict["patrol_events_pie_chart_widgets"],
+            partial={
+                "title": "Patrol Events Pie Chart",
+            }
+            | (params_dict.get("patrol_events_pie_chart_widgets") or {}),
             method="map",
             kwargs={
                 "argnames": ["view", "data"],
@@ -524,39 +601,57 @@ def main(params: Params):
             partial={
                 "widgets": DependsOn("patrol_events_pie_chart_widgets"),
             }
-            | params_dict["patrol_events_pie_widget_grouped"],
+            | (params_dict.get("patrol_events_pie_widget_grouped") or {}),
             method="call",
         ),
         "td": Node(
             async_task=calculate_time_density.validate().set_executor("lithops"),
             partial={
                 "trajectory_gdf": DependsOn("patrol_traj"),
+                "pixel_size": 250.0,
+                "crs": "ESRI:102022",
+                "nodata_value": "nan",
+                "band_count": 1,
+                "percentiles": [50.0, 60.0, 70.0, 80.0, 90.0, 95.0],
             }
-            | params_dict["td"],
+            | (params_dict.get("td") or {}),
             method="call",
         ),
         "td_colormap": Node(
             async_task=apply_color_map.validate().set_executor("lithops"),
             partial={
                 "df": DependsOn("td"),
+                "input_column_name": "percentile",
+                "colormap": "RdYlGn",
+                "output_column_name": "percentile_colormap",
             }
-            | params_dict["td_colormap"],
+            | (params_dict.get("td_colormap") or {}),
             method="call",
         ),
         "td_map_layer": Node(
-            async_task=create_map_layer.validate().set_executor("lithops"),
+            async_task=create_polygon_layer.validate().set_executor("lithops"),
             partial={
                 "geodataframe": DependsOn("td_colormap"),
+                "layer_style": {
+                    "fill_color_column": "percentile_colormap",
+                    "opacity": 0.7,
+                    "get_line_width": 0,
+                },
             }
-            | params_dict["td_map_layer"],
+            | (params_dict.get("td_map_layer") or {}),
             method="call",
         ),
         "td_ecomap": Node(
             async_task=draw_ecomap.validate().set_executor("lithops"),
             partial={
                 "geo_layers": DependsOn("td_map_layer"),
+                "tile_layers": [
+                    {"name": "SATELLITE"},
+                    {"name": "TERRAIN", "opacity": 0.5},
+                ],
+                "static": False,
             }
-            | params_dict["td_ecomap"],
+            | (params_dict.get("td_ecomap") or {}),
             method="call",
         ),
         "td_ecomap_html_url": Node(
@@ -565,15 +660,16 @@ def main(params: Params):
                 "text": DependsOn("td_ecomap"),
                 "root_path": os.environ["ECOSCOPE_WORKFLOWS_RESULTS"],
             }
-            | params_dict["td_ecomap_html_url"],
+            | (params_dict.get("td_ecomap_html_url") or {}),
             method="call",
         ),
         "td_map_widget": Node(
             async_task=create_map_widget_single_view.validate().set_executor("lithops"),
             partial={
                 "data": DependsOn("td_ecomap_html_url"),
+                "title": "Time Density Map",
             }
-            | params_dict["td_map_widget"],
+            | (params_dict.get("td_map_widget") or {}),
             method="call",
         ),
         "patrol_dashboard": Node(
@@ -596,7 +692,7 @@ def main(params: Params):
                 "groupers": DependsOn("groupers"),
                 "time_range": DependsOn("time_range"),
             }
-            | params_dict["patrol_dashboard"],
+            | (params_dict.get("patrol_dashboard") or {}),
             method="call",
         ),
     }

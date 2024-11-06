@@ -1,6 +1,6 @@
 # [generated]
 # by = { compiler = "ecoscope-workflows-core", version = "9999" }
-# from-spec-sha256 = "b7fe20d8920b7330322b27e679fbe8558f2e1822c0016cfed5291b7735a20ce3"
+# from-spec-sha256 = "07ffd4fc8e89019bbd0086333f0cbead53561801e3c1cd3bba81063c45abdb28"
 
 
 from pathlib import Path
@@ -55,7 +55,7 @@ def test_validate_formdata(client: TestClient, case: TestCase, formdata: dict):
     response = client.post("/formdata-to-params", json=formdata)
     assert response.status_code == 200
 
-    assert set(response.json()) == set(case.params)
+    assert set(case.params).issubset(set(response.json()))
 
     if set(formdata) != set(case.params):
         # this workflow uses task groups, so make one other assert

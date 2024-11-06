@@ -1,10 +1,10 @@
 id: patrols
 requirements:
   - name: ecoscope-workflows-core
-    version: v0.0.13
+    version: v0.0.14
     channel: https://repo.prefix.dev/ecoscope-workflows/
   - name: ecoscope-workflows-ext-ecoscope
-    version: v0.0.13
+    version: v0.0.14
     channel: https://repo.prefix.dev/ecoscope-workflows/
 workflow:
   - name: Set Workflow Details
@@ -15,11 +15,11 @@ workflow:
     id: groupers
     task: set_groupers
 
-  - name: Set Time Range Filters
+  - name: Set Time Range Filter
     id: time_range
     task: set_time_range
 
-  # patrol observations
+  # fetch & process patrol observations
   - title: Fetch and preprocess patrol observations
     type: task-group
     description: >-
@@ -36,6 +36,22 @@ workflow:
         task: process_relocations
         partial:
           observations: ${{ workflow.patrol_obs.return }}
+          relocs_columns: [
+            "patrol_id",
+            "patrol_start_time",
+            "patrol_end_time",
+            "patrol_type__display",
+            "groupby_col",
+            "fixtime",
+            "junk_status",
+            "extra__source",
+            "geometry",
+          ]
+          filter_point_coords: [
+            {"x": 180.0, "y": 90.0},
+            {"x": 0.0, "y": 0.0},
+            {"x": 1.0, "y": 1.0},
+          ]
       - name: Transform Relocations to Trajectories
         id: patrol_traj
         task: relocations_to_trajectory
@@ -46,27 +62,10 @@ workflow:
         task: add_temporal_index
         partial:
           df: ${{ workflow.patrol_traj.return }}
-
-  # patrol trajectories map layers
-  - title: Patrol trajectories map layers
-    type: task-group
-    description: >-
-      Create map layers for each group of patrol trajectories.
-    tasks:
-      - name: Split Patrol Trajectories by Group
-        id: split_patrol_traj_groups
-        task: split_groups
-        partial:
-          df: ${{ workflow.traj_add_temporal_index.return }}
+          time_col: "extra__patrol_start_time"
           groupers: ${{ workflow.groupers.return }}
-      - name: Create map layer for each Patrol Trajectories group
-        id: patrol_traj_map_layers
-        task: create_map_layer
-        mapvalues:
-          argnames: geodataframe
-          argvalues: ${{ workflow.split_patrol_traj_groups.return }}
 
-  # patrol events
+  # fetch & process patrol events
   - title: Fetch and preprocess patrol events
     type: task-group
     description: >-
@@ -87,18 +86,23 @@ workflow:
         task: add_temporal_index
         partial:
           df: ${{ workflow.filter_patrol_events.return }}
+          time_col: "time"
+          groupers: ${{ workflow.groupers.return }}
 
-  # patrol events map layers
-  - title: Patrol events map layers
+  # patrol trajectories map layers
+  - title: Patrol Events and Trajectories Map
     type: task-group
     description: >-
-      Create map layers for each group of patrol events.
+      Create a combined patrol trajectories and events map.
     tasks:
       - name: Patrol Events Colormap
         id: pe_colormap
         task: apply_color_map
         partial:
           df: ${{ workflow.pe_add_temporal_index.return }}
+          input_column_name: "event_type"
+          colormap: "tab20b"
+          output_column_name: "event_type_colormap"
       - name: Split Patrol Events by Group
         id: split_pe_groups
         task: split_groups
@@ -107,29 +111,37 @@ workflow:
           groupers: ${{ workflow.groupers.return }}
       - name: Create map layers for each Patrols Events group
         id: patrol_events_map_layers
-        task: create_map_layer
+        task: create_point_layer
+        partial:
+          layer_style:
+            fill_color_column: "event_type_colormap"
         mapvalues:
           argnames: geodataframe
           argvalues: ${{ workflow.split_pe_groups.return }}
-
-  # Combine Trajectories and Patrol Events layers by group key
-  - name: Combine Trajectories and Patrol Events layers
-    id: combined_traj_and_pe_map_layers
-    task: groupbykey
-    partial:
-      iterables:
-        - ${{ workflow.patrol_traj_map_layers.return }}
-        - ${{ workflow.patrol_events_map_layers.return }}
-
-  # Combined trajectories + patrol events EcoMap
-  - title: Combined Trajectories and Patrol Events EcoMap
-    type: task-group
-    description: >-
-      Draw EcoMaps for each combined Trajectory and Patrol Events group.
-    tasks:
+      - name: Split Patrol Trajectories by Group
+        id: split_patrol_traj_groups
+        task: split_groups
+        partial:
+          df: ${{ workflow.traj_add_temporal_index.return }}
+          groupers: ${{ workflow.groupers.return }}
+      - name: Create map layer for each Patrol Trajectories group
+        id: patrol_traj_map_layers
+        task: create_polyline_layer
+        mapvalues:
+          argnames: geodataframe
+          argvalues: ${{ workflow.split_patrol_traj_groups.return }}
+      - name: Combine Trajectories and Patrol Events layers
+        id: combined_traj_and_pe_map_layers
+        task: groupbykey
+        partial:
+          iterables:
+            - ${{ workflow.patrol_traj_map_layers.return }}
+            - ${{ workflow.patrol_events_map_layers.return }}
       - name: Draw Ecomaps for each combined Trajectory and Patrol Events group
         id: traj_patrol_events_ecomap
         task: draw_ecomap
+        partial:
+          static: false
         mapvalues:
           argnames: geo_layers
           argvalues: ${{ workflow.combined_traj_and_pe_map_layers.return }}
@@ -144,6 +156,8 @@ workflow:
       - name: Create Map Widgets for Patrol Events
         id: traj_pe_map_widgets_single_views
         task: create_map_widget_single_view
+        partial:
+          title: "Trajectories & Patrol Events Map"
         map:
           argnames: [view, data]
           argvalues: ${{ workflow.traj_pe_ecomap_html_urls.return }}
@@ -153,21 +167,25 @@ workflow:
         partial:
           widgets: ${{ workflow.traj_pe_map_widgets_single_views.return }}
 
-  # Grouped single value widget (1) - total patrols per group
-  - title: Total patrols per group
+  # Grouped single value widgets
+  - title: Patrol Summary Statistics
     type: task-group
     description: >-
-      Create a single value widget for the total patrols per group.
+      Create a single value widget for various patrol statistics.
     tasks:
       - name: Calculate Total Patrols Per Group
         id: total_patrols
         task: dataframe_column_nunique
+        partial:
+          column_name: "extra__patrol_id"
         mapvalues:
           argnames: df
           argvalues: ${{ workflow.split_patrol_traj_groups.return }}
       - name: Create Single Value Widgets for Total Patrols Per Group
         id: total_patrols_sv_widgets
         task: create_single_value_widget_single_view
+        partial:
+          title: "Total Patrols"
         map:
           argnames: [view, data]
           argvalues: ${{ workflow.total_patrols.return }}
@@ -176,16 +194,11 @@ workflow:
         task: merge_widget_views
         partial:
           widgets: ${{ workflow.total_patrols_sv_widgets.return }}
-
-  # Grouped single value widget (2) - total patrol time per group
-  - title: Total patrol time per group
-    type: task-group
-    description: >-
-      Create a single value widget for the total patrol time per group.
-    tasks:
       - name: Calculate Total Patrol Time Per Group
         id: total_patrol_time
         task: dataframe_column_sum
+        partial:
+          column_name: "timespan_seconds"
         mapvalues:
           argnames: df
           argvalues: ${{ workflow.split_patrol_traj_groups.return }}
@@ -198,6 +211,8 @@ workflow:
       - name: Create Single Value Widgets for Total Patrol Time Per Group
         id: total_patrol_time_sv_widgets
         task: create_single_value_widget_single_view
+        partial:
+          title: "Total Time"
         map:
           argnames: [view, data]
           argvalues: ${{ workflow.total_patrol_time_converted.return }}
@@ -206,16 +221,11 @@ workflow:
         task: merge_widget_views
         partial:
           widgets: ${{ workflow.total_patrol_time_sv_widgets.return }}
-
-  # Grouped single value widget (3) - total distance per group
-  - title: Total distance per group
-    type: task-group
-    description: >-
-      Create a single value widget for the total distance per group.
-    tasks:
       - name: Calculate Total Distance Per Group
         id: total_patrol_dist
         task: dataframe_column_sum
+        partial:
+          column_name: "dist_meters"
         mapvalues:
           argnames: df
           argvalues: ${{ workflow.split_patrol_traj_groups.return }}
@@ -228,6 +238,8 @@ workflow:
       - name: Create Single Value Widgets for Total Distance Per Group
         id: total_patrol_dist_sv_widgets
         task: create_single_value_widget_single_view
+        partial:
+          title: "Total Distance"
         map:
           argnames: [view, data]
           argvalues: ${{ workflow.total_patrol_dist_converted.return }}
@@ -236,16 +248,11 @@ workflow:
         task: merge_widget_views
         partial:
           widgets: ${{ workflow.total_patrol_dist_sv_widgets.return }}
-
-  # Grouped single value widget (4) - average speed per group
-  - title: Average speed per group
-    type: task-group
-    description: >-
-      Create a single value widget for the average speed per group.
-    tasks:
       - name: Calculate Average Speed Per Group
         id: avg_speed
         task: dataframe_column_mean
+        partial:
+          column_name: "speed_kmhr"
         mapvalues:
           argnames: df
           argvalues: ${{ workflow.split_patrol_traj_groups.return }}
@@ -258,6 +265,8 @@ workflow:
       - name: Create Single Value Widgets for Avg Speed Per Group
         id: avg_speed_sv_widgets
         task: create_single_value_widget_single_view
+        partial:
+          title: "Average Speed"
         map:
           argnames: [view, data]
           argvalues: ${{ workflow.average_speed_converted.return }}
@@ -266,16 +275,11 @@ workflow:
         task: merge_widget_views
         partial:
           widgets: ${{ workflow.avg_speed_sv_widgets.return }}
-
-  # Grouped single value widget (5) - max speed per group
-  - title: Max speed per group
-    type: task-group
-    description: >-
-      Create a single value widget for the max speed per group.
-    tasks:
       - name: Calculate Max Speed Per Group
         id: max_speed
         task: dataframe_column_max
+        partial:
+          column_name: "speed_kmhr"
         mapvalues:
           argnames: df
           argvalues: ${{ workflow.split_patrol_traj_groups.return }}
@@ -288,6 +292,8 @@ workflow:
       - name: Create Single Value Widgets for Max Speed Per Group
         id: max_speed_sv_widgets
         task: create_single_value_widget_single_view
+        partial:
+          title: "Max Speed"
         map:
           argnames: [view, data]
           argvalues: ${{ workflow.max_speed_converted.return }}
@@ -308,6 +314,12 @@ workflow:
         task: draw_time_series_bar_chart
         partial:
           dataframe: ${{ workflow.filter_patrol_events.return }}
+          x_axis: "time"
+          y_axis: "event_type"
+          category: "event_type"
+          agg_function: "count"
+          plot_style:
+            xperiodalignment: "middle"
       - name: Persist Patrols Bar Chart as Text
         id: patrol_events_bar_chart_html_url
         task: persist_text
@@ -319,6 +331,7 @@ workflow:
         task: create_plot_widget_single_view
         partial:
           data: ${{ workflow.patrol_events_bar_chart_html_url.return }}
+          title: "Patrol Events Bar Chart"
 
   #patrol events pie chart
   - title: Patrol events pie chart
@@ -329,6 +342,10 @@ workflow:
       - name: Draw Pie Chart for Patrols Events
         id: patrol_events_pie_chart
         task: draw_pie_chart
+        partial:
+          value_column: "event_type"
+          plot_style:
+            textinfo: "value"
         mapvalues:
           argnames: dataframe
           argvalues: ${{ workflow.split_pe_groups.return }}
@@ -343,6 +360,8 @@ workflow:
       - name: Create Plot Widget for Patrol Events
         id: patrol_events_pie_chart_widgets
         task: create_plot_widget_single_view
+        partial:
+          title: "Patrol Events Pie Chart"
         map:
           argnames: [view, data]
           argvalues: ${{ workflow.pe_pie_chart_html_urls.return }}
@@ -363,23 +382,40 @@ workflow:
         task: calculate_time_density
         partial:
           trajectory_gdf: ${{ workflow.patrol_traj.return }}
+          pixel_size: 250.0
+          crs: "ESRI:102022"
+          nodata_value: "nan"
+          band_count: 1
+          percentiles: [50.0, 60.0, 70.0, 80.0, 90.0, 95.0]
       # Colormap time density
       - name: Time Density Colormap
         id: td_colormap
         task: apply_color_map
         partial:
           df: ${{ workflow.td.return }}
+          input_column_name: "percentile"
+          colormap: "RdYlGn"
+          output_column_name: "percentile_colormap"
       - name: Create map layer from Time Density
         id: td_map_layer
-        task: create_map_layer
+        task: create_polygon_layer
         partial:
           geodataframe: ${{ workflow.td_colormap.return }}
+          layer_style:
+            fill_color_column: "percentile_colormap"
+            opacity: 0.7
+            get_line_width: 0
       - name: Draw Ecomap from Time Density
         id: td_ecomap
         task: draw_ecomap
         partial:
           geo_layers:
             - ${{ workflow.td_map_layer.return }}
+          tile_layers:
+            - name: "SATELLITE"
+            - name: "TERRAIN"
+              opacity: 0.5
+          static: False
       - name: Persist Ecomap as Text
         id: td_ecomap_html_url
         task: persist_text
@@ -391,6 +427,7 @@ workflow:
         task: create_map_widget_single_view
         partial:
           data: ${{ workflow.td_ecomap_html_url.return }}
+          title: "Time Density Map"
 
   # dashboard
   - name: Create Dashboard with Patrol Map Widgets
