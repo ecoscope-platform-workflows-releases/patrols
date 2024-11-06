@@ -1,6 +1,6 @@
 # [generated]
 # by = { compiler = "ecoscope-workflows-core", version = "9999" }
-# from-spec-sha256 = "b7fe20d8920b7330322b27e679fbe8558f2e1822c0016cfed5291b7735a20ce3"
+# from-spec-sha256 = "07ffd4fc8e89019bbd0086333f0cbead53561801e3c1cd3bba81063c45abdb28"
 import json
 import os
 
@@ -13,13 +13,14 @@ from ecoscope_workflows_ext_ecoscope.tasks.preprocessing import (
     relocations_to_trajectory,
 )
 from ecoscope_workflows_core.tasks.transformation import add_temporal_index
-from ecoscope_workflows_core.tasks.groupby import split_groups
-from ecoscope_workflows_ext_ecoscope.tasks.results import create_map_layer
 from ecoscope_workflows_ext_ecoscope.tasks.io import get_patrol_events
 from ecoscope_workflows_ext_ecoscope.tasks.transformation import (
     apply_reloc_coord_filter,
 )
 from ecoscope_workflows_ext_ecoscope.tasks.transformation import apply_color_map
+from ecoscope_workflows_core.tasks.groupby import split_groups
+from ecoscope_workflows_ext_ecoscope.tasks.results import create_point_layer
+from ecoscope_workflows_ext_ecoscope.tasks.results import create_polyline_layer
 from ecoscope_workflows_core.tasks.groupby import groupbykey
 from ecoscope_workflows_ext_ecoscope.tasks.results import draw_ecomap
 from ecoscope_workflows_core.tasks.io import persist_text
@@ -35,6 +36,7 @@ from ecoscope_workflows_ext_ecoscope.tasks.results import draw_time_series_bar_c
 from ecoscope_workflows_core.tasks.results import create_plot_widget_single_view
 from ecoscope_workflows_ext_ecoscope.tasks.results import draw_pie_chart
 from ecoscope_workflows_ext_ecoscope.tasks.analysis import calculate_time_density
+from ecoscope_workflows_ext_ecoscope.tasks.results import create_polygon_layer
 from ecoscope_workflows_core.tasks.results import gather_dashboard
 
 from ..params import Params
@@ -45,36 +47,120 @@ def main(params: Params):
 
     workflow_details = (
         set_workflow_details.validate()
-        .partial(**params_dict["workflow_details"])
+        .partial(**(params_dict.get("workflow_details") or {}))
         .call()
     )
 
-    groupers = set_groupers.validate().partial(**params_dict["groupers"]).call()
+    groupers = (
+        set_groupers.validate().partial(**(params_dict.get("groupers") or {})).call()
+    )
 
-    time_range = set_time_range.validate().partial(**params_dict["time_range"]).call()
+    time_range = (
+        set_time_range.validate()
+        .partial(**(params_dict.get("time_range") or {}))
+        .call()
+    )
 
     patrol_obs = (
         get_patrol_observations.validate()
-        .partial(time_range=time_range, **params_dict["patrol_obs"])
+        .partial(time_range=time_range, **(params_dict.get("patrol_obs") or {}))
         .call()
     )
 
     patrol_reloc = (
         process_relocations.validate()
-        .partial(observations=patrol_obs, **params_dict["patrol_reloc"])
+        .partial(
+            observations=patrol_obs,
+            relocs_columns=[
+                "patrol_id",
+                "patrol_start_time",
+                "patrol_end_time",
+                "patrol_type__display",
+                "groupby_col",
+                "fixtime",
+                "junk_status",
+                "extra__source",
+                "geometry",
+            ],
+            filter_point_coords=[
+                {"x": 180.0, "y": 90.0},
+                {"x": 0.0, "y": 0.0},
+                {"x": 1.0, "y": 1.0},
+            ],
+            **(params_dict.get("patrol_reloc") or {}),
+        )
         .call()
     )
 
     patrol_traj = (
         relocations_to_trajectory.validate()
-        .partial(relocations=patrol_reloc, **params_dict["patrol_traj"])
+        .partial(relocations=patrol_reloc, **(params_dict.get("patrol_traj") or {}))
         .call()
     )
 
     traj_add_temporal_index = (
         add_temporal_index.validate()
-        .partial(df=patrol_traj, **params_dict["traj_add_temporal_index"])
+        .partial(
+            df=patrol_traj,
+            time_col="extra__patrol_start_time",
+            groupers=groupers,
+            **(params_dict.get("traj_add_temporal_index") or {}),
+        )
         .call()
+    )
+
+    patrol_events = (
+        get_patrol_events.validate()
+        .partial(time_range=time_range, **(params_dict.get("patrol_events") or {}))
+        .call()
+    )
+
+    filter_patrol_events = (
+        apply_reloc_coord_filter.validate()
+        .partial(df=patrol_events, **(params_dict.get("filter_patrol_events") or {}))
+        .call()
+    )
+
+    pe_add_temporal_index = (
+        add_temporal_index.validate()
+        .partial(
+            df=filter_patrol_events,
+            time_col="time",
+            groupers=groupers,
+            **(params_dict.get("pe_add_temporal_index") or {}),
+        )
+        .call()
+    )
+
+    pe_colormap = (
+        apply_color_map.validate()
+        .partial(
+            df=pe_add_temporal_index,
+            input_column_name="event_type",
+            colormap="tab20b",
+            output_column_name="event_type_colormap",
+            **(params_dict.get("pe_colormap") or {}),
+        )
+        .call()
+    )
+
+    split_pe_groups = (
+        split_groups.validate()
+        .partial(
+            df=pe_colormap,
+            groupers=groupers,
+            **(params_dict.get("split_pe_groups") or {}),
+        )
+        .call()
+    )
+
+    patrol_events_map_layers = (
+        create_point_layer.validate()
+        .partial(
+            layer_style={"fill_color_column": "event_type_colormap"},
+            **(params_dict.get("patrol_events_map_layers") or {}),
+        )
+        .mapvalues(argnames=["geodataframe"], argvalues=split_pe_groups)
     )
 
     split_patrol_traj_groups = (
@@ -82,65 +168,29 @@ def main(params: Params):
         .partial(
             df=traj_add_temporal_index,
             groupers=groupers,
-            **params_dict["split_patrol_traj_groups"],
+            **(params_dict.get("split_patrol_traj_groups") or {}),
         )
         .call()
     )
 
     patrol_traj_map_layers = (
-        create_map_layer.validate()
-        .partial(**params_dict["patrol_traj_map_layers"])
+        create_polyline_layer.validate()
+        .partial(**(params_dict.get("patrol_traj_map_layers") or {}))
         .mapvalues(argnames=["geodataframe"], argvalues=split_patrol_traj_groups)
-    )
-
-    patrol_events = (
-        get_patrol_events.validate()
-        .partial(time_range=time_range, **params_dict["patrol_events"])
-        .call()
-    )
-
-    filter_patrol_events = (
-        apply_reloc_coord_filter.validate()
-        .partial(df=patrol_events, **params_dict["filter_patrol_events"])
-        .call()
-    )
-
-    pe_add_temporal_index = (
-        add_temporal_index.validate()
-        .partial(df=filter_patrol_events, **params_dict["pe_add_temporal_index"])
-        .call()
-    )
-
-    pe_colormap = (
-        apply_color_map.validate()
-        .partial(df=pe_add_temporal_index, **params_dict["pe_colormap"])
-        .call()
-    )
-
-    split_pe_groups = (
-        split_groups.validate()
-        .partial(df=pe_colormap, groupers=groupers, **params_dict["split_pe_groups"])
-        .call()
-    )
-
-    patrol_events_map_layers = (
-        create_map_layer.validate()
-        .partial(**params_dict["patrol_events_map_layers"])
-        .mapvalues(argnames=["geodataframe"], argvalues=split_pe_groups)
     )
 
     combined_traj_and_pe_map_layers = (
         groupbykey.validate()
         .partial(
             iterables=[patrol_traj_map_layers, patrol_events_map_layers],
-            **params_dict["combined_traj_and_pe_map_layers"],
+            **(params_dict.get("combined_traj_and_pe_map_layers") or {}),
         )
         .call()
     )
 
     traj_patrol_events_ecomap = (
         draw_ecomap.validate()
-        .partial(**params_dict["traj_patrol_events_ecomap"])
+        .partial(static=False, **(params_dict.get("traj_patrol_events_ecomap") or {}))
         .mapvalues(argnames=["geo_layers"], argvalues=combined_traj_and_pe_map_layers)
     )
 
@@ -148,14 +198,17 @@ def main(params: Params):
         persist_text.validate()
         .partial(
             root_path=os.environ["ECOSCOPE_WORKFLOWS_RESULTS"],
-            **params_dict["traj_pe_ecomap_html_urls"],
+            **(params_dict.get("traj_pe_ecomap_html_urls") or {}),
         )
         .mapvalues(argnames=["text"], argvalues=traj_patrol_events_ecomap)
     )
 
     traj_pe_map_widgets_single_views = (
         create_map_widget_single_view.validate()
-        .partial(**params_dict["traj_pe_map_widgets_single_views"])
+        .partial(
+            title="Trajectories & Patrol Events Map",
+            **(params_dict.get("traj_pe_map_widgets_single_views") or {}),
+        )
         .map(argnames=["view", "data"], argvalues=traj_pe_ecomap_html_urls)
     )
 
@@ -163,20 +216,24 @@ def main(params: Params):
         merge_widget_views.validate()
         .partial(
             widgets=traj_pe_map_widgets_single_views,
-            **params_dict["traj_pe_grouped_map_widget"],
+            **(params_dict.get("traj_pe_grouped_map_widget") or {}),
         )
         .call()
     )
 
     total_patrols = (
         dataframe_column_nunique.validate()
-        .partial(**params_dict["total_patrols"])
+        .partial(
+            column_name="extra__patrol_id", **(params_dict.get("total_patrols") or {})
+        )
         .mapvalues(argnames=["df"], argvalues=split_patrol_traj_groups)
     )
 
     total_patrols_sv_widgets = (
         create_single_value_widget_single_view.validate()
-        .partial(**params_dict["total_patrols_sv_widgets"])
+        .partial(
+            title="Total Patrols", **(params_dict.get("total_patrols_sv_widgets") or {})
+        )
         .map(argnames=["view", "data"], argvalues=total_patrols)
     )
 
@@ -184,26 +241,32 @@ def main(params: Params):
         merge_widget_views.validate()
         .partial(
             widgets=total_patrols_sv_widgets,
-            **params_dict["total_patrols_grouped_sv_widget"],
+            **(params_dict.get("total_patrols_grouped_sv_widget") or {}),
         )
         .call()
     )
 
     total_patrol_time = (
         dataframe_column_sum.validate()
-        .partial(**params_dict["total_patrol_time"])
+        .partial(
+            column_name="timespan_seconds",
+            **(params_dict.get("total_patrol_time") or {}),
+        )
         .mapvalues(argnames=["df"], argvalues=split_patrol_traj_groups)
     )
 
     total_patrol_time_converted = (
         with_unit.validate()
-        .partial(**params_dict["total_patrol_time_converted"])
+        .partial(**(params_dict.get("total_patrol_time_converted") or {}))
         .mapvalues(argnames=["value"], argvalues=total_patrol_time)
     )
 
     total_patrol_time_sv_widgets = (
         create_single_value_widget_single_view.validate()
-        .partial(**params_dict["total_patrol_time_sv_widgets"])
+        .partial(
+            title="Total Time",
+            **(params_dict.get("total_patrol_time_sv_widgets") or {}),
+        )
         .map(argnames=["view", "data"], argvalues=total_patrol_time_converted)
     )
 
@@ -211,26 +274,31 @@ def main(params: Params):
         merge_widget_views.validate()
         .partial(
             widgets=total_patrol_time_sv_widgets,
-            **params_dict["patrol_time_grouped_widget"],
+            **(params_dict.get("patrol_time_grouped_widget") or {}),
         )
         .call()
     )
 
     total_patrol_dist = (
         dataframe_column_sum.validate()
-        .partial(**params_dict["total_patrol_dist"])
+        .partial(
+            column_name="dist_meters", **(params_dict.get("total_patrol_dist") or {})
+        )
         .mapvalues(argnames=["df"], argvalues=split_patrol_traj_groups)
     )
 
     total_patrol_dist_converted = (
         with_unit.validate()
-        .partial(**params_dict["total_patrol_dist_converted"])
+        .partial(**(params_dict.get("total_patrol_dist_converted") or {}))
         .mapvalues(argnames=["value"], argvalues=total_patrol_dist)
     )
 
     total_patrol_dist_sv_widgets = (
         create_single_value_widget_single_view.validate()
-        .partial(**params_dict["total_patrol_dist_sv_widgets"])
+        .partial(
+            title="Total Distance",
+            **(params_dict.get("total_patrol_dist_sv_widgets") or {}),
+        )
         .map(argnames=["view", "data"], argvalues=total_patrol_dist_converted)
     )
 
@@ -238,59 +306,63 @@ def main(params: Params):
         merge_widget_views.validate()
         .partial(
             widgets=total_patrol_dist_sv_widgets,
-            **params_dict["patrol_dist_grouped_widget"],
+            **(params_dict.get("patrol_dist_grouped_widget") or {}),
         )
         .call()
     )
 
     avg_speed = (
         dataframe_column_mean.validate()
-        .partial(**params_dict["avg_speed"])
+        .partial(column_name="speed_kmhr", **(params_dict.get("avg_speed") or {}))
         .mapvalues(argnames=["df"], argvalues=split_patrol_traj_groups)
     )
 
     average_speed_converted = (
         with_unit.validate()
-        .partial(**params_dict["average_speed_converted"])
+        .partial(**(params_dict.get("average_speed_converted") or {}))
         .mapvalues(argnames=["value"], argvalues=avg_speed)
     )
 
     avg_speed_sv_widgets = (
         create_single_value_widget_single_view.validate()
-        .partial(**params_dict["avg_speed_sv_widgets"])
+        .partial(
+            title="Average Speed", **(params_dict.get("avg_speed_sv_widgets") or {})
+        )
         .map(argnames=["view", "data"], argvalues=average_speed_converted)
     )
 
     avg_speed_grouped_widget = (
         merge_widget_views.validate()
         .partial(
-            widgets=avg_speed_sv_widgets, **params_dict["avg_speed_grouped_widget"]
+            widgets=avg_speed_sv_widgets,
+            **(params_dict.get("avg_speed_grouped_widget") or {}),
         )
         .call()
     )
 
     max_speed = (
         dataframe_column_max.validate()
-        .partial(**params_dict["max_speed"])
+        .partial(column_name="speed_kmhr", **(params_dict.get("max_speed") or {}))
         .mapvalues(argnames=["df"], argvalues=split_patrol_traj_groups)
     )
 
     max_speed_converted = (
         with_unit.validate()
-        .partial(**params_dict["max_speed_converted"])
+        .partial(**(params_dict.get("max_speed_converted") or {}))
         .mapvalues(argnames=["value"], argvalues=max_speed)
     )
 
     max_speed_sv_widgets = (
         create_single_value_widget_single_view.validate()
-        .partial(**params_dict["max_speed_sv_widgets"])
+        .partial(title="Max Speed", **(params_dict.get("max_speed_sv_widgets") or {}))
         .map(argnames=["view", "data"], argvalues=max_speed_converted)
     )
 
     max_speed_grouped_widget = (
         merge_widget_views.validate()
         .partial(
-            widgets=max_speed_sv_widgets, **params_dict["max_speed_grouped_widget"]
+            widgets=max_speed_sv_widgets,
+            **(params_dict.get("max_speed_grouped_widget") or {}),
         )
         .call()
     )
@@ -298,7 +370,13 @@ def main(params: Params):
     patrol_events_bar_chart = (
         draw_time_series_bar_chart.validate()
         .partial(
-            dataframe=filter_patrol_events, **params_dict["patrol_events_bar_chart"]
+            dataframe=filter_patrol_events,
+            x_axis="time",
+            y_axis="event_type",
+            category="event_type",
+            agg_function="count",
+            plot_style={"xperiodalignment": "middle"},
+            **(params_dict.get("patrol_events_bar_chart") or {}),
         )
         .call()
     )
@@ -308,7 +386,7 @@ def main(params: Params):
         .partial(
             text=patrol_events_bar_chart,
             root_path=os.environ["ECOSCOPE_WORKFLOWS_RESULTS"],
-            **params_dict["patrol_events_bar_chart_html_url"],
+            **(params_dict.get("patrol_events_bar_chart_html_url") or {}),
         )
         .call()
     )
@@ -317,14 +395,19 @@ def main(params: Params):
         create_plot_widget_single_view.validate()
         .partial(
             data=patrol_events_bar_chart_html_url,
-            **params_dict["patrol_events_bar_chart_widget"],
+            title="Patrol Events Bar Chart",
+            **(params_dict.get("patrol_events_bar_chart_widget") or {}),
         )
         .call()
     )
 
     patrol_events_pie_chart = (
         draw_pie_chart.validate()
-        .partial(**params_dict["patrol_events_pie_chart"])
+        .partial(
+            value_column="event_type",
+            plot_style={"textinfo": "value"},
+            **(params_dict.get("patrol_events_pie_chart") or {}),
+        )
         .mapvalues(argnames=["dataframe"], argvalues=split_pe_groups)
     )
 
@@ -332,14 +415,17 @@ def main(params: Params):
         persist_text.validate()
         .partial(
             root_path=os.environ["ECOSCOPE_WORKFLOWS_RESULTS"],
-            **params_dict["pe_pie_chart_html_urls"],
+            **(params_dict.get("pe_pie_chart_html_urls") or {}),
         )
         .mapvalues(argnames=["text"], argvalues=patrol_events_pie_chart)
     )
 
     patrol_events_pie_chart_widgets = (
         create_plot_widget_single_view.validate()
-        .partial(**params_dict["patrol_events_pie_chart_widgets"])
+        .partial(
+            title="Patrol Events Pie Chart",
+            **(params_dict.get("patrol_events_pie_chart_widgets") or {}),
+        )
         .map(argnames=["view", "data"], argvalues=pe_pie_chart_html_urls)
     )
 
@@ -347,30 +433,59 @@ def main(params: Params):
         merge_widget_views.validate()
         .partial(
             widgets=patrol_events_pie_chart_widgets,
-            **params_dict["patrol_events_pie_widget_grouped"],
+            **(params_dict.get("patrol_events_pie_widget_grouped") or {}),
         )
         .call()
     )
 
     td = (
         calculate_time_density.validate()
-        .partial(trajectory_gdf=patrol_traj, **params_dict["td"])
+        .partial(
+            trajectory_gdf=patrol_traj,
+            pixel_size=250.0,
+            crs="ESRI:102022",
+            nodata_value="nan",
+            band_count=1,
+            percentiles=[50.0, 60.0, 70.0, 80.0, 90.0, 95.0],
+            **(params_dict.get("td") or {}),
+        )
         .call()
     )
 
     td_colormap = (
-        apply_color_map.validate().partial(df=td, **params_dict["td_colormap"]).call()
+        apply_color_map.validate()
+        .partial(
+            df=td,
+            input_column_name="percentile",
+            colormap="RdYlGn",
+            output_column_name="percentile_colormap",
+            **(params_dict.get("td_colormap") or {}),
+        )
+        .call()
     )
 
     td_map_layer = (
-        create_map_layer.validate()
-        .partial(geodataframe=td_colormap, **params_dict["td_map_layer"])
+        create_polygon_layer.validate()
+        .partial(
+            geodataframe=td_colormap,
+            layer_style={
+                "fill_color_column": "percentile_colormap",
+                "opacity": 0.7,
+                "get_line_width": 0,
+            },
+            **(params_dict.get("td_map_layer") or {}),
+        )
         .call()
     )
 
     td_ecomap = (
         draw_ecomap.validate()
-        .partial(geo_layers=td_map_layer, **params_dict["td_ecomap"])
+        .partial(
+            geo_layers=td_map_layer,
+            tile_layers=[{"name": "SATELLITE"}, {"name": "TERRAIN", "opacity": 0.5}],
+            static=False,
+            **(params_dict.get("td_ecomap") or {}),
+        )
         .call()
     )
 
@@ -379,14 +494,18 @@ def main(params: Params):
         .partial(
             text=td_ecomap,
             root_path=os.environ["ECOSCOPE_WORKFLOWS_RESULTS"],
-            **params_dict["td_ecomap_html_url"],
+            **(params_dict.get("td_ecomap_html_url") or {}),
         )
         .call()
     )
 
     td_map_widget = (
         create_map_widget_single_view.validate()
-        .partial(data=td_ecomap_html_url, **params_dict["td_map_widget"])
+        .partial(
+            data=td_ecomap_html_url,
+            title="Time Density Map",
+            **(params_dict.get("td_map_widget") or {}),
+        )
         .call()
     )
 
@@ -407,7 +526,7 @@ def main(params: Params):
             ],
             groupers=groupers,
             time_range=time_range,
-            **params_dict["patrol_dashboard"],
+            **(params_dict.get("patrol_dashboard") or {}),
         )
         .call()
     )
