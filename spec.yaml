@@ -10,6 +10,11 @@ workflow:
   - name: Set Workflow Details
     id: workflow_details
     task: set_workflow_details
+
+  - name: Select EarthRanger Connection
+    id: er_client_name
+    task: set_connection
+
   # set 'global' groupers
   - name: Set Groupers
     id: groupers
@@ -30,6 +35,7 @@ workflow:
         id: patrol_obs
         task: get_patrol_observations
         partial:
+          client: ${{ workflow.er_client_name.return }}
           time_range: ${{ workflow.time_range.return }}
       - name: Transform Observations to Relocations
         id: patrol_reloc
@@ -75,6 +81,7 @@ workflow:
         id: patrol_events
         task: get_patrol_events
         partial:
+          client: ${{ workflow.er_client_name.return }}
           time_range: ${{ workflow.time_range.return }}
       - name: Apply Relocation Coordinate Filter
         id: filter_patrol_events
@@ -88,13 +95,6 @@ workflow:
           df: ${{ workflow.filter_patrol_events.return }}
           time_col: "time"
           groupers: ${{ workflow.groupers.return }}
-
-  # patrol trajectories map layers
-  - title: Patrol Events and Trajectories Map
-    type: task-group
-    description: >-
-      Create a combined patrol trajectories and events map.
-    tasks:
       - name: Patrol Events Colormap
         id: pe_colormap
         task: apply_color_map
@@ -103,6 +103,13 @@ workflow:
           input_column_name: "event_type"
           colormap: "tab20b"
           output_column_name: "event_type_colormap"
+
+  # patrol trajectories map layers
+  - title: Patrol Events and Trajectories Map
+    type: task-group
+    description: >-
+      Create a combined patrol trajectories and events map.
+    tasks:
       - name: Split Patrol Events by Group
         id: split_pe_groups
         task: split_groups
@@ -141,6 +148,14 @@ workflow:
         id: traj_patrol_events_ecomap
         task: draw_ecomap
         partial:
+          tile_layers:
+            - name: "TERRAIN"
+            - name: "SATELLITE"
+              opacity: 0.5
+          north_arrow_style:
+            placement: "top-left"
+          legend_style:
+            placement: "bottom-right"
           static: false
         mapvalues:
           argnames: geo_layers
@@ -205,6 +220,9 @@ workflow:
       - name: Convert total patrol time units
         id: total_patrol_time_converted
         task: with_unit
+        partial:
+          original_unit: "s"
+          new_unit: "h"
         mapvalues:
           argnames: value
           argvalues: ${{ workflow.total_patrol_time.return }}
@@ -232,6 +250,9 @@ workflow:
       - name: Convert total patrol distance units
         id: total_patrol_dist_converted
         task: with_unit
+        partial:
+          original_unit: "m"
+          new_unit: "km"
         mapvalues:
           argnames: value
           argvalues: ${{ workflow.total_patrol_dist.return }}
@@ -259,6 +280,9 @@ workflow:
       - name: Convert Average Speed units
         id: average_speed_converted
         task: with_unit
+        partial:
+          original_unit: "km/h"
+          new_unit: "km/h"
         mapvalues:
           argnames: value
           argvalues: ${{ workflow.avg_speed.return }}
@@ -286,6 +310,9 @@ workflow:
       - name: Convert Max Speed units
         id: max_speed_converted
         task: with_unit
+        partial:
+          original_unit: "km/h"
+          new_unit: "km/h"
         mapvalues:
           argnames: value
           argvalues: ${{ workflow.max_speed.return }}
@@ -313,11 +340,12 @@ workflow:
         id: patrol_events_bar_chart
         task: draw_time_series_bar_chart
         partial:
-          dataframe: ${{ workflow.filter_patrol_events.return }}
+          dataframe: ${{ workflow.pe_colormap.return }}
           x_axis: "time"
           y_axis: "event_type"
           category: "event_type"
           agg_function: "count"
+          color_column: "event_type_colormap"
           plot_style:
             xperiodalignment: "middle"
       - name: Persist Patrols Bar Chart as Text
@@ -384,8 +412,6 @@ workflow:
           trajectory_gdf: ${{ workflow.patrol_traj.return }}
           pixel_size: 250.0
           crs: "ESRI:102022"
-          nodata_value: "nan"
-          band_count: 1
           percentiles: [50.0, 60.0, 70.0, 80.0, 90.0, 95.0]
       # Colormap time density
       - name: Time Density Colormap
@@ -412,9 +438,13 @@ workflow:
           geo_layers:
             - ${{ workflow.td_map_layer.return }}
           tile_layers:
-            - name: "SATELLITE"
             - name: "TERRAIN"
+            - name: "SATELLITE"
               opacity: 0.5
+          north_arrow_style:
+            placement: "top-left"
+          legend_style:
+            placement: "bottom-right"
           static: False
       - name: Persist Ecomap as Text
         id: td_ecomap_html_url
