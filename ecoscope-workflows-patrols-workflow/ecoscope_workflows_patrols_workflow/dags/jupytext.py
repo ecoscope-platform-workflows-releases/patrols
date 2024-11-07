@@ -1,6 +1,6 @@
 # [generated]
 # by = { compiler = "ecoscope-workflows-core", version = "9999" }
-# from-spec-sha256 = "07ffd4fc8e89019bbd0086333f0cbead53561801e3c1cd3bba81063c45abdb28"
+# from-spec-sha256 = "f5fbeb4f277bcb0cd0eaeba753d89cec7035a97e2572f641fb667fd95270fb00"
 
 
 # ruff: noqa: E402
@@ -14,6 +14,7 @@
 
 import os
 from ecoscope_workflows_core.tasks.config import set_workflow_details
+from ecoscope_workflows_core.tasks.io import set_connection
 from ecoscope_workflows_core.tasks.groupby import set_groupers
 from ecoscope_workflows_core.tasks.filter import set_time_range
 from ecoscope_workflows_ext_ecoscope.tasks.io import get_patrol_observations
@@ -68,6 +69,23 @@ workflow_details = set_workflow_details.partial(**workflow_details_params).call(
 
 
 # %% [markdown]
+# ## Select EarthRanger Connection
+
+# %%
+# parameters
+
+er_client_name_params = dict(
+    name=...,
+)
+
+# %%
+# call the task
+
+
+er_client_name = set_connection.partial(**er_client_name_params).call()
+
+
+# %% [markdown]
 # ## Set Groupers
 
 # %%
@@ -110,7 +128,6 @@ time_range = set_time_range.partial(**time_range_params).call()
 # parameters
 
 patrol_obs_params = dict(
-    client=...,
     patrol_type=...,
     status=...,
     include_patrol_details=...,
@@ -121,7 +138,7 @@ patrol_obs_params = dict(
 
 
 patrol_obs = get_patrol_observations.partial(
-    time_range=time_range, **patrol_obs_params
+    client=er_client_name, time_range=time_range, **patrol_obs_params
 ).call()
 
 
@@ -213,7 +230,6 @@ traj_add_temporal_index = add_temporal_index.partial(
 # parameters
 
 patrol_events_params = dict(
-    client=...,
     patrol_type=...,
     status=...,
 )
@@ -223,7 +239,7 @@ patrol_events_params = dict(
 
 
 patrol_events = get_patrol_events.partial(
-    time_range=time_range, **patrol_events_params
+    client=er_client_name, time_range=time_range, **patrol_events_params
 ).call()
 
 
@@ -393,10 +409,7 @@ combined_traj_and_pe_map_layers = groupbykey.partial(
 # parameters
 
 traj_patrol_events_ecomap_params = dict(
-    tile_layers=...,
     title=...,
-    north_arrow_style=...,
-    legend_style=...,
 )
 
 # %%
@@ -404,7 +417,11 @@ traj_patrol_events_ecomap_params = dict(
 
 
 traj_patrol_events_ecomap = draw_ecomap.partial(
-    static=False, **traj_patrol_events_ecomap_params
+    tile_layers=[{"name": "TERRAIN"}, {"name": "SATELLITE", "opacity": 0.5}],
+    north_arrow_style={"placement": "top-left"},
+    legend_style={"placement": "bottom-right"},
+    static=False,
+    **traj_patrol_events_ecomap_params,
 ).mapvalues(argnames=["geo_layers"], argvalues=combined_traj_and_pe_map_layers)
 
 
@@ -538,17 +555,14 @@ total_patrol_time = dataframe_column_sum.partial(
 # %%
 # parameters
 
-total_patrol_time_converted_params = dict(
-    original_unit=...,
-    new_unit=...,
-)
+total_patrol_time_converted_params = dict()
 
 # %%
 # call the task
 
 
 total_patrol_time_converted = with_unit.partial(
-    **total_patrol_time_converted_params
+    original_unit="s", new_unit="h", **total_patrol_time_converted_params
 ).mapvalues(argnames=["value"], argvalues=total_patrol_time)
 
 
@@ -611,17 +625,14 @@ total_patrol_dist = dataframe_column_sum.partial(
 # %%
 # parameters
 
-total_patrol_dist_converted_params = dict(
-    original_unit=...,
-    new_unit=...,
-)
+total_patrol_dist_converted_params = dict()
 
 # %%
 # call the task
 
 
 total_patrol_dist_converted = with_unit.partial(
-    **total_patrol_dist_converted_params
+    original_unit="m", new_unit="km", **total_patrol_dist_converted_params
 ).mapvalues(argnames=["value"], argvalues=total_patrol_dist)
 
 
@@ -684,18 +695,15 @@ avg_speed = dataframe_column_mean.partial(
 # %%
 # parameters
 
-average_speed_converted_params = dict(
-    original_unit=...,
-    new_unit=...,
-)
+average_speed_converted_params = dict()
 
 # %%
 # call the task
 
 
-average_speed_converted = with_unit.partial(**average_speed_converted_params).mapvalues(
-    argnames=["value"], argvalues=avg_speed
-)
+average_speed_converted = with_unit.partial(
+    original_unit="km/h", new_unit="km/h", **average_speed_converted_params
+).mapvalues(argnames=["value"], argvalues=avg_speed)
 
 
 # %% [markdown]
@@ -757,18 +765,15 @@ max_speed = dataframe_column_max.partial(
 # %%
 # parameters
 
-max_speed_converted_params = dict(
-    original_unit=...,
-    new_unit=...,
-)
+max_speed_converted_params = dict()
 
 # %%
 # call the task
 
 
-max_speed_converted = with_unit.partial(**max_speed_converted_params).mapvalues(
-    argnames=["value"], argvalues=max_speed
-)
+max_speed_converted = with_unit.partial(
+    original_unit="km/h", new_unit="km/h", **max_speed_converted_params
+).mapvalues(argnames=["value"], argvalues=max_speed)
 
 
 # %% [markdown]
@@ -815,7 +820,6 @@ max_speed_grouped_widget = merge_widget_views.partial(
 
 patrol_events_bar_chart_params = dict(
     time_interval=...,
-    color_column=...,
     grouped_styles=...,
     layout_style=...,
 )
@@ -825,11 +829,12 @@ patrol_events_bar_chart_params = dict(
 
 
 patrol_events_bar_chart = draw_time_series_bar_chart.partial(
-    dataframe=filter_patrol_events,
+    dataframe=pe_colormap,
     x_axis="time",
     y_axis="event_type",
     category="event_type",
     agg_function="count",
+    color_column="event_type_colormap",
     plot_style={"xperiodalignment": "middle"},
     **patrol_events_bar_chart_params,
 ).call()
@@ -960,6 +965,8 @@ patrol_events_pie_widget_grouped = merge_widget_views.partial(
 # parameters
 
 td_params = dict(
+    nodata_value=...,
+    band_count=...,
     max_speed_factor=...,
     expansion_factor=...,
 )
@@ -972,8 +979,6 @@ td = calculate_time_density.partial(
     trajectory_gdf=patrol_traj,
     pixel_size=250.0,
     crs="ESRI:102022",
-    nodata_value="nan",
-    band_count=1,
     percentiles=[50.0, 60.0, 70.0, 80.0, 90.0, 95.0],
     **td_params,
 ).call()
@@ -1033,8 +1038,6 @@ td_map_layer = create_polygon_layer.partial(
 
 td_ecomap_params = dict(
     title=...,
-    north_arrow_style=...,
-    legend_style=...,
 )
 
 # %%
@@ -1043,7 +1046,9 @@ td_ecomap_params = dict(
 
 td_ecomap = draw_ecomap.partial(
     geo_layers=td_map_layer,
-    tile_layers=[{"name": "SATELLITE"}, {"name": "TERRAIN", "opacity": 0.5}],
+    tile_layers=[{"name": "TERRAIN"}, {"name": "SATELLITE", "opacity": 0.5}],
+    north_arrow_style={"placement": "top-left"},
+    legend_style={"placement": "bottom-right"},
     static=False,
     **td_ecomap_params,
 ).call()

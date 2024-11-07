@@ -27,6 +27,21 @@
       "type": "object",
       "title": "Set Workflow Details"
     },
+    "er_client_name": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string",
+          "description": "A named EarthRanger connection."
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "type": "object",
+      "title": "Select EarthRanger Connection"
+    },
     "groupers": {
       "additionalProperties": false,
       "properties": {
@@ -82,11 +97,6 @@
         "patrol_obs": {
           "additionalProperties": false,
           "properties": {
-            "client": {
-              "description": "A named EarthRanger connection.",
-              "title": "Client",
-              "type": "string"
-            },
             "patrol_type": {
               "items": {
                 "type": "string"
@@ -97,7 +107,6 @@
             }
           },
           "required": [
-            "client",
             "patrol_type"
           ],
           "type": "object",
@@ -106,11 +115,6 @@
         "patrol_traj": {
           "additionalProperties": false,
           "properties": {
-            "min_length_meters": {
-              "default": 0.1,
-              "title": "Min Length Meters",
-              "type": "number"
-            },
             "max_length_meters": {
               "default": 10000,
               "title": "Max Length Meters",
@@ -121,19 +125,9 @@
               "title": "Max Time Secs",
               "type": "number"
             },
-            "min_time_secs": {
-              "default": 1,
-              "title": "Min Time Secs",
-              "type": "number"
-            },
             "max_speed_kmhr": {
               "default": 120,
               "title": "Max Speed Kmhr",
-              "type": "number"
-            },
-            "min_speed_kmhr": {
-              "default": 0.0,
-              "title": "Min Speed Kmhr",
               "type": "number"
             }
           },
@@ -156,11 +150,6 @@
         "patrol_events": {
           "additionalProperties": false,
           "properties": {
-            "client": {
-              "description": "A named EarthRanger connection.",
-              "title": "Client",
-              "type": "string"
-            },
             "patrol_type": {
               "items": {
                 "type": "string"
@@ -171,7 +160,6 @@
             }
           },
           "required": [
-            "client",
             "patrol_type"
           ],
           "type": "object",
@@ -181,187 +169,6 @@
       "uiSchema": {
         "ui:order": [
           "patrol_events"
-        ]
-      }
-    },
-    "Patrol Events and Trajectories Map": {
-      "type": "object",
-      "description": "Create a combined patrol trajectories and events map.",
-      "properties": {
-        "traj_patrol_events_ecomap": {
-          "additionalProperties": false,
-          "properties": {
-            "tile_layers": {
-              "default": [],
-              "items": {
-                "$ref": "#/$defs/TileLayer"
-              },
-              "title": "Tile Layers",
-              "type": "array",
-              "description": "A list of named tile layer with opacity, ie OpenStreetMap."
-            },
-            "north_arrow_style": {
-              "allOf": [
-                {
-                  "$ref": "#/$defs/NorthArrowStyle"
-                }
-              ],
-              "default": {
-                "placement": "top-left",
-                "style": {
-                  "transform": "scale(0.8)"
-                }
-              },
-              "title": "North Arrow Style",
-              "description": "Additional arguments for configuring the North Arrow."
-            },
-            "legend_style": {
-              "allOf": [
-                {
-                  "$ref": "#/$defs/LegendStyle"
-                }
-              ],
-              "default": {
-                "placement": "bottom-right"
-              },
-              "title": "Legend Style",
-              "description": "Additional arguments for configuring the legend."
-            }
-          },
-          "required": [],
-          "type": "object",
-          "title": "Draw Ecomaps for each combined Trajectory and Patrol Events group"
-        }
-      },
-      "uiSchema": {
-        "ui:order": [
-          "traj_patrol_events_ecomap"
-        ]
-      }
-    },
-    "Patrol Summary Statistics": {
-      "type": "object",
-      "description": "Create a single value widget for various patrol statistics.",
-      "properties": {
-        "total_patrol_time_converted": {
-          "additionalProperties": false,
-          "properties": {
-            "original_unit": {
-              "allOf": [
-                {
-                  "$ref": "#/$defs/Unit"
-                }
-              ],
-              "default": null,
-              "title": "Original Unit",
-              "description": "The original unit of measurement."
-            },
-            "new_unit": {
-              "allOf": [
-                {
-                  "$ref": "#/$defs/Unit"
-                }
-              ],
-              "default": null,
-              "title": "New Unit",
-              "description": "The unit to convert to."
-            }
-          },
-          "required": [],
-          "type": "object",
-          "title": "Convert total patrol time units"
-        },
-        "total_patrol_dist_converted": {
-          "additionalProperties": false,
-          "properties": {
-            "original_unit": {
-              "allOf": [
-                {
-                  "$ref": "#/$defs/Unit"
-                }
-              ],
-              "default": null,
-              "title": "Original Unit",
-              "description": "The original unit of measurement."
-            },
-            "new_unit": {
-              "allOf": [
-                {
-                  "$ref": "#/$defs/Unit"
-                }
-              ],
-              "default": null,
-              "title": "New Unit",
-              "description": "The unit to convert to."
-            }
-          },
-          "required": [],
-          "type": "object",
-          "title": "Convert total patrol distance units"
-        },
-        "average_speed_converted": {
-          "additionalProperties": false,
-          "properties": {
-            "original_unit": {
-              "allOf": [
-                {
-                  "$ref": "#/$defs/Unit"
-                }
-              ],
-              "default": null,
-              "title": "Original Unit",
-              "description": "The original unit of measurement."
-            },
-            "new_unit": {
-              "allOf": [
-                {
-                  "$ref": "#/$defs/Unit"
-                }
-              ],
-              "default": null,
-              "title": "New Unit",
-              "description": "The unit to convert to."
-            }
-          },
-          "required": [],
-          "type": "object",
-          "title": "Convert Average Speed units"
-        },
-        "max_speed_converted": {
-          "additionalProperties": false,
-          "properties": {
-            "original_unit": {
-              "allOf": [
-                {
-                  "$ref": "#/$defs/Unit"
-                }
-              ],
-              "default": null,
-              "title": "Original Unit",
-              "description": "The original unit of measurement."
-            },
-            "new_unit": {
-              "allOf": [
-                {
-                  "$ref": "#/$defs/Unit"
-                }
-              ],
-              "default": null,
-              "title": "New Unit",
-              "description": "The unit to convert to."
-            }
-          },
-          "required": [],
-          "type": "object",
-          "title": "Convert Max Speed units"
-        }
-      },
-      "uiSchema": {
-        "ui:order": [
-          "total_patrol_time_converted",
-          "total_patrol_dist_converted",
-          "average_speed_converted",
-          "max_speed_converted"
         ]
       }
     },
@@ -383,15 +190,6 @@
               "title": "Time Interval",
               "type": "string",
               "description": "Sets the time interval of the x axis."
-            },
-            "grouped_styles": {
-              "default": [],
-              "items": {
-                "$ref": "#/$defs/GroupedPlotStyle"
-              },
-              "title": "Grouped Styles",
-              "type": "array",
-              "description": "Style arguments passed to plotly.graph_objects.Bar and applied to individual groups."
             }
           },
           "required": [
@@ -404,71 +202,6 @@
       "uiSchema": {
         "ui:order": [
           "patrol_events_bar_chart"
-        ]
-      }
-    },
-    "Time Density Map": {
-      "type": "object",
-      "description": "Calculate time density from patrol trajectories and display it on a map.",
-      "properties": {
-        "td": {
-          "additionalProperties": false,
-          "properties": {
-            "max_speed_factor": {
-              "default": 1.05,
-              "title": "Max Speed Factor",
-              "type": "number"
-            },
-            "expansion_factor": {
-              "default": 1.3,
-              "title": "Expansion Factor",
-              "type": "number"
-            }
-          },
-          "required": [],
-          "type": "object",
-          "title": "Calculate Time Density from Trajectory"
-        },
-        "td_ecomap": {
-          "additionalProperties": false,
-          "properties": {
-            "north_arrow_style": {
-              "allOf": [
-                {
-                  "$ref": "#/$defs/NorthArrowStyle"
-                }
-              ],
-              "default": {
-                "placement": "top-left",
-                "style": {
-                  "transform": "scale(0.8)"
-                }
-              },
-              "title": "North Arrow Style",
-              "description": "Additional arguments for configuring the North Arrow."
-            },
-            "legend_style": {
-              "allOf": [
-                {
-                  "$ref": "#/$defs/LegendStyle"
-                }
-              ],
-              "default": {
-                "placement": "bottom-right"
-              },
-              "title": "Legend Style",
-              "description": "Additional arguments for configuring the legend."
-            }
-          },
-          "required": [],
-          "type": "object",
-          "title": "Draw Ecomap from Time Density"
-        }
-      },
-      "uiSchema": {
-        "ui:order": [
-          "td",
-          "td_ecomap"
         ]
       }
     }
@@ -554,253 +287,6 @@
       ],
       "title": "TimeRange",
       "type": "object"
-    },
-    "LayerDefinition": {
-      "properties": {
-        "geodataframe": {
-          "title": "Geodataframe",
-          "type": "ecoscope_workflows.annotations.DataFrame"
-        },
-        "layer_style": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/PolylineLayerStyle"
-            },
-            {
-              "$ref": "#/$defs/PointLayerStyle"
-            },
-            {
-              "$ref": "#/$defs/PolygonLayerStyle"
-            }
-          ],
-          "title": "Layer Style"
-        },
-        "legend": {
-          "$ref": "#/$defs/LegendDefinition"
-        }
-      },
-      "required": [
-        "geodataframe",
-        "layer_style",
-        "legend"
-      ],
-      "title": "LayerDefinition",
-      "type": "object"
-    },
-    "LegendDefinition": {
-      "properties": {
-        "label_column": {
-          "default": null,
-          "title": "Label Column",
-          "type": "string"
-        },
-        "color_column": {
-          "default": null,
-          "title": "Color Column",
-          "type": "string"
-        },
-        "labels": {
-          "default": null,
-          "items": {
-            "type": "string"
-          },
-          "title": "Labels",
-          "type": "array"
-        },
-        "colors": {
-          "default": null,
-          "items": {
-            "type": "string"
-          },
-          "title": "Colors",
-          "type": "array"
-        }
-      },
-      "title": "LegendDefinition",
-      "type": "object"
-    },
-    "LegendStyle": {
-      "properties": {
-        "placement": {
-          "default": "bottom-right",
-          "enum": [
-            "top-left",
-            "top-right",
-            "bottom-left",
-            "bottom-right",
-            "fill"
-          ],
-          "title": "Placement",
-          "type": "string"
-        }
-      },
-      "title": "LegendStyle",
-      "type": "object"
-    },
-    "NorthArrowStyle": {
-      "properties": {
-        "placement": {
-          "default": "top-left",
-          "enum": [
-            "top-left",
-            "top-right",
-            "bottom-left",
-            "bottom-right",
-            "fill"
-          ],
-          "title": "Placement",
-          "type": "string"
-        },
-        "style": {
-          "default": {
-            "transform": "scale(0.8)"
-          },
-          "title": "Style",
-          "type": "object"
-        }
-      },
-      "title": "NorthArrowStyle",
-      "type": "object"
-    },
-    "PointLayerStyle": {
-      "properties": {
-        "filled": {
-          "default": true,
-          "title": "Filled",
-          "type": "boolean"
-        },
-        "get_fill_color": {
-          "default": null,
-          "title": "Get Fill Color",
-          "type": "string"
-        },
-        "get_line_color": {
-          "default": null,
-          "title": "Get Line Color",
-          "type": "string"
-        },
-        "get_line_width": {
-          "default": 1,
-          "title": "Get Line Width",
-          "type": "number"
-        },
-        "fill_color_column": {
-          "default": null,
-          "title": "Fill Color Column",
-          "type": "string"
-        },
-        "line_width_units": {
-          "default": "pixels",
-          "enum": [
-            "meters",
-            "pixels"
-          ],
-          "title": "Line Width Units",
-          "type": "string"
-        },
-        "get_radius": {
-          "default": 5,
-          "title": "Get Radius",
-          "type": "number"
-        },
-        "radius_units": {
-          "default": "pixels",
-          "enum": [
-            "meters",
-            "pixels"
-          ],
-          "title": "Radius Units",
-          "type": "string"
-        }
-      },
-      "title": "PointLayerStyle",
-      "type": "object"
-    },
-    "PolygonLayerStyle": {
-      "properties": {
-        "filled": {
-          "default": true,
-          "title": "Filled",
-          "type": "boolean"
-        },
-        "get_fill_color": {
-          "default": null,
-          "title": "Get Fill Color",
-          "type": "string"
-        },
-        "get_line_color": {
-          "default": null,
-          "title": "Get Line Color",
-          "type": "string"
-        },
-        "get_line_width": {
-          "default": 1,
-          "title": "Get Line Width",
-          "type": "number"
-        },
-        "fill_color_column": {
-          "default": null,
-          "title": "Fill Color Column",
-          "type": "string"
-        },
-        "line_width_units": {
-          "default": "pixels",
-          "enum": [
-            "meters",
-            "pixels"
-          ],
-          "title": "Line Width Units",
-          "type": "string"
-        },
-        "extruded": {
-          "default": false,
-          "title": "Extruded",
-          "type": "boolean"
-        },
-        "get_elevation": {
-          "default": 1000,
-          "title": "Get Elevation",
-          "type": "number"
-        }
-      },
-      "title": "PolygonLayerStyle",
-      "type": "object"
-    },
-    "PolylineLayerStyle": {
-      "properties": {},
-      "title": "PolylineLayerStyle",
-      "type": "object"
-    },
-    "TileLayer": {
-      "properties": {
-        "name": {
-          "title": "Name",
-          "type": "string"
-        },
-        "opacity": {
-          "default": 1,
-          "title": "Opacity",
-          "type": "number"
-        }
-      },
-      "required": [
-        "name"
-      ],
-      "title": "TileLayer",
-      "type": "object"
-    },
-    "Unit": {
-      "enum": [
-        "m",
-        "km",
-        "s",
-        "h",
-        "d",
-        "m/s",
-        "km/h"
-      ],
-      "title": "Unit",
-      "type": "string"
     },
     "BarLayoutStyle": {
       "properties": {
@@ -919,14 +405,12 @@
   "uiSchema": {
     "ui:order": [
       "workflow_details",
+      "er_client_name",
       "groupers",
       "time_range",
       "Fetch and preprocess patrol observations",
       "Fetch and preprocess patrol events",
-      "Patrol Events and Trajectories Map",
-      "Patrol Summary Statistics",
-      "Patrol events bar chart",
-      "Time Density Map"
+      "Patrol events bar chart"
     ]
   }
 }
