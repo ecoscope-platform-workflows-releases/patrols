@@ -1,6 +1,6 @@
 # [generated]
 # by = { compiler = "ecoscope-workflows-core", version = "9999" }
-# from-spec-sha256 = "07ffd4fc8e89019bbd0086333f0cbead53561801e3c1cd3bba81063c45abdb28"
+# from-spec-sha256 = "f5fbeb4f277bcb0cd0eaeba753d89cec7035a97e2572f641fb667fd95270fb00"
 
 # ruff: noqa: E402
 
@@ -16,6 +16,7 @@ from ecoscope_workflows_core.testing import create_task_magicmock  # 🧪
 
 
 from ecoscope_workflows_core.tasks.config import set_workflow_details
+from ecoscope_workflows_core.tasks.io import set_connection
 from ecoscope_workflows_core.tasks.groupby import set_groupers
 from ecoscope_workflows_core.tasks.filter import set_time_range
 
@@ -72,6 +73,12 @@ def main(params: Params):
         .call()
     )
 
+    er_client_name = (
+        set_connection.validate()
+        .partial(**(params_dict.get("er_client_name") or {}))
+        .call()
+    )
+
     groupers = (
         set_groupers.validate().partial(**(params_dict.get("groupers") or {})).call()
     )
@@ -84,7 +91,11 @@ def main(params: Params):
 
     patrol_obs = (
         get_patrol_observations.validate()
-        .partial(time_range=time_range, **(params_dict.get("patrol_obs") or {}))
+        .partial(
+            client=er_client_name,
+            time_range=time_range,
+            **(params_dict.get("patrol_obs") or {}),
+        )
         .call()
     )
 
@@ -132,7 +143,11 @@ def main(params: Params):
 
     patrol_events = (
         get_patrol_events.validate()
-        .partial(time_range=time_range, **(params_dict.get("patrol_events") or {}))
+        .partial(
+            client=er_client_name,
+            time_range=time_range,
+            **(params_dict.get("patrol_events") or {}),
+        )
         .call()
     )
 
@@ -211,7 +226,13 @@ def main(params: Params):
 
     traj_patrol_events_ecomap = (
         draw_ecomap.validate()
-        .partial(static=False, **(params_dict.get("traj_patrol_events_ecomap") or {}))
+        .partial(
+            tile_layers=[{"name": "TERRAIN"}, {"name": "SATELLITE", "opacity": 0.5}],
+            north_arrow_style={"placement": "top-left"},
+            legend_style={"placement": "bottom-right"},
+            static=False,
+            **(params_dict.get("traj_patrol_events_ecomap") or {}),
+        )
         .mapvalues(argnames=["geo_layers"], argvalues=combined_traj_and_pe_map_layers)
     )
 
@@ -278,7 +299,11 @@ def main(params: Params):
 
     total_patrol_time_converted = (
         with_unit.validate()
-        .partial(**(params_dict.get("total_patrol_time_converted") or {}))
+        .partial(
+            original_unit="s",
+            new_unit="h",
+            **(params_dict.get("total_patrol_time_converted") or {}),
+        )
         .mapvalues(argnames=["value"], argvalues=total_patrol_time)
     )
 
@@ -310,7 +335,11 @@ def main(params: Params):
 
     total_patrol_dist_converted = (
         with_unit.validate()
-        .partial(**(params_dict.get("total_patrol_dist_converted") or {}))
+        .partial(
+            original_unit="m",
+            new_unit="km",
+            **(params_dict.get("total_patrol_dist_converted") or {}),
+        )
         .mapvalues(argnames=["value"], argvalues=total_patrol_dist)
     )
 
@@ -340,7 +369,11 @@ def main(params: Params):
 
     average_speed_converted = (
         with_unit.validate()
-        .partial(**(params_dict.get("average_speed_converted") or {}))
+        .partial(
+            original_unit="km/h",
+            new_unit="km/h",
+            **(params_dict.get("average_speed_converted") or {}),
+        )
         .mapvalues(argnames=["value"], argvalues=avg_speed)
     )
 
@@ -369,7 +402,11 @@ def main(params: Params):
 
     max_speed_converted = (
         with_unit.validate()
-        .partial(**(params_dict.get("max_speed_converted") or {}))
+        .partial(
+            original_unit="km/h",
+            new_unit="km/h",
+            **(params_dict.get("max_speed_converted") or {}),
+        )
         .mapvalues(argnames=["value"], argvalues=max_speed)
     )
 
@@ -391,11 +428,12 @@ def main(params: Params):
     patrol_events_bar_chart = (
         draw_time_series_bar_chart.validate()
         .partial(
-            dataframe=filter_patrol_events,
+            dataframe=pe_colormap,
             x_axis="time",
             y_axis="event_type",
             category="event_type",
             agg_function="count",
+            color_column="event_type_colormap",
             plot_style={"xperiodalignment": "middle"},
             **(params_dict.get("patrol_events_bar_chart") or {}),
         )
@@ -465,8 +503,6 @@ def main(params: Params):
             trajectory_gdf=patrol_traj,
             pixel_size=250.0,
             crs="ESRI:102022",
-            nodata_value="nan",
-            band_count=1,
             percentiles=[50.0, 60.0, 70.0, 80.0, 90.0, 95.0],
             **(params_dict.get("td") or {}),
         )
@@ -503,7 +539,9 @@ def main(params: Params):
         draw_ecomap.validate()
         .partial(
             geo_layers=td_map_layer,
-            tile_layers=[{"name": "SATELLITE"}, {"name": "TERRAIN", "opacity": 0.5}],
+            tile_layers=[{"name": "TERRAIN"}, {"name": "SATELLITE", "opacity": 0.5}],
+            north_arrow_style={"placement": "top-left"},
+            legend_style={"placement": "bottom-right"},
             static=False,
             **(params_dict.get("td_ecomap") or {}),
         )
