@@ -1,6 +1,6 @@
 # [generated]
 # by = { compiler = "ecoscope-workflows-core", version = "9999" }
-# from-spec-sha256 = "f5fbeb4f277bcb0cd0eaeba753d89cec7035a97e2572f641fb667fd95270fb00"
+# from-spec-sha256 = "67e050a5f34893bb04f20a0b9d002543d121cd619de7305c3c889e5446d2b502"
 
 
 from __future__ import annotations
@@ -24,7 +24,9 @@ class ErClientName(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    name: str = Field(..., description="A named EarthRanger connection.", title="Name")
+    EcoscopeWorkflowsNamedConnection: str = Field(
+        ..., description="A named connection.", title="Name"
+    )
 
 
 class TimeRange(BaseModel):

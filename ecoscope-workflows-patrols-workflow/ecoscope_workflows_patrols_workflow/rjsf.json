@@ -30,14 +30,14 @@
     "er_client_name": {
       "additionalProperties": false,
       "properties": {
-        "name": {
+        "EcoscopeWorkflowsNamedConnection": {
           "title": "Name",
           "type": "string",
-          "description": "A named EarthRanger connection."
+          "description": "A named connection."
         }
       },
       "required": [
-        "name"
+        "EcoscopeWorkflowsNamedConnection"
       ],
       "type": "object",
       "title": "Select EarthRanger Connection"
