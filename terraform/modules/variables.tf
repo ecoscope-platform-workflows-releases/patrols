@@ -35,7 +35,7 @@ variable "max_instance_count" {
 variable "max_instance_request_concurrency" {
   type        = number
   description = "Sets the maximum number of requests that each serving instance can receive"
-  default     = 2
+  default     = 1
 }
 
 variable "image" {
@@ -50,7 +50,7 @@ variable "image" {
 variable "limits" {
   type        = map(string)
   description = "Resource limits to the container"
-  default     = { "cpu" = "1000m", "memory" = "4Gi" }
+  default     = { "cpu" = "4000m", "memory" = "12Gi" }
 }
 
 variable "network_name" {
