@@ -1,6 +1,6 @@
 # [generated]
 # by = { compiler = "ecoscope-workflows-core", version = "9999" }
-# from-spec-sha256 = "4c7b0ef685c5b2bf7fa66d793cfb4b5c24795c37758928b189ed0aa9d21ce41f"
+# from-spec-sha256 = "ed1d2e93ff19b75dd7db3b34b5cd4b464a1138bca7d7a8c5607da03ddeb385de"
 
 # ruff: noqa: E402
 
@@ -663,7 +663,7 @@ def main(params: Params):
                 "trajectory_gdf": DependsOn("patrol_traj"),
                 "pixel_size": 250.0,
                 "crs": "ESRI:102022",
-                "percentiles": [50.0, 60.0, 70.0, 80.0, 90.0, 95.0],
+                "percentiles": [50.0, 60.0, 70.0, 80.0, 90.0, 95.0, 99.999],
             }
             | (params_dict.get("td") or {}),
             method="call",
