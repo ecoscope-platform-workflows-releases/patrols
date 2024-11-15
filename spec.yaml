@@ -1,10 +1,10 @@
 id: patrols
 requirements:
   - name: ecoscope-workflows-core
-    version: v0.0.21
+    version: v0.0.22
     channel: https://repo.prefix.dev/ecoscope-workflows/
   - name: ecoscope-workflows-ext-ecoscope
-    version: v0.0.21
+    version: v0.0.22
     channel: https://repo.prefix.dev/ecoscope-workflows/
 workflow:
   - name: Set Workflow Details
@@ -410,8 +410,7 @@ workflow:
         task: calculate_time_density
         partial:
           trajectory_gdf: ${{ workflow.patrol_traj.return }}
-          pixel_size: 250.0
-          crs: "ESRI:102022"
+          crs: "ESRI:53042"
           percentiles: [50.0, 60.0, 70.0, 80.0, 90.0, 95.0, 99.999]
       # Colormap time density
       - name: Time Density Colormap

@@ -1,6 +1,6 @@
 # [generated]
 # by = { compiler = "ecoscope-workflows-core", version = "9999" }
-# from-spec-sha256 = "052e86129c795f0113d103f6ff6bd4bf410fafd135cbf3d443f3e5be787c5450"
+# from-spec-sha256 = "17b75c9fddc95ff7158f68a219c572cebf009abb83ce9008bbc8e9c801be60ee"
 
 
 from __future__ import annotations
@@ -102,6 +102,19 @@ class PatrolEventsBarChart(BaseModel):
     )
 
 
+class Td(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    pixel_size: Optional[float] = Field(
+        250.0, description="Raster pixel size in meters.", title="Pixel Size"
+    )
+
+
+class TimeDensityMap(BaseModel):
+    td: Optional[Td] = Field(None, title="Calculate Time Density from Trajectory")
+
+
 class Grouper(BaseModel):
     index_name: str = Field(..., title="Index Name")
 
@@ -148,6 +161,9 @@ class BarLayoutStyle(BaseModel):
     font_style: Optional[str] = Field(None, title="Font Style")
     plot_bgcolor: Optional[str] = Field(None, title="Plot Bgcolor")
     showlegend: Optional[bool] = Field(None, title="Showlegend")
+    title: Optional[str] = Field(None, title="Title")
+    title_x: Optional[confloat(ge=0.0, le=1.0)] = Field(None, title="Title X")
+    title_y: Optional[confloat(ge=0.0, le=1.0)] = Field(None, title="Title Y")
     bargap: Optional[confloat(ge=0.0, le=1.0)] = Field(None, title="Bargap")
     bargroupgap: Optional[confloat(ge=0.0, le=1.0)] = Field(None, title="Bargroupgap")
 
@@ -208,6 +224,11 @@ class FormData(BaseModel):
         None,
         alias="Patrol events bar chart",
         description="Create the patrol events bar chart.",
+    )
+    Time_Density_Map: Optional[TimeDensityMap] = Field(
+        None,
+        alias="Time Density Map",
+        description="Calculate time density from patrol trajectories and display it on a map.",
     )
 
 

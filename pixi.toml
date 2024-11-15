@@ -11,12 +11,12 @@ platforms = ["linux-64", "linux-aarch64", "osx-arm64"]
 curl = "*"
 yq = "*"
 # todo: default env
-ecoscope-workflows-core = { version = "v0.0.21", channel = "https://repo.prefix.dev/ecoscope-workflows/" }
-ecoscope-workflows-ext-ecoscope = { version = "v0.0.21", channel = "https://repo.prefix.dev/ecoscope-workflows/" }
+ecoscope-workflows-core = { version = "v0.0.22", channel = "https://repo.prefix.dev/ecoscope-workflows/" }
+ecoscope-workflows-ext-ecoscope = { version = "v0.0.22", channel = "https://repo.prefix.dev/ecoscope-workflows/" }
 
 [tasks]
-recompile = { cmd = "./dev/recompile.sh --lock" }
-recompile-carryover-lockfile = { cmd = "./dev/recompile.sh --no-lock --carryover-lockfile" }
+compile = { cmd = "./dev/recompile.sh --install" }
+recompile = { cmd = "./dev/recompile.sh --update" }
 
 pytest-app = { cmd = "./dev/pytest.sh patrols 'app'" }
 pytest-cli = { cmd = "./dev/pytest.sh patrols 'cli'" }

@@ -1,6 +1,6 @@
 # [generated]
 # by = { compiler = "ecoscope-workflows-core", version = "9999" }
-# from-spec-sha256 = "052e86129c795f0113d103f6ff6bd4bf410fafd135cbf3d443f3e5be787c5450"
+# from-spec-sha256 = "17b75c9fddc95ff7158f68a219c572cebf009abb83ce9008bbc8e9c801be60ee"
 import json
 import os
 
@@ -480,8 +480,7 @@ def main(params: Params):
         calculate_time_density.validate()
         .partial(
             trajectory_gdf=patrol_traj,
-            pixel_size=250.0,
-            crs="ESRI:102022",
+            crs="ESRI:53042",
             percentiles=[50.0, 60.0, 70.0, 80.0, 90.0, 95.0, 99.999],
             **(params_dict.get("td") or {}),
         )
