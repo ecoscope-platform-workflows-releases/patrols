@@ -204,6 +204,31 @@
           "patrol_events_bar_chart"
         ]
       }
+    },
+    "Time Density Map": {
+      "type": "object",
+      "description": "Calculate time density from patrol trajectories and display it on a map.",
+      "properties": {
+        "td": {
+          "additionalProperties": false,
+          "properties": {
+            "pixel_size": {
+              "default": 250.0,
+              "title": "Pixel Size",
+              "type": "number",
+              "description": "Raster pixel size in meters."
+            }
+          },
+          "required": [],
+          "type": "object",
+          "title": "Calculate Time Density from Trajectory"
+        }
+      },
+      "uiSchema": {
+        "ui:order": [
+          "td"
+        ]
+      }
     }
   },
   "$defs": {
@@ -310,6 +335,25 @@
           "title": "Showlegend",
           "type": "boolean"
         },
+        "title": {
+          "default": null,
+          "title": "Title",
+          "type": "string"
+        },
+        "title_x": {
+          "default": null,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Title X",
+          "type": "number"
+        },
+        "title_y": {
+          "default": null,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Title Y",
+          "type": "number"
+        },
         "bargap": {
           "default": null,
           "maximum": 1.0,
@@ -410,7 +454,8 @@
       "time_range",
       "Fetch and preprocess patrol observations",
       "Fetch and preprocess patrol events",
-      "Patrol events bar chart"
+      "Patrol events bar chart",
+      "Time Density Map"
     ]
   }
 }
