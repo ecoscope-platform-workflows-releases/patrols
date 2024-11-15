@@ -40,6 +40,9 @@ test1:
     patrol_events_bar_chart:
       time_interval: "month" # (typing.Literal['year', 'month', 'week', 'day', 'hour'], FieldInfo(annotation=NoneType, required=True, description='Sets the time interval of the x axis.'))
 
+    td:
+      pixel_size: 250
+
   assertions:
     result_stdout_contains:
       - "A dashboard for visualizing patrol trajectories, patrols events, and time density."
