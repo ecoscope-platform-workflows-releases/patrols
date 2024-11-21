@@ -1,14 +1,15 @@
 # [generated]
 # by = { compiler = "ecoscope-workflows-core", version = "9999" }
-# from-spec-sha256 = "a9529bf16d124a261845b545d727e563d03d60cc84cff1208f93fa00a12f9c64"
+# from-spec-sha256 = "8f4c3dc1dcea6470e720d374641eba2356c6e6eb7eb106a6b3e4d66e2d2ffff9"
 
 
 from __future__ import annotations
 
+from datetime import datetime
 from enum import Enum
 from typing import List, Optional, Union
 
-from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, confloat
+from pydantic import BaseModel, ConfigDict, Field, confloat
 
 
 class WorkflowDetails(BaseModel):
@@ -33,8 +34,8 @@ class TimeRange(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    since: AwareDatetime = Field(..., description="The start time", title="Since")
-    until: AwareDatetime = Field(..., description="The end time", title="Until")
+    since: datetime = Field(..., description="The start time", title="Since")
+    until: datetime = Field(..., description="The end time", title="Until")
 
 
 class PatrolObs(BaseModel):
@@ -151,8 +152,8 @@ class TemporalGrouper(BaseModel):
 
 
 class TimeRange1(BaseModel):
-    since: AwareDatetime = Field(..., title="Since")
-    until: AwareDatetime = Field(..., title="Until")
+    since: datetime = Field(..., title="Since")
+    until: datetime = Field(..., title="Until")
     time_format: Optional[str] = Field("%d %b %Y %H:%M:%S %Z", title="Time Format")
 
 
