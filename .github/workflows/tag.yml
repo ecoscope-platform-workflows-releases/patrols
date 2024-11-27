@@ -1,0 +1,26 @@
+name: Tag
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.ECOSCOPE_ELEBOT_PAT }}
+          fetch-depth: 0
+      - name: Create tag from VERSION.yaml
+        id: create_tag
+        uses: mikefarah/yq@v4
+        with:
+          cmd: yq -r '"v" + (.MAJ | tostring) + "." + (.MIN | tostring)' ecoscope-workflows-patrols-workflow/VERSION.yaml
+      - name: Tag
+        run: |
+          git config user.name "ecoscope-elebot"
+          git config user.email "189163401+ecoscope-elebot@users.noreply.github.com"
+          git tag ${{ steps.create_tag.outputs.result }}
+          git push origin --tags
