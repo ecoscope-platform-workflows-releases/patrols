@@ -90,145 +90,100 @@
       "type": "object",
       "title": "Set Time Range Filter"
     },
-    "Fetch and preprocess patrol observations": {
-      "type": "object",
-      "description": "Fetch patrol observations from EarthRanger, preprocess them into trajectories, and add a temporal index.",
+    "patrol_obs": {
+      "additionalProperties": false,
       "properties": {
-        "patrol_obs": {
-          "additionalProperties": false,
-          "properties": {
-            "patrol_type": {
-              "items": {
-                "type": "string"
-              },
-              "title": "Patrol Type",
-              "type": "array",
-              "description": "list of UUID of patrol types"
-            }
+        "patrol_type": {
+          "items": {
+            "type": "string"
           },
-          "required": [
-            "patrol_type"
-          ],
-          "type": "object",
-          "title": "Get Patrol Observations from EarthRanger"
+          "title": "Patrol Type",
+          "type": "array",
+          "description": "list of UUID of patrol types"
+        }
+      },
+      "required": [
+        "patrol_type"
+      ],
+      "type": "object",
+      "title": "Get Patrol Observations from EarthRanger"
+    },
+    "patrol_traj": {
+      "additionalProperties": false,
+      "properties": {
+        "max_length_meters": {
+          "default": 10000,
+          "title": "Max Length Meters",
+          "type": "number"
         },
-        "patrol_traj": {
-          "additionalProperties": false,
-          "properties": {
-            "max_length_meters": {
-              "default": 10000,
-              "title": "Max Length Meters",
-              "type": "number"
-            },
-            "max_time_secs": {
-              "default": 3600,
-              "title": "Max Time Secs",
-              "type": "number"
-            },
-            "max_speed_kmhr": {
-              "default": 120,
-              "title": "Max Speed Kmhr",
-              "type": "number"
-            }
-          },
-          "required": [],
-          "type": "object",
-          "title": "Transform Relocations to Trajectories"
+        "max_time_secs": {
+          "default": 3600,
+          "title": "Max Time Secs",
+          "type": "number"
+        },
+        "max_speed_kmhr": {
+          "default": 120,
+          "title": "Max Speed Kmhr",
+          "type": "number"
         }
       },
-      "uiSchema": {
-        "ui:order": [
-          "patrol_obs",
-          "patrol_traj"
-        ]
-      }
-    },
-    "Fetch and preprocess patrol events": {
+      "required": [],
       "type": "object",
-      "description": "Fetch patrol events from EarthRanger, filter them, and add a temporal index.",
+      "title": "Transform Relocations to Trajectories"
+    },
+    "patrol_events": {
+      "additionalProperties": false,
       "properties": {
-        "patrol_events": {
-          "additionalProperties": false,
-          "properties": {
-            "patrol_type": {
-              "items": {
-                "type": "string"
-              },
-              "title": "Patrol Type",
-              "type": "array",
-              "description": "list of UUID of patrol types"
-            }
+        "patrol_type": {
+          "items": {
+            "type": "string"
           },
-          "required": [
-            "patrol_type"
+          "title": "Patrol Type",
+          "type": "array",
+          "description": "list of UUID of patrol types"
+        }
+      },
+      "required": [
+        "patrol_type"
+      ],
+      "type": "object",
+      "title": "Get Patrol Events from EarthRanger"
+    },
+    "patrol_events_bar_chart": {
+      "additionalProperties": false,
+      "properties": {
+        "time_interval": {
+          "enum": [
+            "year",
+            "month",
+            "week",
+            "day",
+            "hour"
           ],
-          "type": "object",
-          "title": "Get Patrol Events from EarthRanger"
+          "title": "Time Interval",
+          "type": "string",
+          "description": "Sets the time interval of the x axis."
         }
       },
-      "uiSchema": {
-        "ui:order": [
-          "patrol_events"
-        ]
-      }
-    },
-    "Patrol events bar chart": {
+      "required": [
+        "time_interval"
+      ],
       "type": "object",
-      "description": "Create the patrol events bar chart.",
-      "properties": {
-        "patrol_events_bar_chart": {
-          "additionalProperties": false,
-          "properties": {
-            "time_interval": {
-              "enum": [
-                "year",
-                "month",
-                "week",
-                "day",
-                "hour"
-              ],
-              "title": "Time Interval",
-              "type": "string",
-              "description": "Sets the time interval of the x axis."
-            }
-          },
-          "required": [
-            "time_interval"
-          ],
-          "type": "object",
-          "title": "Draw Time Series Bar Chart for Patrols Events"
-        }
-      },
-      "uiSchema": {
-        "ui:order": [
-          "patrol_events_bar_chart"
-        ]
-      }
+      "title": "Draw Time Series Bar Chart for Patrols Events"
     },
-    "Time Density Map": {
-      "type": "object",
-      "description": "Calculate time density from patrol trajectories and display it on a map.",
+    "td": {
+      "additionalProperties": false,
       "properties": {
-        "td": {
-          "additionalProperties": false,
-          "properties": {
-            "pixel_size": {
-              "default": 250.0,
-              "title": "Pixel Size",
-              "type": "number",
-              "description": "Raster pixel size in meters."
-            }
-          },
-          "required": [],
-          "type": "object",
-          "title": "Calculate Time Density from Trajectory"
+        "pixel_size": {
+          "default": 250.0,
+          "title": "Pixel Size",
+          "type": "number",
+          "description": "Raster pixel size in meters."
         }
       },
-      "uiSchema": {
-        "ui:order": [
-          "td"
-        ]
-      }
+      "required": [],
+      "type": "object",
+      "title": "Calculate Time Density from Trajectory"
     }
   },
   "$defs": {
@@ -292,10 +247,11 @@
       "er_client_name",
       "groupers",
       "time_range",
-      "Fetch and preprocess patrol observations",
-      "Fetch and preprocess patrol events",
-      "Patrol events bar chart",
-      "Time Density Map"
+      "patrol_obs",
+      "patrol_traj",
+      "patrol_events",
+      "patrol_events_bar_chart",
+      "td"
     ]
   }
 }

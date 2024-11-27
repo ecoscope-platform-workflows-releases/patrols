@@ -82,9 +82,9 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/decorator-5.1.1-pyhd8ed1ab_0.tar.bz2
       - conda: https://conda.anaconda.org/conda-forge/noarch/earthengine-api-1.1.2-pyhd8ed1ab_0.conda
       - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/earthranger-client-1.0.49-pyh4616a5c_0.conda
-      - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-v1.8.10-pyh4616a5c_5.conda
-      - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-workflows-core-v0.0.23-pyh4616a5c_0.conda
-      - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-workflows-ext-ecoscope-v0.0.23-pyh4616a5c_0.conda
+      - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-v1.8.11-pyh4616a5c_5.conda
+      - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-workflows-core-0.0.28-pyh4616a5c_0.conda
+      - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-workflows-ext-ecoscope-0.0.28-pyh4616a5c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/exceptiongroup-1.2.2-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/executing-2.1.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/expat-2.6.3-h5888daf_0.conda
@@ -479,9 +479,9 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/decorator-5.1.1-pyhd8ed1ab_0.tar.bz2
       - conda: https://conda.anaconda.org/conda-forge/noarch/earthengine-api-1.1.2-pyhd8ed1ab_0.conda
       - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/earthranger-client-1.0.49-pyh4616a5c_0.conda
-      - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-v1.8.10-pyh4616a5c_5.conda
-      - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-workflows-core-v0.0.23-pyh4616a5c_0.conda
-      - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-workflows-ext-ecoscope-v0.0.23-pyh4616a5c_0.conda
+      - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-v1.8.11-pyh4616a5c_5.conda
+      - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-workflows-core-0.0.28-pyh4616a5c_0.conda
+      - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-workflows-ext-ecoscope-0.0.28-pyh4616a5c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/exceptiongroup-1.2.2-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/executing-2.1.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/expat-2.6.3-h5ad3122_0.conda
@@ -875,9 +875,9 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/decorator-5.1.1-pyhd8ed1ab_0.tar.bz2
       - conda: https://conda.anaconda.org/conda-forge/noarch/earthengine-api-1.1.2-pyhd8ed1ab_0.conda
       - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/earthranger-client-1.0.49-pyh4616a5c_0.conda
-      - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-v1.8.10-pyh4616a5c_5.conda
-      - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-workflows-core-v0.0.23-pyh4616a5c_0.conda
-      - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-workflows-ext-ecoscope-v0.0.23-pyh4616a5c_0.conda
+      - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-v1.8.11-pyh4616a5c_5.conda
+      - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-workflows-core-0.0.28-pyh4616a5c_0.conda
+      - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-workflows-ext-ecoscope-0.0.28-pyh4616a5c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/exceptiongroup-1.2.2-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/executing-2.1.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/expat-2.6.3-hf9b8971_0.conda
@@ -4148,13 +4148,13 @@ packages:
   timestamp: 1725938421487
 - kind: conda
   name: ecoscope
-  version: v1.8.10
+  version: v1.8.11
   build: pyh4616a5c_5
   build_number: 5
   subdir: noarch
   noarch: python
-  url: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-v1.8.10-pyh4616a5c_5.conda
-  sha256: 2f39e175086377b34cd67b94979ed9aa39192da2cca6904c7b4cba91816e8c30
+  url: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-v1.8.11-pyh4616a5c_5.conda
+  sha256: 2ea123ef2560af8dcbc6537d59a25e1e39d7c18584f647fef5d0ecab6a4a86f6
   depends:
   - python
   - backoff
@@ -4179,16 +4179,16 @@ packages:
   - lonboard ==0.0.3
   - python
   license: BSD-3-Clause
-  size: 63204
-  timestamp: 1731945167449
+  size: 63276
+  timestamp: 1732118545579
 - kind: conda
   name: ecoscope-workflows-core
-  version: v0.0.23
+  version: 0.0.28
   build: pyh4616a5c_0
   subdir: noarch
   noarch: python
-  url: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-workflows-core-v0.0.23-pyh4616a5c_0.conda
-  sha256: f3093f9b8d11777b27e6ebc793b06026464003fa4b422460600373a7b836dafc
+  url: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-workflows-core-0.0.28-pyh4616a5c_0.conda
+  sha256: 12c751c4c6d30ee4130262af3cc49ee32b53b2a53bb0c22394862439b1b06aaa
   depends:
   - python
   - jinja2
@@ -4205,24 +4205,24 @@ packages:
   - pydot
   - python
   license: BSD-3-Clause
-  size: 52689
-  timestamp: 1732002054139
+  size: 54415
+  timestamp: 1732691325172
 - kind: conda
   name: ecoscope-workflows-ext-ecoscope
-  version: v0.0.23
+  version: 0.0.28
   build: pyh4616a5c_0
   subdir: noarch
   noarch: python
-  url: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-workflows-ext-ecoscope-v0.0.23-pyh4616a5c_0.conda
-  sha256: bb8fecee3cb9562bc2e31d068e314af93632fa50bb457dfec0b9450158397582
+  url: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-workflows-ext-ecoscope-0.0.28-pyh4616a5c_0.conda
+  sha256: 1eb927e3ee987d60955b3e4c1bbd0b6138fbb76558cca6402d1afd9545af5d46
   depends:
   - python
-  - ecoscope-workflows-core ==v0.0.23
-  - ecoscope ==v1.8.10
+  - ecoscope-workflows-core ==0.0.28
+  - ecoscope ==v1.8.11
   - python
   license: BSD-3-Clause
-  size: 6800497
-  timestamp: 1732002078677
+  size: 6800653
+  timestamp: 1732691341676
 - kind: conda
   name: exceptiongroup
   version: 1.2.2
