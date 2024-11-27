@@ -11,16 +11,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          token: ${{ secrets.ECOSCOPE_ELEBOT_PAT }}
-          fetch-depth: 0
+          fetch-depth: 0  # get existing tags
+      - name: List existing tags
+        run: |
+          git tag -l
       - name: Create tag from VERSION.yaml
         id: create_tag
         uses: mikefarah/yq@v4
         with:
           cmd: yq -r '"v" + (.MAJ | tostring) + "." + (.MIN | tostring)' ecoscope-workflows-patrols-workflow/VERSION.yaml
       - name: Tag
+        # `mikefarah/yq@v4` assigns result of `cmd` to `${{ steps.create_tag.outputs.result }}`,
+        # so we can use that here; see https://mikefarah.gitbook.io/yq/usage/github-action#guide
         run: |
-          git config user.name "ecoscope-elebot"
-          git config user.email "189163401+ecoscope-elebot@users.noreply.github.com"
+          echo "Tagging version ${{ steps.create_tag.outputs.result }}"
           git tag ${{ steps.create_tag.outputs.result }}
+          git tag -l
+      - name: Push tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git push origin --tags
