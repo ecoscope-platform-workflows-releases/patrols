@@ -13,10 +13,7 @@ test1:
     # Parameters for 'Set Groupers' using task `set_groupers`.
     groupers:
       groupers: # (list[ecoscope_workflows.tasks.groupby._groupby.Grouper], FieldInfo(annotation=NoneType, required=True, description='            Index(es) and/or column(s) to group by, along with\n            optional display names and help text.\n            '))
-        - index_name: "month"
-          display_name: "Month"
-          help_text: "The month in which the patrol began or the event was updated."
-          directive: "%B"
+        - temporal_index: "%B"
 
     time_range:
       since: "2015-01-01T00:00:00Z"
