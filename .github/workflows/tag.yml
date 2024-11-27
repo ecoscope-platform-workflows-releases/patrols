@@ -8,6 +8,8 @@ on:
 jobs:
   push:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -15,14 +17,22 @@ jobs:
       - name: List existing tags
         run: |
           git tag -l
+      - name: Get workflow id from spec.yaml
+        id: get_workflow_id
+        uses: mikefarah/yq@v4
+        with:
+          cmd: yq -r '.id' spec.yaml
+      - name: Transform workflow id to workflow directory name
+        id: workflow_directory
+        run: |
+          export WORKFLOW_NAME=$(echo "${{ steps.get_workflow_id.outputs.result }}" | tr '[:upper:]' '[:lower:]' | sed 's/_/-/g')
+          echo "name=ecoscope-workflows-${WORKFLOW_NAME}-workflow" >> $GITHUB_OUTPUT
       - name: Create tag from VERSION.yaml
         id: create_tag
         uses: mikefarah/yq@v4
         with:
-          cmd: yq -r '"v" + (.MAJ | tostring) + "." + (.MIN | tostring)' ecoscope-workflows-patrols-workflow/VERSION.yaml
+          cmd: yq -r '"v" + (.MAJ | tostring) + "." + (.MIN | tostring)' ${{ steps.workflow_directory.outputs.name }}/VERSION.yaml
       - name: Tag
-        # `mikefarah/yq@v4` assigns result of `cmd` to `${{ steps.create_tag.outputs.result }}`,
-        # so we can use that here; see https://mikefarah.gitbook.io/yq/usage/github-action#guide
         run: |
           echo "Tagging version ${{ steps.create_tag.outputs.result }}"
           git tag ${{ steps.create_tag.outputs.result }}
@@ -32,3 +42,9 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git push origin --tags
+      - name: Create GitHub Release
+        run: >-
+          gh release create
+          '${{ steps.create_tag.outputs.result }}'
+          --repo '${{ github.repository }}'
+          --generate-notes
