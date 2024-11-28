@@ -8,7 +8,8 @@ test1:
       description: "A dashboard for visualizing patrol trajectories, patrols events, and time density."
 
     er_client_name:
-      EcoscopeWorkflowsNamedConnection: "mep_dev"
+      data_source:
+        name: "mep_dev"
 
     # Parameters for 'Set Groupers' using task `set_groupers`.
     groupers:
