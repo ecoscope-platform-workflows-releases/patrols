@@ -12,7 +12,7 @@
 
 import os
 from ecoscope_workflows_core.tasks.config import set_workflow_details
-from ecoscope_workflows_core.tasks.io import set_connection
+from ecoscope_workflows_core.tasks.io import set_er_connection
 from ecoscope_workflows_core.tasks.groupby import set_groupers
 from ecoscope_workflows_core.tasks.filter import set_time_range
 from ecoscope_workflows_ext_ecoscope.tasks.io import get_patrol_observations
@@ -67,20 +67,20 @@ workflow_details = set_workflow_details.partial(**workflow_details_params).call(
 
 
 # %% [markdown]
-# ## Select EarthRanger Connection
+# ## Select EarthRanger Data Source
 
 # %%
 # parameters
 
 er_client_name_params = dict(
-    EcoscopeWorkflowsNamedConnection=...,
+    data_source=...,
 )
 
 # %%
 # call the task
 
 
-er_client_name = set_connection.partial(**er_client_name_params).call()
+er_client_name = set_er_connection.partial(**er_client_name_params).call()
 
 
 # %% [markdown]

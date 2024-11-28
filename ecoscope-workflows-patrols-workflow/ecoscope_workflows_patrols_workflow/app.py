@@ -23,7 +23,7 @@ from .params import Params
 app = FastAPI(
     title="patrols",
     debug=True,
-    version="f71ebe5",
+    version="6c53935",
 )
 app.add_middleware(
     CORSMiddleware,
@@ -113,6 +113,29 @@ def run(
 def rjsf():
     with Path(__file__).parent.joinpath("rjsf.json").open() as f:
         return json.load(f)
+
+
+@app.get("/data-connection-property-names", status_code=200)
+def data_connection_property_names():
+    with Path(__file__).parent.joinpath("params.json").open() as f:
+        params = json.load(f)
+        data_connections = {}
+        for k, v in params["properties"].items():
+            if isinstance(v, dict) and v.get("properties"):
+                for inner_k, inner_v in v["properties"].items():
+                    if isinstance(inner_v, dict) and inner_v.get("$ref"):
+                        ref = inner_v.get("$ref")
+                        if ref.endswith("Connection"):
+                            key = (
+                                inner_v.get("$ref")
+                                .lstrip("#/$defs/")
+                                .rstrip("Connection")
+                            )
+                            if data_connections.get(key):
+                                data_connections[key].append(k)
+                            else:
+                                data_connections[key] = [k]
+    return data_connections
 
 
 @app.post("/formdata-to-params", response_model=Params, status_code=200)
