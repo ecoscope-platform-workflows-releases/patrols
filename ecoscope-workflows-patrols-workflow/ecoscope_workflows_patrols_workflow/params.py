@@ -18,15 +18,6 @@ class WorkflowDetails(BaseModel):
     image_url: Optional[str] = Field("", description="An image url", title="Image Url")
 
 
-class ErClientName(BaseModel):
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    EcoscopeWorkflowsNamedConnection: str = Field(
-        ..., description="A named connection.", title="Name"
-    )
-
-
 class TimeRange(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
@@ -88,12 +79,27 @@ class Td(BaseModel):
     )
 
 
+class EarthRangerConnection(BaseModel):
+    name: str = Field(..., title="Connection Name")
+
+
 class Grouper(BaseModel):
     index_name: str = Field(..., title="Index Name")
 
 
 class TemporalGrouper(BaseModel):
     temporal_index: str = Field(..., title="Temporal Index")
+
+
+class ErClientName(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    data_source: EarthRangerConnection = Field(
+        ...,
+        description="Select one of your configured data sources by name.",
+        title="Data Source",
+    )
 
 
 class Groupers(BaseModel):
@@ -115,7 +121,7 @@ class Params(BaseModel):
         None, title="Set Workflow Details"
     )
     er_client_name: Optional[ErClientName] = Field(
-        None, title="Select EarthRanger Connection"
+        None, title="Select EarthRanger Data Source"
     )
     groupers: Optional[Groupers] = Field(None, title="Set Groupers")
     time_range: Optional[TimeRange] = Field(None, title="Set Time Range Filter")

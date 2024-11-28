@@ -16,7 +16,7 @@ from ecoscope_workflows_core.testing import create_task_magicmock  # 🧪
 from ecoscope_workflows_core.graph import DependsOn, DependsOnSequence, Graph, Node
 
 from ecoscope_workflows_core.tasks.config import set_workflow_details
-from ecoscope_workflows_core.tasks.io import set_connection
+from ecoscope_workflows_core.tasks.io import set_er_connection
 from ecoscope_workflows_core.tasks.groupby import set_groupers
 from ecoscope_workflows_core.tasks.filter import set_time_range
 
@@ -147,7 +147,7 @@ def main(params: Params):
             method="call",
         ),
         "er_client_name": Node(
-            async_task=set_connection.validate().set_executor("lithops"),
+            async_task=set_er_connection.validate().set_executor("lithops"),
             partial=(params_dict.get("er_client_name") or {}),
             method="call",
         ),

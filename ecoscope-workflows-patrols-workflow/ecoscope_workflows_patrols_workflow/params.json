@@ -30,17 +30,17 @@
     "er_client_name": {
       "additionalProperties": false,
       "properties": {
-        "EcoscopeWorkflowsNamedConnection": {
-          "title": "Name",
-          "type": "string",
-          "description": "A named connection."
+        "data_source": {
+          "$ref": "#/$defs/EarthRangerConnection",
+          "title": "Data Source",
+          "description": "Select one of your configured data sources by name."
         }
       },
       "required": [
-        "EcoscopeWorkflowsNamedConnection"
+        "data_source"
       ],
       "type": "object",
-      "title": "Select EarthRanger Connection"
+      "title": "Select EarthRanger Data Source"
     },
     "groupers": {
       "additionalProperties": false,
@@ -187,6 +187,19 @@
     }
   },
   "$defs": {
+    "EarthRangerConnection": {
+      "properties": {
+        "name": {
+          "title": "Connection Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "EarthRangerConnection",
+      "type": "object"
+    },
     "Grouper": {
       "properties": {
         "index_name": {
