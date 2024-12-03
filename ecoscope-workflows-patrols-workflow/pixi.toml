@@ -11,6 +11,8 @@ platforms = [
     "linux-aarch64",
     "osx-arm64",
 ]
+[dependencies]
+[feature.test.dependencies]
 
 [system-requirements]
 linux = "4.4.0"
@@ -32,11 +34,11 @@ version = "*"
 channel = "https://conda.anaconda.org/conda-forge/"
 
 [dependencies.ecoscope-workflows-core]
-version = "==0.0.30"
+version = "==0.0.35"
 channel = "https://repo.prefix.dev/ecoscope-workflows/"
 
 [dependencies.ecoscope-workflows-ext-ecoscope]
-version = "==0.0.30"
+version = "==0.0.35"
 channel = "https://repo.prefix.dev/ecoscope-workflows/"
 
 [feature.test.dependencies.pytest]
