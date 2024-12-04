@@ -282,7 +282,7 @@ pe_add_temporal_index_params = dict(
 
 pe_add_temporal_index = add_temporal_index.partial(
     df=filter_patrol_events,
-    time_col="time",
+    time_col="patrol_start_time",
     groupers=groupers,
     **pe_add_temporal_index_params,
 ).call()
