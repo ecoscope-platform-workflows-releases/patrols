@@ -212,7 +212,7 @@ def main(params: Params):
             async_task=add_temporal_index.validate().set_executor("lithops"),
             partial={
                 "df": DependsOn("filter_patrol_events"),
-                "time_col": "time",
+                "time_col": "patrol_start_time",
                 "groupers": DependsOn("groupers"),
             }
             | (params_dict.get("pe_add_temporal_index") or {}),

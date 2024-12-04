@@ -138,7 +138,7 @@ def main(params: Params):
         add_temporal_index.validate()
         .partial(
             df=filter_patrol_events,
-            time_col="time",
+            time_col="patrol_start_time",
             groupers=groupers,
             **(params_dict.get("pe_add_temporal_index") or {}),
         )
