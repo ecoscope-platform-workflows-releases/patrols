@@ -7,6 +7,6 @@ mode=$3
 command="pixi run \
 --manifest-path ecoscope-workflows-${name}-workflow/pixi.toml \
 --locked --environment test \
-test-${api}-${mode}-mock-io --case test1"
+test-${api}-${mode}-mock-io --case month-grouper"
 
 eval $command
