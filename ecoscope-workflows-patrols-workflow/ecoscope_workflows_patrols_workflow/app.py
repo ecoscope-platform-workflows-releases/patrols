@@ -13,11 +13,11 @@ from fastapi import FastAPI, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from pydantic import BaseModel, Field, SecretStr
-from ecoscope_workflows_core.tasks.results import DashboardJson
 
 from .dispatch import dispatch
 from .formdata import FormData
 from .params import Params
+from .response import ResponseModel
 
 
 app = FastAPI(
@@ -59,12 +59,6 @@ class LithopsConfig(BaseModel):
     lithops: Lithops = Field(default_factory=Lithops)
     gcp: GCP | None = None
     gcp_cloudrun: GCPCloudRun | None = None
-
-
-class ResponseModel(BaseModel):
-    result: DashboardJson | None = None
-    error: str | None = None
-    traceback: list[str] | None = None
 
 
 @app.post("/", status_code=200, response_model=ResponseModel)
