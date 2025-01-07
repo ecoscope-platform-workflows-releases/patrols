@@ -1,10 +1,10 @@
 id: patrols
 requirements:
   - name: ecoscope-workflows-core
-    version: 0.0.40
+    version: 0.0.41
     channel: https://repo.prefix.dev/ecoscope-workflows/
   - name: ecoscope-workflows-ext-ecoscope
-    version: 0.0.40
+    version: 0.0.41
     channel: https://repo.prefix.dev/ecoscope-workflows/
 workflow:
   - name: Set Workflow Details
@@ -19,6 +19,8 @@ workflow:
   - name: Set Time Range Filter
     id: time_range
     task: set_time_range
+    partial:
+      time_format: '%d %b %Y %H:%M:%S %Z'
   - title: Fetch and preprocess patrol observations
     type: task-group
     description: Fetch patrol observations from EarthRanger, preprocess them into trajectories, and add a temporal index.
@@ -29,6 +31,7 @@ workflow:
         partial:
           client: ${{ workflow.er_client_name.return }}
           time_range: ${{ workflow.time_range.return }}
+          include_patrol_details: true
       - name: Transform Observations to Relocations
         id: patrol_reloc
         task: process_relocations
@@ -63,6 +66,8 @@ workflow:
           df: ${{ workflow.patrol_traj.return }}
           time_col: extra__patrol_start_time
           groupers: ${{ workflow.groupers.return }}
+          cast_to_datetime: true
+          format: mixed
   - title: Fetch and preprocess patrol events
     type: task-group
     description: Fetch patrol events from EarthRanger, filter them, and add a temporal index.
@@ -73,6 +78,7 @@ workflow:
         partial:
           client: ${{ workflow.er_client_name.return }}
           time_range: ${{ workflow.time_range.return }}
+          truncate_to_time_range: true
       - name: Apply Relocation Coordinate Filter
         id: filter_patrol_events
         task: apply_reloc_coord_filter
@@ -85,6 +91,8 @@ workflow:
           df: ${{ workflow.filter_patrol_events.return }}
           time_col: patrol_start_time
           groupers: ${{ workflow.groupers.return }}
+          cast_to_datetime: true
+          format: mixed
       - name: Patrol Events Colormap
         id: pe_colormap
         task: apply_color_map
@@ -109,6 +117,7 @@ workflow:
         partial:
           layer_style:
             fill_color_column: event_type_colormap
+          legend: null
         mapvalues:
           argnames: geodataframe
           argvalues: ${{ workflow.split_pe_groups.return }}
@@ -121,6 +130,17 @@ workflow:
       - name: Create map layer for each Patrol Trajectories group
         id: patrol_traj_map_layers
         task: create_polyline_layer
+        partial:
+          layer_style:
+            auto_highlight: false
+            opacity: 1.000000
+            pickable: true
+            get_color: null
+            get_width: 3.000000
+            color_column: null
+            width_units: pixels
+            cap_rounded: true
+          legend: null
         mapvalues:
           argnames: geodataframe
           argvalues: ${{ workflow.split_patrol_traj_groups.return }}
@@ -144,6 +164,7 @@ workflow:
           legend_style:
             placement: bottom-right
           static: false
+          title: null
         mapvalues:
           argnames: geo_layers
           argvalues: ${{ workflow.combined_traj_and_pe_map_layers.return }}
@@ -187,6 +208,7 @@ workflow:
         task: create_single_value_widget_single_view
         partial:
           title: Total Patrols
+          decimal_places: 1
         map:
           argnames:
             - view
@@ -219,6 +241,7 @@ workflow:
         task: create_single_value_widget_single_view
         partial:
           title: Total Time
+          decimal_places: 1
         map:
           argnames:
             - view
@@ -251,6 +274,7 @@ workflow:
         task: create_single_value_widget_single_view
         partial:
           title: Total Distance
+          decimal_places: 1
         map:
           argnames:
             - view
@@ -283,6 +307,7 @@ workflow:
         task: create_single_value_widget_single_view
         partial:
           title: Average Speed
+          decimal_places: 1
         map:
           argnames:
             - view
@@ -315,6 +340,7 @@ workflow:
         task: create_single_value_widget_single_view
         partial:
           title: Max Speed
+          decimal_places: 1
         map:
           argnames:
             - view
@@ -341,6 +367,8 @@ workflow:
           color_column: event_type_colormap
           plot_style:
             xperiodalignment: middle
+          grouped_styles: null
+          layout_style: null
       - name: Persist Patrols Bar Chart as Text
         id: patrol_events_bar_chart_html_url
         task: persist_text
@@ -364,6 +392,9 @@ workflow:
           value_column: event_type
           plot_style:
             textinfo: value
+          label_column: null
+          color_column: null
+          layout_style: null
         mapvalues:
           argnames: dataframe
           argvalues: ${{ workflow.split_pe_groups.return }}
@@ -408,6 +439,8 @@ workflow:
             - 90.000000
             - 95.000000
             - 99.999000
+          nodata_value: nan
+          band_count: 1
       - name: Time Density Colormap
         id: td_colormap
         task: apply_color_map
@@ -425,6 +458,7 @@ workflow:
             fill_color_column: percentile_colormap
             opacity: 0.700000
             get_line_width: 0
+          legend: null
       - name: Draw Ecomap from Time Density
         id: td_ecomap
         task: draw_ecomap
@@ -440,6 +474,7 @@ workflow:
           legend_style:
             placement: bottom-right
           static: false
+          title: null
       - name: Persist Ecomap as Text
         id: td_ecomap_html_url
         task: persist_text

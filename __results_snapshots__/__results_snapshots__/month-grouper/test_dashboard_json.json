@@ -1,0 +1,172 @@
+{
+  "error": null,
+  "result": {
+    "filters": {
+      "schema": {
+        "properties": {
+          "TemporalGrouper_%B": {
+            "default": "February",
+            "oneOf": [
+              {
+                "const": "February",
+                "title": "February"
+              },
+              {
+                "const": "January",
+                "title": "January"
+              }
+            ],
+            "title": "Month",
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "uiSchema": {
+          "TemporalGrouper_%B": {
+            "ui:title": "Month",
+            "ui:widget": "select"
+          }
+        }
+      }
+    },
+    "layout": [],
+    "metadata": {
+      "description": "A dashboard for visualizing patrol trajectories, patrols events, and time density.",
+      "time_range": "From 01 Jan 2015 00:00:00 UTC to 28 Feb 2015 23:59:59 UTC",
+      "title": "Patrols Dashboard"
+    },
+    "views": {
+      "{\"TemporalGrouper_%B\": \"February\"}": [
+        {
+          "data": "str",
+          "id": 0,
+          "is_filtered": true,
+          "title": "Trajectories & Patrol Events Map",
+          "widget_type": "map"
+        },
+        {
+          "data": "str",
+          "id": 1,
+          "is_filtered": false,
+          "title": "Time Density Map",
+          "widget_type": "map"
+        },
+        {
+          "data": "str",
+          "id": 2,
+          "is_filtered": false,
+          "title": "Patrol Events Bar Chart",
+          "widget_type": "graph"
+        },
+        {
+          "data": "str",
+          "id": 3,
+          "is_filtered": true,
+          "title": "Patrol Events Pie Chart",
+          "widget_type": "graph"
+        },
+        {
+          "data": "str",
+          "id": 4,
+          "is_filtered": true,
+          "title": "Total Patrols",
+          "widget_type": "stat"
+        },
+        {
+          "data": "str",
+          "id": 5,
+          "is_filtered": true,
+          "title": "Total Time",
+          "widget_type": "stat"
+        },
+        {
+          "data": "str",
+          "id": 6,
+          "is_filtered": true,
+          "title": "Total Distance",
+          "widget_type": "stat"
+        },
+        {
+          "data": "str",
+          "id": 7,
+          "is_filtered": true,
+          "title": "Average Speed",
+          "widget_type": "stat"
+        },
+        {
+          "data": "str",
+          "id": 8,
+          "is_filtered": true,
+          "title": "Max Speed",
+          "widget_type": "stat"
+        }
+      ],
+      "{\"TemporalGrouper_%B\": \"January\"}": [
+        {
+          "data": "str",
+          "id": 0,
+          "is_filtered": true,
+          "title": "Trajectories & Patrol Events Map",
+          "widget_type": "map"
+        },
+        {
+          "data": "str",
+          "id": 1,
+          "is_filtered": false,
+          "title": "Time Density Map",
+          "widget_type": "map"
+        },
+        {
+          "data": "str",
+          "id": 2,
+          "is_filtered": false,
+          "title": "Patrol Events Bar Chart",
+          "widget_type": "graph"
+        },
+        {
+          "data": "str",
+          "id": 3,
+          "is_filtered": true,
+          "title": "Patrol Events Pie Chart",
+          "widget_type": "graph"
+        },
+        {
+          "data": "str",
+          "id": 4,
+          "is_filtered": true,
+          "title": "Total Patrols",
+          "widget_type": "stat"
+        },
+        {
+          "data": "str",
+          "id": 5,
+          "is_filtered": true,
+          "title": "Total Time",
+          "widget_type": "stat"
+        },
+        {
+          "data": "str",
+          "id": 6,
+          "is_filtered": true,
+          "title": "Total Distance",
+          "widget_type": "stat"
+        },
+        {
+          "data": "str",
+          "id": 7,
+          "is_filtered": true,
+          "title": "Average Speed",
+          "widget_type": "stat"
+        },
+        {
+          "data": "str",
+          "id": 8,
+          "is_filtered": true,
+          "title": "Max Speed",
+          "widget_type": "stat"
+        }
+      ]
+    }
+  },
+  "traceback": null
+}

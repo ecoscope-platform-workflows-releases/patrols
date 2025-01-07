@@ -24,20 +24,34 @@ month-grouper:
     # Parameters for 'Get Patrol Observations from EarthRanger' using task `get_patrol_observations`.
     patrol_obs:
       patrol_type: ["05ad114e-1aff-4602-bc83-efd333cdd8a2"] # (<class 'str'>, FieldInfo(annotation=NoneType, required=False, default=None, description='Comma-separated list of type of patrol UUID'))
+      status: ["done"]
 
     # Parameters for 'Transform Relocations to Trajectories' using task `relocations_to_trajectory`.
     patrol_traj:
-      max_length_meters: 10000 # (<class 'float'>, FieldInfo(annotation=NoneType, required=True))
-      max_time_secs: 3600 # (<class 'float'>, FieldInfo(annotation=NoneType, required=True))
-      max_speed_kmhr: 120 # (<class 'float'>, FieldInfo(annotation=NoneType, required=True))
+      min_length_meters: 0.001
+      max_length_meters: 10000.0
+      max_time_secs: 3600.0
+      min_time_secs: 1.0
+      max_speed_kmhr: 120.0
+      min_speed_kmhr: 0.0001
 
     # Parameters for 'Get Patrol Events from EarthRanger' using task `get_patrol_events`.
     patrol_events:
       patrol_type: ["05ad114e-1aff-4602-bc83-efd333cdd8a2"] # (<class 'str'>, FieldInfo(annotation=NoneType, required=False, default=None, description='Comma-separated list of type of patrol UUID'))
+      status: ["done"]
+
+    filter_patrol_events:
+      min_x: -180.0
+      max_x: 180.0
+      min_y: -90.0
+      max_y: 90.0
+      filter_point_coords: []
 
     # Parameters for 'Draw Time Series Bar Chart for Patrols Events' using task `draw_time_series_bar_chart`.
     patrol_events_bar_chart:
       time_interval: "month" # (typing.Literal['year', 'month', 'week', 'day', 'hour'], FieldInfo(annotation=NoneType, required=True, description='Sets the time interval of the x axis.'))
 
     td:
-      pixel_size: 250
+      pixel_size: 250.0
+      max_speed_factor: 1.05
+      expansion_factor: 1.3

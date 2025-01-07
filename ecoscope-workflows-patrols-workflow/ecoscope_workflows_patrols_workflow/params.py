@@ -26,6 +26,13 @@ class TimeRange(BaseModel):
     until: AwareDatetime = Field(..., description="The end time", title="Until")
 
 
+class StatusEnum(str, Enum):
+    active = "active"
+    overdue = "overdue"
+    done = "done"
+    cancelled = "cancelled"
+
+
 class PatrolObs(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
@@ -33,15 +40,23 @@ class PatrolObs(BaseModel):
     patrol_type: List[str] = Field(
         ..., description="list of UUID of patrol types", title="Patrol Type"
     )
+    status: Optional[List[StatusEnum]] = Field(
+        ["done"],
+        description="list of 'scheduled'/'active'/'overdue'/'done'/'cancelled'",
+        title="Status",
+    )
 
 
 class PatrolTraj(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
     )
+    min_length_meters: Optional[float] = Field(0.001, title="Min Length Meters")
     max_length_meters: Optional[float] = Field(10000, title="Max Length Meters")
     max_time_secs: Optional[float] = Field(3600, title="Max Time Secs")
+    min_time_secs: Optional[float] = Field(1, title="Min Time Secs")
     max_speed_kmhr: Optional[float] = Field(120, title="Max Speed Kmhr")
+    min_speed_kmhr: Optional[float] = Field(0.0001, title="Min Speed Kmhr")
 
 
 class PatrolEvents(BaseModel):
@@ -50,6 +65,11 @@ class PatrolEvents(BaseModel):
     )
     patrol_type: List[str] = Field(
         ..., description="list of UUID of patrol types", title="Patrol Type"
+    )
+    status: Optional[List[str]] = Field(
+        ["done"],
+        description="list of 'scheduled'/'active'/'overdue'/'done'/'cancelled'",
+        title="Status",
     )
 
 
@@ -77,6 +97,8 @@ class Td(BaseModel):
     pixel_size: Optional[float] = Field(
         250.0, description="Raster pixel size in meters.", title="Pixel Size"
     )
+    max_speed_factor: Optional[float] = Field(1.05, title="Max Speed Factor")
+    expansion_factor: Optional[float] = Field(1.3, title="Expansion Factor")
 
 
 class EarthRangerConnection(BaseModel):
@@ -89,6 +111,11 @@ class Grouper(BaseModel):
 
 class TemporalGrouper(BaseModel):
     temporal_index: str = Field(..., title="Temporal Index")
+
+
+class Coordinate(BaseModel):
+    x: float = Field(..., title="X")
+    y: float = Field(..., title="Y")
 
 
 class ErClientName(BaseModel):
@@ -113,6 +140,19 @@ class Groupers(BaseModel):
     )
 
 
+class FilterPatrolEvents(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    min_x: Optional[float] = Field(-180.0, title="Min X")
+    max_x: Optional[float] = Field(180.0, title="Max X")
+    min_y: Optional[float] = Field(-90.0, title="Min Y")
+    max_y: Optional[float] = Field(90.0, title="Max Y")
+    filter_point_coords: Optional[List[Coordinate]] = Field(
+        [], title="Filter Point Coords"
+    )
+
+
 class Params(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
@@ -133,6 +173,9 @@ class Params(BaseModel):
     )
     patrol_events: Optional[PatrolEvents] = Field(
         None, title="Get Patrol Events from EarthRanger"
+    )
+    filter_patrol_events: Optional[FilterPatrolEvents] = Field(
+        None, title="Apply Relocation Coordinate Filter"
     )
     patrol_events_bar_chart: Optional[PatrolEventsBarChart] = Field(
         None, title="Draw Time Series Bar Chart for Patrols Events"
