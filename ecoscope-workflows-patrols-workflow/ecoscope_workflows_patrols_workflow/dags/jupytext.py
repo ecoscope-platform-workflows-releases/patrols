@@ -109,14 +109,15 @@ groupers = set_groupers.partial(**groupers_params).call()
 time_range_params = dict(
     since=...,
     until=...,
-    time_format=...,
 )
 
 # %%
 # call the task
 
 
-time_range = set_time_range.partial(**time_range_params).call()
+time_range = set_time_range.partial(
+    time_format="%d %b %Y %H:%M:%S %Z", **time_range_params
+).call()
 
 
 # %% [markdown]
@@ -128,7 +129,6 @@ time_range = set_time_range.partial(**time_range_params).call()
 patrol_obs_params = dict(
     patrol_type=...,
     status=...,
-    include_patrol_details=...,
 )
 
 # %%
@@ -136,7 +136,10 @@ patrol_obs_params = dict(
 
 
 patrol_obs = get_patrol_observations.partial(
-    client=er_client_name, time_range=time_range, **patrol_obs_params
+    client=er_client_name,
+    time_range=time_range,
+    include_patrol_details=True,
+    **patrol_obs_params,
 ).call()
 
 
@@ -204,10 +207,7 @@ patrol_traj = relocations_to_trajectory.partial(
 # %%
 # parameters
 
-traj_add_temporal_index_params = dict(
-    cast_to_datetime=...,
-    format=...,
-)
+traj_add_temporal_index_params = dict()
 
 # %%
 # call the task
@@ -217,6 +217,8 @@ traj_add_temporal_index = add_temporal_index.partial(
     df=patrol_traj,
     time_col="extra__patrol_start_time",
     groupers=groupers,
+    cast_to_datetime=True,
+    format="mixed",
     **traj_add_temporal_index_params,
 ).call()
 
@@ -230,7 +232,6 @@ traj_add_temporal_index = add_temporal_index.partial(
 patrol_events_params = dict(
     patrol_type=...,
     status=...,
-    truncate_to_time_range=...,
 )
 
 # %%
@@ -238,7 +239,10 @@ patrol_events_params = dict(
 
 
 patrol_events = get_patrol_events.partial(
-    client=er_client_name, time_range=time_range, **patrol_events_params
+    client=er_client_name,
+    time_range=time_range,
+    truncate_to_time_range=True,
+    **patrol_events_params,
 ).call()
 
 
@@ -271,10 +275,7 @@ filter_patrol_events = apply_reloc_coord_filter.partial(
 # %%
 # parameters
 
-pe_add_temporal_index_params = dict(
-    cast_to_datetime=...,
-    format=...,
-)
+pe_add_temporal_index_params = dict()
 
 # %%
 # call the task
@@ -284,6 +285,8 @@ pe_add_temporal_index = add_temporal_index.partial(
     df=filter_patrol_events,
     time_col="patrol_start_time",
     groupers=groupers,
+    cast_to_datetime=True,
+    format="mixed",
     **pe_add_temporal_index_params,
 ).call()
 
@@ -332,9 +335,7 @@ split_pe_groups = split_groups.partial(
 # %%
 # parameters
 
-patrol_events_map_layers_params = dict(
-    legend=...,
-)
+patrol_events_map_layers_params = dict()
 
 # %%
 # call the task
@@ -342,6 +343,7 @@ patrol_events_map_layers_params = dict(
 
 patrol_events_map_layers = create_point_layer.partial(
     layer_style={"fill_color_column": "event_type_colormap"},
+    legend=None,
     **patrol_events_map_layers_params,
 ).mapvalues(argnames=["geodataframe"], argvalues=split_pe_groups)
 
@@ -369,17 +371,25 @@ split_patrol_traj_groups = split_groups.partial(
 # %%
 # parameters
 
-patrol_traj_map_layers_params = dict(
-    layer_style=...,
-    legend=...,
-)
+patrol_traj_map_layers_params = dict()
 
 # %%
 # call the task
 
 
 patrol_traj_map_layers = create_polyline_layer.partial(
-    **patrol_traj_map_layers_params
+    layer_style={
+        "auto_highlight": False,
+        "opacity": 1.0,
+        "pickable": True,
+        "get_color": None,
+        "get_width": 3.0,
+        "color_column": None,
+        "width_units": "pixels",
+        "cap_rounded": True,
+    },
+    legend=None,
+    **patrol_traj_map_layers_params,
 ).mapvalues(argnames=["geodataframe"], argvalues=split_patrol_traj_groups)
 
 
@@ -407,9 +417,7 @@ combined_traj_and_pe_map_layers = groupbykey.partial(
 # %%
 # parameters
 
-traj_patrol_events_ecomap_params = dict(
-    title=...,
-)
+traj_patrol_events_ecomap_params = dict()
 
 # %%
 # call the task
@@ -420,6 +428,7 @@ traj_patrol_events_ecomap = draw_ecomap.partial(
     north_arrow_style={"placement": "top-left"},
     legend_style={"placement": "bottom-right"},
     static=False,
+    title=None,
     **traj_patrol_events_ecomap_params,
 ).mapvalues(argnames=["geo_layers"], argvalues=combined_traj_and_pe_map_layers)
 
@@ -501,16 +510,14 @@ total_patrols = dataframe_column_nunique.partial(
 # %%
 # parameters
 
-total_patrols_sv_widgets_params = dict(
-    decimal_places=...,
-)
+total_patrols_sv_widgets_params = dict()
 
 # %%
 # call the task
 
 
 total_patrols_sv_widgets = create_single_value_widget_single_view.partial(
-    title="Total Patrols", **total_patrols_sv_widgets_params
+    title="Total Patrols", decimal_places=1, **total_patrols_sv_widgets_params
 ).map(argnames=["view", "data"], argvalues=total_patrols)
 
 
@@ -571,16 +578,14 @@ total_patrol_time_converted = with_unit.partial(
 # %%
 # parameters
 
-total_patrol_time_sv_widgets_params = dict(
-    decimal_places=...,
-)
+total_patrol_time_sv_widgets_params = dict()
 
 # %%
 # call the task
 
 
 total_patrol_time_sv_widgets = create_single_value_widget_single_view.partial(
-    title="Total Time", **total_patrol_time_sv_widgets_params
+    title="Total Time", decimal_places=1, **total_patrol_time_sv_widgets_params
 ).map(argnames=["view", "data"], argvalues=total_patrol_time_converted)
 
 
@@ -641,16 +646,14 @@ total_patrol_dist_converted = with_unit.partial(
 # %%
 # parameters
 
-total_patrol_dist_sv_widgets_params = dict(
-    decimal_places=...,
-)
+total_patrol_dist_sv_widgets_params = dict()
 
 # %%
 # call the task
 
 
 total_patrol_dist_sv_widgets = create_single_value_widget_single_view.partial(
-    title="Total Distance", **total_patrol_dist_sv_widgets_params
+    title="Total Distance", decimal_places=1, **total_patrol_dist_sv_widgets_params
 ).map(argnames=["view", "data"], argvalues=total_patrol_dist_converted)
 
 
@@ -711,16 +714,14 @@ average_speed_converted = with_unit.partial(
 # %%
 # parameters
 
-avg_speed_sv_widgets_params = dict(
-    decimal_places=...,
-)
+avg_speed_sv_widgets_params = dict()
 
 # %%
 # call the task
 
 
 avg_speed_sv_widgets = create_single_value_widget_single_view.partial(
-    title="Average Speed", **avg_speed_sv_widgets_params
+    title="Average Speed", decimal_places=1, **avg_speed_sv_widgets_params
 ).map(argnames=["view", "data"], argvalues=average_speed_converted)
 
 
@@ -781,16 +782,14 @@ max_speed_converted = with_unit.partial(
 # %%
 # parameters
 
-max_speed_sv_widgets_params = dict(
-    decimal_places=...,
-)
+max_speed_sv_widgets_params = dict()
 
 # %%
 # call the task
 
 
 max_speed_sv_widgets = create_single_value_widget_single_view.partial(
-    title="Max Speed", **max_speed_sv_widgets_params
+    title="Max Speed", decimal_places=1, **max_speed_sv_widgets_params
 ).map(argnames=["view", "data"], argvalues=max_speed_converted)
 
 
@@ -819,8 +818,6 @@ max_speed_grouped_widget = merge_widget_views.partial(
 
 patrol_events_bar_chart_params = dict(
     time_interval=...,
-    grouped_styles=...,
-    layout_style=...,
 )
 
 # %%
@@ -835,6 +832,8 @@ patrol_events_bar_chart = draw_time_series_bar_chart.partial(
     agg_function="count",
     color_column="event_type_colormap",
     plot_style={"xperiodalignment": "middle"},
+    grouped_styles=None,
+    layout_style=None,
     **patrol_events_bar_chart_params,
 ).call()
 
@@ -887,11 +886,7 @@ patrol_events_bar_chart_widget = create_plot_widget_single_view.partial(
 # %%
 # parameters
 
-patrol_events_pie_chart_params = dict(
-    label_column=...,
-    color_column=...,
-    layout_style=...,
-)
+patrol_events_pie_chart_params = dict()
 
 # %%
 # call the task
@@ -900,6 +895,9 @@ patrol_events_pie_chart_params = dict(
 patrol_events_pie_chart = draw_pie_chart.partial(
     value_column="event_type",
     plot_style={"textinfo": "value"},
+    label_column=None,
+    color_column=None,
+    layout_style=None,
     **patrol_events_pie_chart_params,
 ).mapvalues(argnames=["dataframe"], argvalues=split_pe_groups)
 
@@ -965,8 +963,6 @@ patrol_events_pie_widget_grouped = merge_widget_views.partial(
 
 td_params = dict(
     pixel_size=...,
-    nodata_value=...,
-    band_count=...,
     max_speed_factor=...,
     expansion_factor=...,
 )
@@ -979,6 +975,8 @@ td = calculate_time_density.partial(
     trajectory_gdf=patrol_traj,
     crs="ESRI:53042",
     percentiles=[50.0, 60.0, 70.0, 80.0, 90.0, 95.0, 99.999],
+    nodata_value="nan",
+    band_count=1,
     **td_params,
 ).call()
 
@@ -1010,9 +1008,7 @@ td_colormap = apply_color_map.partial(
 # %%
 # parameters
 
-td_map_layer_params = dict(
-    legend=...,
-)
+td_map_layer_params = dict()
 
 # %%
 # call the task
@@ -1025,6 +1021,7 @@ td_map_layer = create_polygon_layer.partial(
         "opacity": 0.7,
         "get_line_width": 0,
     },
+    legend=None,
     **td_map_layer_params,
 ).call()
 
@@ -1035,9 +1032,7 @@ td_map_layer = create_polygon_layer.partial(
 # %%
 # parameters
 
-td_ecomap_params = dict(
-    title=...,
-)
+td_ecomap_params = dict()
 
 # %%
 # call the task
@@ -1049,6 +1044,7 @@ td_ecomap = draw_ecomap.partial(
     north_arrow_style={"placement": "top-left"},
     legend_style={"placement": "bottom-right"},
     static=False,
+    title=None,
     **td_ecomap_params,
 ).call()
 

@@ -62,7 +62,9 @@ def main(params: Params):
 
     time_range = (
         set_time_range.validate()
-        .partial(**(params_dict.get("time_range") or {}))
+        .partial(
+            time_format="%d %b %Y %H:%M:%S %Z", **(params_dict.get("time_range") or {})
+        )
         .call()
     )
 
@@ -71,6 +73,7 @@ def main(params: Params):
         .partial(
             client=er_client_name,
             time_range=time_range,
+            include_patrol_details=True,
             **(params_dict.get("patrol_obs") or {}),
         )
         .call()
@@ -113,6 +116,8 @@ def main(params: Params):
             df=patrol_traj,
             time_col="extra__patrol_start_time",
             groupers=groupers,
+            cast_to_datetime=True,
+            format="mixed",
             **(params_dict.get("traj_add_temporal_index") or {}),
         )
         .call()
@@ -123,6 +128,7 @@ def main(params: Params):
         .partial(
             client=er_client_name,
             time_range=time_range,
+            truncate_to_time_range=True,
             **(params_dict.get("patrol_events") or {}),
         )
         .call()
@@ -140,6 +146,8 @@ def main(params: Params):
             df=filter_patrol_events,
             time_col="patrol_start_time",
             groupers=groupers,
+            cast_to_datetime=True,
+            format="mixed",
             **(params_dict.get("pe_add_temporal_index") or {}),
         )
         .call()
@@ -171,6 +179,7 @@ def main(params: Params):
         create_point_layer.validate()
         .partial(
             layer_style={"fill_color_column": "event_type_colormap"},
+            legend=None,
             **(params_dict.get("patrol_events_map_layers") or {}),
         )
         .mapvalues(argnames=["geodataframe"], argvalues=split_pe_groups)
@@ -188,7 +197,20 @@ def main(params: Params):
 
     patrol_traj_map_layers = (
         create_polyline_layer.validate()
-        .partial(**(params_dict.get("patrol_traj_map_layers") or {}))
+        .partial(
+            layer_style={
+                "auto_highlight": False,
+                "opacity": 1.0,
+                "pickable": True,
+                "get_color": None,
+                "get_width": 3.0,
+                "color_column": None,
+                "width_units": "pixels",
+                "cap_rounded": True,
+            },
+            legend=None,
+            **(params_dict.get("patrol_traj_map_layers") or {}),
+        )
         .mapvalues(argnames=["geodataframe"], argvalues=split_patrol_traj_groups)
     )
 
@@ -208,6 +230,7 @@ def main(params: Params):
             north_arrow_style={"placement": "top-left"},
             legend_style={"placement": "bottom-right"},
             static=False,
+            title=None,
             **(params_dict.get("traj_patrol_events_ecomap") or {}),
         )
         .mapvalues(argnames=["geo_layers"], argvalues=combined_traj_and_pe_map_layers)
@@ -251,7 +274,9 @@ def main(params: Params):
     total_patrols_sv_widgets = (
         create_single_value_widget_single_view.validate()
         .partial(
-            title="Total Patrols", **(params_dict.get("total_patrols_sv_widgets") or {})
+            title="Total Patrols",
+            decimal_places=1,
+            **(params_dict.get("total_patrols_sv_widgets") or {}),
         )
         .map(argnames=["view", "data"], argvalues=total_patrols)
     )
@@ -288,6 +313,7 @@ def main(params: Params):
         create_single_value_widget_single_view.validate()
         .partial(
             title="Total Time",
+            decimal_places=1,
             **(params_dict.get("total_patrol_time_sv_widgets") or {}),
         )
         .map(argnames=["view", "data"], argvalues=total_patrol_time_converted)
@@ -324,6 +350,7 @@ def main(params: Params):
         create_single_value_widget_single_view.validate()
         .partial(
             title="Total Distance",
+            decimal_places=1,
             **(params_dict.get("total_patrol_dist_sv_widgets") or {}),
         )
         .map(argnames=["view", "data"], argvalues=total_patrol_dist_converted)
@@ -357,7 +384,9 @@ def main(params: Params):
     avg_speed_sv_widgets = (
         create_single_value_widget_single_view.validate()
         .partial(
-            title="Average Speed", **(params_dict.get("avg_speed_sv_widgets") or {})
+            title="Average Speed",
+            decimal_places=1,
+            **(params_dict.get("avg_speed_sv_widgets") or {}),
         )
         .map(argnames=["view", "data"], argvalues=average_speed_converted)
     )
@@ -389,7 +418,11 @@ def main(params: Params):
 
     max_speed_sv_widgets = (
         create_single_value_widget_single_view.validate()
-        .partial(title="Max Speed", **(params_dict.get("max_speed_sv_widgets") or {}))
+        .partial(
+            title="Max Speed",
+            decimal_places=1,
+            **(params_dict.get("max_speed_sv_widgets") or {}),
+        )
         .map(argnames=["view", "data"], argvalues=max_speed_converted)
     )
 
@@ -412,6 +445,8 @@ def main(params: Params):
             agg_function="count",
             color_column="event_type_colormap",
             plot_style={"xperiodalignment": "middle"},
+            grouped_styles=None,
+            layout_style=None,
             **(params_dict.get("patrol_events_bar_chart") or {}),
         )
         .call()
@@ -442,6 +477,9 @@ def main(params: Params):
         .partial(
             value_column="event_type",
             plot_style={"textinfo": "value"},
+            label_column=None,
+            color_column=None,
+            layout_style=None,
             **(params_dict.get("patrol_events_pie_chart") or {}),
         )
         .mapvalues(argnames=["dataframe"], argvalues=split_pe_groups)
@@ -480,6 +518,8 @@ def main(params: Params):
             trajectory_gdf=patrol_traj,
             crs="ESRI:53042",
             percentiles=[50.0, 60.0, 70.0, 80.0, 90.0, 95.0, 99.999],
+            nodata_value="nan",
+            band_count=1,
             **(params_dict.get("td") or {}),
         )
         .call()
@@ -506,6 +546,7 @@ def main(params: Params):
                 "opacity": 0.7,
                 "get_line_width": 0,
             },
+            legend=None,
             **(params_dict.get("td_map_layer") or {}),
         )
         .call()
@@ -519,6 +560,7 @@ def main(params: Params):
             north_arrow_style={"placement": "top-left"},
             legend_style={"placement": "bottom-right"},
             static=False,
+            title=None,
             **(params_dict.get("td_ecomap") or {}),
         )
         .call()
