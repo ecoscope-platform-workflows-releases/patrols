@@ -313,6 +313,23 @@ pe_colormap = apply_color_map.partial(
 
 
 # %% [markdown]
+# ## Split Patrol Trajectories by Group
+
+# %%
+# parameters
+
+split_patrol_traj_groups_params = dict()
+
+# %%
+# call the task
+
+
+split_patrol_traj_groups = split_groups.partial(
+    df=traj_add_temporal_index, groupers=groupers, **split_patrol_traj_groups_params
+).call()
+
+
+# %% [markdown]
 # ## Split Patrol Events by Group
 
 # %%
@@ -346,23 +363,6 @@ patrol_events_map_layers = create_point_layer.partial(
     legend=None,
     **patrol_events_map_layers_params,
 ).mapvalues(argnames=["geodataframe"], argvalues=split_pe_groups)
-
-
-# %% [markdown]
-# ## Split Patrol Trajectories by Group
-
-# %%
-# parameters
-
-split_patrol_traj_groups_params = dict()
-
-# %%
-# call the task
-
-
-split_patrol_traj_groups = split_groups.partial(
-    df=traj_add_temporal_index, groupers=groupers, **split_patrol_traj_groups_params
-).call()
 
 
 # %% [markdown]
@@ -825,7 +825,6 @@ patrol_events_bar_chart_params = dict(
 
 
 patrol_events_bar_chart = draw_time_series_bar_chart.partial(
-    dataframe=pe_colormap,
     x_axis="time",
     y_axis="event_type",
     category="event_type",
@@ -835,7 +834,7 @@ patrol_events_bar_chart = draw_time_series_bar_chart.partial(
     grouped_styles=None,
     layout_style=None,
     **patrol_events_bar_chart_params,
-).call()
+).mapvalues(argnames=["dataframe"], argvalues=split_pe_groups)
 
 
 # %% [markdown]
@@ -853,10 +852,9 @@ patrol_events_bar_chart_html_url_params = dict(
 
 
 patrol_events_bar_chart_html_url = persist_text.partial(
-    text=patrol_events_bar_chart,
     root_path=os.environ["ECOSCOPE_WORKFLOWS_RESULTS"],
     **patrol_events_bar_chart_html_url_params,
-).call()
+).mapvalues(argnames=["text"], argvalues=patrol_events_bar_chart)
 
 
 # %% [markdown]
@@ -865,18 +863,31 @@ patrol_events_bar_chart_html_url = persist_text.partial(
 # %%
 # parameters
 
-patrol_events_bar_chart_widget_params = dict(
-    view=...,
-)
+patrol_events_bar_chart_widget_params = dict()
 
 # %%
 # call the task
 
 
 patrol_events_bar_chart_widget = create_plot_widget_single_view.partial(
-    data=patrol_events_bar_chart_html_url,
-    title="Patrol Events Bar Chart",
-    **patrol_events_bar_chart_widget_params,
+    title="Patrol Events Bar Chart", **patrol_events_bar_chart_widget_params
+).map(argnames=["view", "data"], argvalues=patrol_events_bar_chart_html_url)
+
+
+# %% [markdown]
+# ## Merge Bar Plot Widget Views
+
+# %%
+# parameters
+
+grouped_bar_plot_widget_merge_params = dict()
+
+# %%
+# call the task
+
+
+grouped_bar_plot_widget_merge = merge_widget_views.partial(
+    widgets=patrol_events_bar_chart_widget, **grouped_bar_plot_widget_merge_params
 ).call()
 
 
@@ -972,13 +983,12 @@ td_params = dict(
 
 
 td = calculate_time_density.partial(
-    trajectory_gdf=patrol_traj,
     crs="ESRI:53042",
     percentiles=[50.0, 60.0, 70.0, 80.0, 90.0, 95.0, 99.999],
     nodata_value="nan",
     band_count=1,
     **td_params,
-).call()
+).mapvalues(argnames=["trajectory_gdf"], argvalues=split_patrol_traj_groups)
 
 
 # %% [markdown]
@@ -999,7 +1009,7 @@ td_colormap = apply_color_map.partial(
     colormap="RdYlGn",
     output_column_name="percentile_colormap",
     **td_colormap_params,
-).call()
+).mapvalues(argnames=["df"], argvalues=td)
 
 
 # %% [markdown]
@@ -1015,7 +1025,6 @@ td_map_layer_params = dict()
 
 
 td_map_layer = create_polygon_layer.partial(
-    geodataframe=td_colormap,
     layer_style={
         "fill_color_column": "percentile_colormap",
         "opacity": 0.7,
@@ -1023,7 +1032,7 @@ td_map_layer = create_polygon_layer.partial(
     },
     legend=None,
     **td_map_layer_params,
-).call()
+).mapvalues(argnames=["geodataframe"], argvalues=td_colormap)
 
 
 # %% [markdown]
@@ -1039,14 +1048,13 @@ td_ecomap_params = dict()
 
 
 td_ecomap = draw_ecomap.partial(
-    geo_layers=td_map_layer,
     tile_layers=[{"name": "TERRAIN"}, {"name": "SATELLITE", "opacity": 0.5}],
     north_arrow_style={"placement": "top-left"},
     legend_style={"placement": "bottom-right"},
     static=False,
     title=None,
     **td_ecomap_params,
-).call()
+).mapvalues(argnames=["geo_layers"], argvalues=td_map_layer)
 
 
 # %% [markdown]
@@ -1064,10 +1072,8 @@ td_ecomap_html_url_params = dict(
 
 
 td_ecomap_html_url = persist_text.partial(
-    text=td_ecomap,
-    root_path=os.environ["ECOSCOPE_WORKFLOWS_RESULTS"],
-    **td_ecomap_html_url_params,
-).call()
+    root_path=os.environ["ECOSCOPE_WORKFLOWS_RESULTS"], **td_ecomap_html_url_params
+).mapvalues(argnames=["text"], argvalues=td_ecomap)
 
 
 # %% [markdown]
@@ -1076,16 +1082,31 @@ td_ecomap_html_url = persist_text.partial(
 # %%
 # parameters
 
-td_map_widget_params = dict(
-    view=...,
-)
+td_map_widget_params = dict()
 
 # %%
 # call the task
 
 
 td_map_widget = create_map_widget_single_view.partial(
-    data=td_ecomap_html_url, title="Time Density Map", **td_map_widget_params
+    title="Time Density Map", **td_map_widget_params
+).map(argnames=["view", "data"], argvalues=td_ecomap_html_url)
+
+
+# %% [markdown]
+# ## Merge Time Density Map Widget Views
+
+# %%
+# parameters
+
+td_grouped_map_widget_params = dict()
+
+# %%
+# call the task
+
+
+td_grouped_map_widget = merge_widget_views.partial(
+    widgets=td_map_widget, **td_grouped_map_widget_params
 ).call()
 
 
@@ -1105,8 +1126,8 @@ patrol_dashboard = gather_dashboard.partial(
     details=workflow_details,
     widgets=[
         traj_pe_grouped_map_widget,
-        td_map_widget,
-        patrol_events_bar_chart_widget,
+        td_grouped_map_widget,
+        grouped_bar_plot_widget_merge,
         patrol_events_pie_widget_grouped,
         total_patrols_grouped_sv_widget,
         patrol_time_grouped_widget,

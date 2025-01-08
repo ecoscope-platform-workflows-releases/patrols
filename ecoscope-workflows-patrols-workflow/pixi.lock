@@ -84,8 +84,8 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/earthengine-api-1.4.4-pyhd8ed1ab_1.conda
       - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/earthranger-client-1.0.49-pyh4616a5c_0.conda
       - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-v1.8.15-pyh4616a5c_5.conda
-      - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-workflows-core-0.0.41-pyh4616a5c_0.conda
-      - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-workflows-ext-ecoscope-0.0.41-pyh4616a5c_0.conda
+      - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-workflows-core-0.0.42-pyh4616a5c_0.conda
+      - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-workflows-ext-ecoscope-0.0.42-pyh4616a5c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/email-validator-2.2.0-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/email_validator-2.2.0-hd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/exceptiongroup-1.2.2-pyhd8ed1ab_1.conda
@@ -355,7 +355,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/ruamel.yaml.clib-0.2.8-py312h66e93f0_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/ruff-0.8.6-py312h2156523_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/s2n-1.5.5-h3931f03_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/scikit-image-0.25.0-py312hf9745cd_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/scikit-image-0.25.0-py312hf9745cd_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/scikit-learn-1.6.0-py312h7a48858_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/scipy-1.15.0-py312h180e4f1_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/semver-2.13.0-pyh9f0ad1d_0.tar.bz2
@@ -502,8 +502,8 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/earthengine-api-1.4.4-pyhd8ed1ab_1.conda
       - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/earthranger-client-1.0.49-pyh4616a5c_0.conda
       - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-v1.8.15-pyh4616a5c_5.conda
-      - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-workflows-core-0.0.41-pyh4616a5c_0.conda
-      - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-workflows-ext-ecoscope-0.0.41-pyh4616a5c_0.conda
+      - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-workflows-core-0.0.42-pyh4616a5c_0.conda
+      - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-workflows-ext-ecoscope-0.0.42-pyh4616a5c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/email-validator-2.2.0-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/email_validator-2.2.0-hd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/exceptiongroup-1.2.2-pyhd8ed1ab_1.conda
@@ -773,7 +773,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/ruamel.yaml.clib-0.2.8-py312hb2c0f52_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/ruff-0.8.6-py312h5a58397_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/s2n-1.5.5-hc6ade00_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/scikit-image-0.25.0-py312ha2895bd_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/scikit-image-0.25.0-py312ha2895bd_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/scikit-learn-1.6.0-py312h2605d20_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/scipy-1.15.0-py312h9941453_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/semver-2.13.0-pyh9f0ad1d_0.tar.bz2
@@ -919,8 +919,8 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/earthengine-api-1.4.4-pyhd8ed1ab_1.conda
       - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/earthranger-client-1.0.49-pyh4616a5c_0.conda
       - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-v1.8.15-pyh4616a5c_5.conda
-      - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-workflows-core-0.0.41-pyh4616a5c_0.conda
-      - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-workflows-ext-ecoscope-0.0.41-pyh4616a5c_0.conda
+      - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-workflows-core-0.0.42-pyh4616a5c_0.conda
+      - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-workflows-ext-ecoscope-0.0.42-pyh4616a5c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/email-validator-2.2.0-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/email_validator-2.2.0-hd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/exceptiongroup-1.2.2-pyhd8ed1ab_1.conda
@@ -1182,7 +1182,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/ruamel.yaml-0.18.10-py312hea69d52_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/ruamel.yaml.clib-0.2.8-py312h0bf5046_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/ruff-0.8.6-py312h5d18b81_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/scikit-image-0.25.0-py312hcb1e3ce_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/scikit-image-0.25.0-py312hcb1e3ce_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/scikit-learn-1.6.0-py312h39203ce_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/scipy-1.15.0-py312hb7ffdcd_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/semver-2.13.0-pyh9f0ad1d_0.tar.bz2
@@ -1331,8 +1331,8 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/earthengine-api-1.4.4-pyhd8ed1ab_1.conda
       - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/earthranger-client-1.0.49-pyh4616a5c_0.conda
       - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-v1.8.15-pyh4616a5c_5.conda
-      - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-workflows-core-0.0.41-pyh4616a5c_0.conda
-      - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-workflows-ext-ecoscope-0.0.41-pyh4616a5c_0.conda
+      - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-workflows-core-0.0.42-pyh4616a5c_0.conda
+      - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-workflows-ext-ecoscope-0.0.42-pyh4616a5c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/email-validator-2.2.0-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/email_validator-2.2.0-hd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/exceptiongroup-1.2.2-pyhd8ed1ab_1.conda
@@ -1610,7 +1610,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/ruamel.yaml.clib-0.2.8-py312h66e93f0_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/ruff-0.8.6-py312h2156523_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/s2n-1.5.5-h3931f03_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/scikit-image-0.25.0-py312hf9745cd_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/scikit-image-0.25.0-py312hf9745cd_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/scikit-learn-1.6.0-py312h7a48858_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/scipy-1.15.0-py312h180e4f1_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/semver-2.13.0-pyh9f0ad1d_0.tar.bz2
@@ -1759,8 +1759,8 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/earthengine-api-1.4.4-pyhd8ed1ab_1.conda
       - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/earthranger-client-1.0.49-pyh4616a5c_0.conda
       - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-v1.8.15-pyh4616a5c_5.conda
-      - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-workflows-core-0.0.41-pyh4616a5c_0.conda
-      - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-workflows-ext-ecoscope-0.0.41-pyh4616a5c_0.conda
+      - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-workflows-core-0.0.42-pyh4616a5c_0.conda
+      - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-workflows-ext-ecoscope-0.0.42-pyh4616a5c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/email-validator-2.2.0-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/email_validator-2.2.0-hd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/exceptiongroup-1.2.2-pyhd8ed1ab_1.conda
@@ -2038,7 +2038,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/ruamel.yaml.clib-0.2.8-py312hb2c0f52_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/ruff-0.8.6-py312h5a58397_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/s2n-1.5.5-hc6ade00_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/scikit-image-0.25.0-py312ha2895bd_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/scikit-image-0.25.0-py312ha2895bd_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/scikit-learn-1.6.0-py312h2605d20_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/scipy-1.15.0-py312h9941453_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/semver-2.13.0-pyh9f0ad1d_0.tar.bz2
@@ -2186,8 +2186,8 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/earthengine-api-1.4.4-pyhd8ed1ab_1.conda
       - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/earthranger-client-1.0.49-pyh4616a5c_0.conda
       - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-v1.8.15-pyh4616a5c_5.conda
-      - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-workflows-core-0.0.41-pyh4616a5c_0.conda
-      - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-workflows-ext-ecoscope-0.0.41-pyh4616a5c_0.conda
+      - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-workflows-core-0.0.42-pyh4616a5c_0.conda
+      - conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-workflows-ext-ecoscope-0.0.42-pyh4616a5c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/email-validator-2.2.0-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/email_validator-2.2.0-hd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/exceptiongroup-1.2.2-pyhd8ed1ab_1.conda
@@ -2457,7 +2457,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/ruamel.yaml-0.18.10-py312hea69d52_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/ruamel.yaml.clib-0.2.8-py312h0bf5046_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/ruff-0.8.6-py312h5d18b81_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/scikit-image-0.25.0-py312hcb1e3ce_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/scikit-image-0.25.0-py312hcb1e3ce_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/scikit-learn-1.6.0-py312h39203ce_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/scipy-1.15.0-py312hb7ffdcd_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/semver-2.13.0-pyh9f0ad1d_0.tar.bz2
@@ -4839,8 +4839,8 @@ packages:
   license: BSD-3-Clause
   size: 63569
   timestamp: 1734516330748
-- conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-workflows-core-0.0.41-pyh4616a5c_0.conda
-  sha256: c96890963c47fb40a639a47cd87c24381db374fc47f59cedbcf90c5e66fb578a
+- conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-workflows-core-0.0.42-pyh4616a5c_0.conda
+  sha256: 7600f2bb1a62b709bf8567d50169f4ee9a6359153c5e0fb158325d7f517a847d
   depends:
   - python
   - jinja2
@@ -4857,18 +4857,18 @@ packages:
   - pydot
   - python
   license: BSD-3-Clause
-  size: 57653
-  timestamp: 1736253249113
-- conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-workflows-ext-ecoscope-0.0.41-pyh4616a5c_0.conda
-  sha256: 411581774fa197888fc205714dcb3afbbf19699ffffe68d0eb80fe819cdd102f
+  size: 58033
+  timestamp: 1736332205272
+- conda: https://repo.prefix.dev/ecoscope-workflows/noarch/ecoscope-workflows-ext-ecoscope-0.0.42-pyh4616a5c_0.conda
+  sha256: e0aa05e25ecd761c4e0df8af131d68756e089d8fdcd806fc624b2282361d2f26
   depends:
   - python
-  - ecoscope-workflows-core ==0.0.41
+  - ecoscope-workflows-core ==0.0.42
   - ecoscope ==v1.8.15
   - python
   license: BSD-3-Clause
-  size: 7792679
-  timestamp: 1736253272350
+  size: 7792722
+  timestamp: 1736332228515
 - conda: https://conda.anaconda.org/conda-forge/noarch/email-validator-2.2.0-pyhd8ed1ab_1.conda
   sha256: b91a19eb78edfc2dbb36de9a67f74ee2416f1b5273dd7327abe53f2dbf864736
   md5: da16dd3b0b71339060cd44cb7110ddf9
@@ -13682,108 +13682,111 @@ packages:
   license_family: Apache
   size: 349557
   timestamp: 1728534230496
-- conda: https://conda.anaconda.org/conda-forge/linux-64/scikit-image-0.25.0-py312hf9745cd_0.conda
-  sha256: 509a0e478839e3f28745cba68ecaf65801ad3a7fd5b4d80d47bb9fca7990a3c2
-  md5: 3d4155089ed2f0d5ad24058fac95d6a2
+- conda: https://conda.anaconda.org/conda-forge/linux-64/scikit-image-0.25.0-py312hf9745cd_1.conda
+  sha256: a7d9315a72fc7ed58e9f797d038e1c4b71b603bf2c90ac2ce5d2c4380e1d16d0
+  md5: 7494c06b01edc857a4f7910946c408ab
   depends:
   - __glibc >=2.17,<3.0.a0
-  - imageio >=2.27
-  - lazy_loader >=0.2
+  - imageio >=2.33,!=2.35.0
+  - lazy_loader >=0.4
   - libgcc >=13
   - libstdcxx >=13
-  - networkx >=2.8
+  - networkx >=3.0
   - numpy >=1.19,<3
   - packaging >=21
-  - pillow >=9.0.1
+  - pillow >=10.1
   - python >=3.12,<3.13.0a0
   - python_abi 3.12.* *_cp312
   - pywavelets >=1.1.1
-  - scipy >=1.8
+  - scipy >=1.11.2
   - tifffile >=2022.8.12
   constrains:
-  - cytoolz >=0.11.0
-  - pooch >=1.6.0
-  - numpy >=1.23
+  - pywavelets >=1.6
+  - cloudpickle >=3.0
+  - numpy >=1.24
+  - dask-core >=2022.11.0,!=2024.8.0
   - toolz >=0.10.0
-  - dask-core >=2021.1.0
-  - cloudpickle >=0.2.1
-  - astropy >=5.0
-  - scikit-learn >=1.0
-  - matplotlib-base >=3.5
+  - astropy >=6.0
+  - matplotlib-base >=3.7
+  - pyamg >=5.2
+  - pooch >=1.6.0
+  - cytoolz >=0.11.0
+  - scikit-learn >=1.2
   arch: x86_64
   platform: linux
   license: BSD-3-Clause
-  license_family: BSD
-  size: 11195386
-  timestamp: 1734956427305
-- conda: https://conda.anaconda.org/conda-forge/linux-aarch64/scikit-image-0.25.0-py312ha2895bd_0.conda
-  sha256: 42fafbc950d6b02f86c08d02dd13b4c4b35d823738858c16136a57ebed14fe9f
-  md5: 81a242fb046cc5441547b0b197aeb755
+  size: 11166373
+  timestamp: 1736280936664
+- conda: https://conda.anaconda.org/conda-forge/linux-aarch64/scikit-image-0.25.0-py312ha2895bd_1.conda
+  sha256: 6ff98c30c100d23f5ab37a6863853c44cc82eca936c6f0cc3655e5343b6c8542
+  md5: 3c90571db4999b7813a2633357367031
   depends:
-  - imageio >=2.27
-  - lazy_loader >=0.2
+  - imageio >=2.33,!=2.35.0
+  - lazy_loader >=0.4
   - libgcc >=13
   - libstdcxx >=13
-  - networkx >=2.8
+  - networkx >=3.0
   - numpy >=1.19,<3
   - packaging >=21
-  - pillow >=9.0.1
+  - pillow >=10.1
   - python >=3.12,<3.13.0a0
   - python >=3.12,<3.13.0a0 *_cpython
   - python_abi 3.12.* *_cp312
   - pywavelets >=1.1.1
-  - scipy >=1.8
+  - scipy >=1.11.2
   - tifffile >=2022.8.12
   constrains:
-  - cytoolz >=0.11.0
-  - astropy >=5.0
-  - cloudpickle >=0.2.1
+  - astropy >=6.0
   - toolz >=0.10.0
-  - numpy >=1.23
-  - dask-core >=2021.1.0
-  - matplotlib-base >=3.5
-  - scikit-learn >=1.0
+  - cloudpickle >=3.0
+  - pywavelets >=1.6
+  - matplotlib-base >=3.7
+  - scikit-learn >=1.2
+  - dask-core >=2022.11.0,!=2024.8.0
+  - pyamg >=5.2
+  - numpy >=1.24
   - pooch >=1.6.0
+  - cytoolz >=0.11.0
   arch: aarch64
   platform: linux
   license: BSD-3-Clause
-  license_family: BSD
-  size: 10980699
-  timestamp: 1734956836500
-- conda: https://conda.anaconda.org/conda-forge/osx-arm64/scikit-image-0.25.0-py312hcb1e3ce_0.conda
-  sha256: fd916e935b87a19c4315038c722517f5ddec9865dfb6eb032bbad4f2b397c809
-  md5: 2c1ec468b1911d4fdc83eaa40f60760b
+  size: 10956378
+  timestamp: 1736281111896
+- conda: https://conda.anaconda.org/conda-forge/osx-arm64/scikit-image-0.25.0-py312hcb1e3ce_1.conda
+  sha256: b5d6abe40f2474c95c52047e968ae45aebcbd63bc9841fb4b4889342aca4aef9
+  md5: 1733d5696e6ecf0e89adb374d79ba808
   depends:
   - __osx >=11.0
-  - imageio >=2.27
-  - lazy_loader >=0.2
+  - imageio >=2.33,!=2.35.0
+  - lazy_loader >=0.4
   - libcxx >=18
-  - networkx >=2.8
+  - networkx >=3.0
   - numpy >=1.19,<3
   - packaging >=21
-  - pillow >=9.0.1
+  - pillow >=10.1
   - python >=3.12,<3.13.0a0
   - python >=3.12,<3.13.0a0 *_cpython
   - python_abi 3.12.* *_cp312
   - pywavelets >=1.1.1
-  - scipy >=1.8
+  - scipy >=1.11.2
   - tifffile >=2022.8.12
   constrains:
+  - matplotlib-base >=3.7
+  - scikit-learn >=1.2
+  - pyamg >=5.2
+  - cloudpickle >=3.0
+  - numpy >=1.24
   - cytoolz >=0.11.0
-  - dask-core >=2021.1.0
-  - astropy >=5.0
-  - pooch >=1.6.0
-  - cloudpickle >=0.2.1
+  - pywavelets >=1.6
+  - dask-core >=2022.11.0,!=2024.8.0
   - toolz >=0.10.0
-  - matplotlib-base >=3.5
-  - numpy >=1.23
-  - scikit-learn >=1.0
+  - astropy >=6.0
+  - pooch >=1.6.0
   arch: arm64
   platform: osx
   license: BSD-3-Clause
-  license_family: BSD
-  size: 10581319
-  timestamp: 1734956572549
+  size: 10585568
+  timestamp: 1736281133077
 - conda: https://conda.anaconda.org/conda-forge/linux-64/scikit-learn-1.6.0-py312h7a48858_0.conda
   sha256: b338d21c96c0ff68be71e49dee61fb9f498f1b874839080522cac17819d949bc
   md5: 3890dc810f949afb3d26916743b529f4
