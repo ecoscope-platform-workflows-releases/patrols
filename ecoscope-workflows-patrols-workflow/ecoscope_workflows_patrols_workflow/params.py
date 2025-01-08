@@ -133,9 +133,9 @@ class Groupers(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    groupers: List[Union[Grouper, TemporalGrouper]] = Field(
-        ...,
-        description="            Index(es) and/or column(s) to group by, along with\n            optional display names and help text.\n            ",
+    groupers: Optional[List[Union[Grouper, TemporalGrouper]]] = Field(
+        None,
+        description="            Temporal index(es) and/or column(s) to group by. This field is optional.\n            If left unfilled, all data will be presented together in a single group.\n            ",
         title="Groupers",
     )
 
