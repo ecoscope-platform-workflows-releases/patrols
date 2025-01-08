@@ -46,6 +46,7 @@
       "additionalProperties": false,
       "properties": {
         "groupers": {
+          "default": null,
           "items": {
             "anyOf": [
               {
@@ -58,13 +59,11 @@
           },
           "title": "Groupers",
           "type": "array",
-          "description": "            Index(es) and/or column(s) to group by, along with\n            optional display names and help text.\n            "
+          "description": "            Temporal index(es) and/or column(s) to group by. This field is optional.\n            If left unfilled, all data will be presented together in a single group.\n            "
         }
       },
-      "required": [
-        "groupers"
-      ],
       "type": "object",
+      "required": [],
       "title": "Set Groupers"
     },
     "time_range": {

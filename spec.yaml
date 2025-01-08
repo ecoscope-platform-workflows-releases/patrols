@@ -1,10 +1,10 @@
 id: patrols
 requirements:
   - name: ecoscope-workflows-core
-    version: 0.0.41
+    version: 0.0.43
     channel: https://repo.prefix.dev/ecoscope-workflows/
   - name: ecoscope-workflows-ext-ecoscope
-    version: 0.0.41
+    version: 0.0.43
     channel: https://repo.prefix.dev/ecoscope-workflows/
 workflow:
   - name: Set Workflow Details
@@ -101,16 +101,22 @@ workflow:
           input_column_name: event_type
           colormap: tab20b
           output_column_name: event_type_colormap
+  - name: Split Patrol Trajectories by Group
+    id: split_patrol_traj_groups
+    task: split_groups
+    partial:
+      df: ${{ workflow.traj_add_temporal_index.return }}
+      groupers: ${{ workflow.groupers.return }}
+  - name: Split Patrol Events by Group
+    id: split_pe_groups
+    task: split_groups
+    partial:
+      df: ${{ workflow.pe_colormap.return }}
+      groupers: ${{ workflow.groupers.return }}
   - title: Patrol Events and Trajectories Map
     type: task-group
     description: Create a combined patrol trajectories and events map.
     tasks:
-      - name: Split Patrol Events by Group
-        id: split_pe_groups
-        task: split_groups
-        partial:
-          df: ${{ workflow.pe_colormap.return }}
-          groupers: ${{ workflow.groupers.return }}
       - name: Create map layers for each Patrols Events group
         id: patrol_events_map_layers
         task: create_point_layer
@@ -121,12 +127,6 @@ workflow:
         mapvalues:
           argnames: geodataframe
           argvalues: ${{ workflow.split_pe_groups.return }}
-      - name: Split Patrol Trajectories by Group
-        id: split_patrol_traj_groups
-        task: split_groups
-        partial:
-          df: ${{ workflow.traj_add_temporal_index.return }}
-          groupers: ${{ workflow.groupers.return }}
       - name: Create map layer for each Patrol Trajectories group
         id: patrol_traj_map_layers
         task: create_polyline_layer
@@ -359,7 +359,6 @@ workflow:
         id: patrol_events_bar_chart
         task: draw_time_series_bar_chart
         partial:
-          dataframe: ${{ workflow.pe_colormap.return }}
           x_axis: time
           y_axis: event_type
           category: event_type
@@ -369,18 +368,32 @@ workflow:
             xperiodalignment: middle
           grouped_styles: null
           layout_style: null
+        mapvalues:
+          argnames: dataframe
+          argvalues: ${{ workflow.split_pe_groups.return }}
       - name: Persist Patrols Bar Chart as Text
         id: patrol_events_bar_chart_html_url
         task: persist_text
         partial:
-          text: ${{ workflow.patrol_events_bar_chart.return }}
           root_path: ${{ env.ECOSCOPE_WORKFLOWS_RESULTS }}
+        mapvalues:
+          argnames: text
+          argvalues: ${{ workflow.patrol_events_bar_chart.return }}
       - name: Create Plot Widget for Patrol Events
         id: patrol_events_bar_chart_widget
         task: create_plot_widget_single_view
         partial:
-          data: ${{ workflow.patrol_events_bar_chart_html_url.return }}
           title: Patrol Events Bar Chart
+        map:
+          argnames:
+            - view
+            - data
+          argvalues: ${{ workflow.patrol_events_bar_chart_html_url.return }}
+      - name: Merge Bar Plot Widget Views
+        id: grouped_bar_plot_widget_merge
+        task: merge_widget_views
+        partial:
+          widgets: ${{ workflow.patrol_events_bar_chart_widget.return }}
   - title: Patrol events pie chart
     type: task-group
     description: Create the patrol events pie chart.
@@ -429,7 +442,6 @@ workflow:
         id: td
         task: calculate_time_density
         partial:
-          trajectory_gdf: ${{ workflow.patrol_traj.return }}
           crs: ESRI:53042
           percentiles:
             - 50.000000
@@ -441,6 +453,9 @@ workflow:
             - 99.999000
           nodata_value: nan
           band_count: 1
+        mapvalues:
+          argnames: trajectory_gdf
+          argvalues: ${{ workflow.split_patrol_traj_groups.return }}
       - name: Time Density Colormap
         id: td_colormap
         task: apply_color_map
@@ -449,22 +464,25 @@ workflow:
           input_column_name: percentile
           colormap: RdYlGn
           output_column_name: percentile_colormap
+        mapvalues:
+          argnames: df
+          argvalues: ${{ workflow.td.return }}
       - name: Create map layer from Time Density
         id: td_map_layer
         task: create_polygon_layer
         partial:
-          geodataframe: ${{ workflow.td_colormap.return }}
           layer_style:
             fill_color_column: percentile_colormap
             opacity: 0.700000
             get_line_width: 0
           legend: null
+        mapvalues:
+          argnames: geodataframe
+          argvalues: ${{ workflow.td_colormap.return }}
       - name: Draw Ecomap from Time Density
         id: td_ecomap
         task: draw_ecomap
         partial:
-          geo_layers:
-            - ${{ workflow.td_map_layer.return }}
           tile_layers:
             - name: TERRAIN
             - name: SATELLITE
@@ -475,18 +493,32 @@ workflow:
             placement: bottom-right
           static: false
           title: null
+        mapvalues:
+          argnames: geo_layers
+          argvalues: ${{ workflow.td_map_layer.return }}
       - name: Persist Ecomap as Text
         id: td_ecomap_html_url
         task: persist_text
         partial:
-          text: ${{ workflow.td_ecomap.return }}
           root_path: ${{ env.ECOSCOPE_WORKFLOWS_RESULTS }}
+        mapvalues:
+          argnames: text
+          argvalues: ${{ workflow.td_ecomap.return }}
       - name: Create Time Density Map Widget
         id: td_map_widget
         task: create_map_widget_single_view
         partial:
-          data: ${{ workflow.td_ecomap_html_url.return }}
           title: Time Density Map
+        map:
+          argnames:
+            - view
+            - data
+          argvalues: ${{ workflow.td_ecomap_html_url.return }}
+      - name: Merge Time Density Map Widget Views
+        id: td_grouped_map_widget
+        task: merge_widget_views
+        partial:
+          widgets: ${{ workflow.td_map_widget.return }}
   - name: Create Dashboard with Patrol Map Widgets
     id: patrol_dashboard
     task: gather_dashboard
@@ -494,8 +526,8 @@ workflow:
       details: ${{ workflow.workflow_details.return}}
       widgets:
         - ${{ workflow.traj_pe_grouped_map_widget.return }}
-        - ${{ workflow.td_map_widget.return }}
-        - ${{ workflow.patrol_events_bar_chart_widget.return }}
+        - ${{ workflow.td_grouped_map_widget.return }}
+        - ${{ workflow.grouped_bar_plot_widget_merge.return }}
         - ${{ workflow.patrol_events_pie_widget_grouped.return }}
         - ${{ workflow.total_patrols_grouped_sv_widget.return }}
         - ${{ workflow.patrol_time_grouped_widget.return }}

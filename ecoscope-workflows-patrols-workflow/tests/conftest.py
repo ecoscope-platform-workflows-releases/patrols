@@ -228,8 +228,10 @@ def dashboard_json(
     results_dir: Path,
 ) -> Generator[dict, None, None]:
     run_params: RunParams = request.param
-    results_subdir = results_dir / run_params.subdir_name
-    results_subdir.mkdir()
+    results_subdir = (
+        results_dir / run_params.subdir_name / case.name.lower().replace(" ", "-")
+    )
+    results_subdir.mkdir(parents=True)
     if run_params.api == "app":
         json_ = {"params": case.params}
         query_params = {
