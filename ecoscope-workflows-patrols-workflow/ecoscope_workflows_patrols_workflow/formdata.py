@@ -15,7 +15,6 @@ class WorkflowDetails(BaseModel):
     )
     name: str = Field(..., description="The name of your workflow", title="Name")
     description: str = Field(..., description="A description", title="Description")
-    image_url: Optional[str] = Field("", description="An image url", title="Image Url")
 
 
 class TimeRange(BaseModel):
@@ -44,27 +43,6 @@ class PatrolObs(BaseModel):
         ["done"],
         description="list of 'scheduled'/'active'/'overdue'/'done'/'cancelled'",
         title="Status",
-    )
-
-
-class PatrolTraj(BaseModel):
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    min_length_meters: Optional[float] = Field(0.001, title="Min Length Meters")
-    max_length_meters: Optional[float] = Field(10000, title="Max Length Meters")
-    max_time_secs: Optional[float] = Field(3600, title="Max Time Secs")
-    min_time_secs: Optional[float] = Field(1, title="Min Time Secs")
-    max_speed_kmhr: Optional[float] = Field(120, title="Max Speed Kmhr")
-    min_speed_kmhr: Optional[float] = Field(0.0001, title="Min Speed Kmhr")
-
-
-class FetchAndPreprocessPatrolObservations(BaseModel):
-    patrol_obs: Optional[PatrolObs] = Field(
-        None, title="Get Patrol Observations from EarthRanger"
-    )
-    patrol_traj: Optional[PatrolTraj] = Field(
-        None, title="Transform Relocations to Trajectories"
     )
 
 
@@ -132,6 +110,31 @@ class TemporalGrouper(BaseModel):
     temporal_index: str = Field(..., title="Temporal Index")
 
 
+class TrajectorySegmentFilter(BaseModel):
+    min_length_meters: Optional[float] = Field(
+        0.001, description="Minimum Segment Length in Meters", title="Min Length Meters"
+    )
+    max_length_meters: Optional[float] = Field(
+        10000, description="Maximum Segment Length in Meters", title="Max Length Meters"
+    )
+    min_time_secs: Optional[float] = Field(
+        1, description="Minimum Segment Duration in Seconds", title="Min Time Secs"
+    )
+    max_time_secs: Optional[float] = Field(
+        3600, description="Maximum Segment Duration in Seconds", title="Max Time Secs"
+    )
+    min_speed_kmhr: Optional[float] = Field(
+        0.0001,
+        description="Minimum Segment Speed in Kilometers per Hour",
+        title="Min Speed Kmhr",
+    )
+    max_speed_kmhr: Optional[float] = Field(
+        120,
+        description="Maximum Segment Speed in Kilometers per Hour",
+        title="Max Speed Kmhr",
+    )
+
+
 class Coordinate(BaseModel):
     x: float = Field(..., title="X")
     y: float = Field(..., title="Y")
@@ -156,6 +159,35 @@ class Groupers(BaseModel):
         None,
         description="            Temporal index(es) and/or column(s) to group by. This field is optional.\n            If left unfilled, all data will be presented together in a single group.\n            ",
         title="Groupers",
+    )
+
+
+class PatrolTraj(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    trajectory_segment_filter: Optional[TrajectorySegmentFilter] = Field(
+        default_factory=lambda: TrajectorySegmentFilter.model_validate(
+            {
+                "min_length_meters": 0.001,
+                "max_length_meters": 10000.0,
+                "min_time_secs": 1.0,
+                "max_time_secs": 3600.0,
+                "min_speed_kmhr": 0.0001,
+                "max_speed_kmhr": 120.0,
+            }
+        ),
+        description="Trajectory Segments outside these bounds will be removed",
+        title="Trajectory Segment Filter",
+    )
+
+
+class FetchAndPreprocessPatrolObservations(BaseModel):
+    patrol_obs: Optional[PatrolObs] = Field(
+        None, title="Get Patrol Observations from EarthRanger"
+    )
+    patrol_traj: Optional[PatrolTraj] = Field(
+        None, title="Transform Relocations to Trajectories"
     )
 
 
