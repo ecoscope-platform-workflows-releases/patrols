@@ -139,6 +139,7 @@ patrol_obs = get_patrol_observations.partial(
     client=er_client_name,
     time_range=time_range,
     include_patrol_details=True,
+    raise_on_empty=True,
     **patrol_obs_params,
 ).call()
 
@@ -184,12 +185,7 @@ patrol_reloc = process_relocations.partial(
 # parameters
 
 patrol_traj_params = dict(
-    min_length_meters=...,
-    max_length_meters=...,
-    max_time_secs=...,
-    min_time_secs=...,
-    max_speed_kmhr=...,
-    min_speed_kmhr=...,
+    trajectory_segment_filter=...,
 )
 
 # %%
@@ -242,6 +238,7 @@ patrol_events = get_patrol_events.partial(
     client=er_client_name,
     time_range=time_range,
     truncate_to_time_range=True,
+    raise_on_empty=True,
     **patrol_events_params,
 ).call()
 

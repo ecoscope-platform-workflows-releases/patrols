@@ -95,6 +95,7 @@ def main(params: Params):
             client=er_client_name,
             time_range=time_range,
             include_patrol_details=True,
+            raise_on_empty=True,
             **(params_dict.get("patrol_obs") or {}),
         )
         .call()
@@ -150,6 +151,7 @@ def main(params: Params):
             client=er_client_name,
             time_range=time_range,
             truncate_to_time_range=True,
+            raise_on_empty=True,
             **(params_dict.get("patrol_events") or {}),
         )
         .call()

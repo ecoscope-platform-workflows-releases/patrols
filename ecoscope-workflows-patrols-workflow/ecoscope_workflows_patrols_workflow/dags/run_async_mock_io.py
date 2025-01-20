@@ -172,6 +172,7 @@ def main(params: Params):
                 "client": DependsOn("er_client_name"),
                 "time_range": DependsOn("time_range"),
                 "include_patrol_details": True,
+                "raise_on_empty": True,
             }
             | (params_dict.get("patrol_obs") or {}),
             method="call",
@@ -226,6 +227,7 @@ def main(params: Params):
                 "client": DependsOn("er_client_name"),
                 "time_range": DependsOn("time_range"),
                 "truncate_to_time_range": True,
+                "raise_on_empty": True,
             }
             | (params_dict.get("patrol_events") or {}),
             method="call",

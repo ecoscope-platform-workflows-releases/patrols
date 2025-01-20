@@ -1,10 +1,10 @@
 id: patrols
 requirements:
   - name: ecoscope-workflows-core
-    version: 0.0.43
+    version: 0.0.44
     channel: https://repo.prefix.dev/ecoscope-workflows/
   - name: ecoscope-workflows-ext-ecoscope
-    version: 0.0.43
+    version: 0.0.44
     channel: https://repo.prefix.dev/ecoscope-workflows/
 workflow:
   - name: Set Workflow Details
@@ -32,6 +32,7 @@ workflow:
           client: ${{ workflow.er_client_name.return }}
           time_range: ${{ workflow.time_range.return }}
           include_patrol_details: true
+          raise_on_empty: true
       - name: Transform Observations to Relocations
         id: patrol_reloc
         task: process_relocations
@@ -79,6 +80,7 @@ workflow:
           client: ${{ workflow.er_client_name.return }}
           time_range: ${{ workflow.time_range.return }}
           truncate_to_time_range: true
+          raise_on_empty: true
       - name: Apply Relocation Coordinate Filter
         id: filter_patrol_events
         task: apply_reloc_coord_filter
