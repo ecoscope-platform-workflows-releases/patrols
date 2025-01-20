@@ -5,7 +5,6 @@ all-grouper:
     workflow_details:
       name: "Patrols Dashboard"
       description: "A dashboard for visualizing patrol trajectories, patrols events, and time density."
-      image_url: ""
     er_client_name:
       data_source:
         name: "mep_dev"
@@ -18,12 +17,13 @@ all-grouper:
       patrol_type: ["05ad114e-1aff-4602-bc83-efd333cdd8a2"]
       status: ["done"]
     patrol_traj:
-      min_length_meters: 0.001
-      max_length_meters: 10000.0
-      max_time_secs: 3600.0
-      min_time_secs: 1.0
-      max_speed_kmhr: 120.0
-      min_speed_kmhr: 0.0001
+      trajectory_segment_filter:
+        min_length_meters: 0.001
+        max_length_meters: 10000.0
+        max_time_secs: 3600.0
+        min_time_secs: 1.0
+        max_speed_kmhr: 120.0
+        min_speed_kmhr: 0.0001
     patrol_events:
       patrol_type: ["05ad114e-1aff-4602-bc83-efd333cdd8a2"]
       status: ["done"]
@@ -47,7 +47,6 @@ month-grouper:
     workflow_details:
       name: "Patrols Dashboard"
       description: "A dashboard for visualizing patrol trajectories, patrols events, and time density."
-      image_url: ""
     er_client_name:
       data_source:
         name: "mep_dev"
@@ -61,12 +60,13 @@ month-grouper:
       patrol_type: ["05ad114e-1aff-4602-bc83-efd333cdd8a2"]
       status: ["done"]
     patrol_traj:
-      min_length_meters: 0.001
-      max_length_meters: 10000.0
-      max_time_secs: 3600.0
-      min_time_secs: 1.0
-      max_speed_kmhr: 120.0
-      min_speed_kmhr: 0.0001
+      trajectory_segment_filter:
+        min_length_meters: 0.001
+        max_length_meters: 10000.0
+        max_time_secs: 3600.0
+        min_time_secs: 1.0
+        max_speed_kmhr: 120.0
+        min_speed_kmhr: 0.0001
     patrol_events:
       patrol_type: ["05ad114e-1aff-4602-bc83-efd333cdd8a2"]
       status: ["done"]
