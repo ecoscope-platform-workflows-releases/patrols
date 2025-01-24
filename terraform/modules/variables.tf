@@ -50,7 +50,7 @@ variable "image" {
 variable "limits" {
   type        = map(string)
   description = "Resource limits to the container"
-  default     = { "cpu" = "4000m", "memory" = "12Gi" }
+  default     = { "cpu" = "8000m", "memory" = "32Gi" }
 }
 
 variable "network_name" {
