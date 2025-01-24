@@ -12,7 +12,6 @@ from typing import Any, Coroutine, Generator, Literal, Iterator
 import numpy as np
 import pytest
 import ruamel.yaml
-from fastapi.testclient import TestClient
 from PIL import Image
 from playwright.async_api import async_playwright
 from skimage.metrics import structural_similarity as ssim
@@ -22,7 +21,7 @@ from syrupy.extensions.image import PNGImageSnapshotExtension
 from syrupy.location import PyTestLocation
 from syrupy.terminal import reset
 from syrupy.types import SerializedData, SnapshotIndex
-from ecoscope_workflows_core.testing import Case, run_cli_test_case
+from ecoscope_workflows_core.testing import Case, CaseRunner
 
 from ecoscope_workflows_patrols_workflow.app import app
 
@@ -55,13 +54,27 @@ def pytest_addoption(parser: pytest.Parser):
 
 
 def pytest_generate_tests(metafunc: pytest.Metafunc):
-    if "case" in metafunc.fixturenames:
-        if not metafunc.config.getoption("case"):
-            raise ValueError("At least one --case must be specified.")
+    if (
+        "success_case" in metafunc.fixturenames
+        or "failure_case" in metafunc.fixturenames
+    ) and not metafunc.config.getoption("case"):
+        raise ValueError("At least one --case must be specified.")
+
+    all_cases = {c: _parse_case(c) for c in metafunc.config.getoption("case")}
+    if "success_case" in metafunc.fixturenames:
+        success_cases = {k: v for k, v in all_cases.items() if not v.raises}
         metafunc.parametrize(
-            "case",
-            [_parse_case(c) for c in metafunc.config.getoption("case")],
-            ids=[c for c in metafunc.config.getoption("case")],
+            "success_case",
+            list(success_cases.values()),
+            ids=list(success_cases),
+            scope="session",
+        )
+    elif "failure_case" in metafunc.fixturenames:
+        failure_cases = {k: v for k, v in all_cases.items() if v.raises}
+        metafunc.parametrize(
+            "failure_case",
+            list(failure_cases.values()),
+            ids=list(failure_cases),
             scope="session",
         )
 
@@ -86,7 +99,10 @@ class CustomJSONSnapshot(CustomSnapshotDirnameMixin, JSONSnapshotExtension):
             test_location=test_location, index=index
         )
         test_name = original_name.split("[").pop(0)
-        return test_name
+        execution_mode = next(
+            s for s in original_name.split("-") if s in ["async", "sequential"]
+        )
+        return test_name + (f"[{execution_mode}]" if "failure" in test_name else "")
 
 
 def _png_bytes_to_array(png_bytes: bytes) -> np.ndarray:
@@ -222,45 +238,59 @@ class RunParams:
         "cli-sequential-mock-io",
     ],
 )
-def dashboard_json(
-    request: pytest.FixtureRequest,
+def run_params(request: pytest.FixtureRequest) -> RunParams:
+    return request.param
+
+
+def _run_test_case(
+    run_params: RunParams,
     case: Case,
     results_dir: Path,
 ) -> Generator[dict, None, None]:
-    run_params: RunParams = request.param
     results_subdir = (
         results_dir / run_params.subdir_name / case.name.lower().replace(" ", "-")
     )
     results_subdir.mkdir(parents=True)
-    if run_params.api == "app":
-        json_ = {"params": case.params}
-        query_params = {
-            "execution_mode": run_params.execution_mode,
-            "mock_io": run_params.mock_io,
-            "results_url": results_subdir.absolute().as_posix(),
-        }
-        headers = {"Content-Type": "application/json"}
-        with TestClient(app) as client:
-            response = client.post(
-                "/", json=json_, params=query_params, headers=headers
-            )
-            response.raise_for_status()
-            yield response.json()
-    elif run_params.api == "cli":
-        yield run_cli_test_case(
-            ENTRYPOINT,
-            execution_mode=run_params.execution_mode,
-            mock_io=run_params.mock_io,
-            case=case,
-            tmp_path=results_subdir,
-        )
+    case_runner = CaseRunner(
+        execution_mode=run_params.execution_mode,
+        mock_io=run_params.mock_io,
+        case=case,
+        results_subdir=results_subdir,
+    )
+    match run_params.api:
+        case "app":
+            yield case_runner.run_app(app)
+        case "cli":
+            if case.raises:
+                pytest.skip("CLI tests do not yet support error handling.")
+            yield case_runner.run_cli(ENTRYPOINT)
+        case _ as unknown:
+            raise ValueError(f"Unknown API: {unknown}")
 
 
-def iframe_widgets_from_dashboard_json(dashboard_json: dict) -> list[dict]:
-    first_view = list(dashboard_json["result"]["views"])[0]
+@pytest.fixture(scope="session")
+def response_json_success(
+    run_params: RunParams,
+    success_case: Case,
+    results_dir: Path,
+) -> Generator[dict, None, None]:
+    yield from _run_test_case(run_params, success_case, results_dir)
+
+
+@pytest.fixture(scope="session")
+def response_json_failure(
+    run_params: RunParams,
+    failure_case: Case,
+    results_dir: Path,
+) -> Generator[dict, None, None]:
+    yield from _run_test_case(run_params, failure_case, results_dir)
+
+
+def _iframe_widgets_from_response_json(response_json: dict) -> list[dict]:
+    first_view = list(response_json["result"]["views"])[0]
     return [
         widget
-        for widget in dashboard_json["result"]["views"][first_view]
+        for widget in response_json["result"]["views"][first_view]
         if isinstance(widget["data"], str) and widget["data"].endswith(".html")
     ]
 
@@ -281,7 +311,7 @@ async def _take_screenshot(widget: dict) -> tuple[str, bytes]:
 
 @pytest.fixture(scope="session")
 def screenshot_coros(
-    dashboard_json: dict,
+    response_json_success: dict,
 ) -> list[Coroutine[Any, Any, tuple[str, bytes]]]:
-    iframe_widgets = iframe_widgets_from_dashboard_json(dashboard_json)
+    iframe_widgets = _iframe_widgets_from_response_json(response_json_success)
     return [_take_screenshot(widget) for widget in iframe_widgets]

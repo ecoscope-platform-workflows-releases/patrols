@@ -9,14 +9,30 @@ from syrupy import SnapshotAssertion
 from syrupy.matchers import path_type
 
 
-def test_dashboard_json(dashboard_json: dict, snapshot_json: SnapshotAssertion):
+def test_failure_response(
+    response_json_failure: dict, snapshot_json: SnapshotAssertion
+):
+    error = response_json_failure["error"]
+    traceback = response_json_failure["traceback"]
+    assert isinstance(error, str)
+    assert isinstance(traceback, str)
+
+    assert traceback.startswith("Traceback (most recent call last):\n ")
+    assert traceback.strip().endswith(error)
+
+    exclude_traceback = {"traceback": (str,)}
+    matcher = path_type(exclude_traceback)
+    assert response_json_failure == snapshot_json(matcher=matcher)
+
+
+def test_dashboard_json(response_json_success: dict, snapshot_json: SnapshotAssertion):
     exclude_results_data = {
         f"result.views.{key}.{i}.data": (str,)
-        for key in dashboard_json["result"]["views"]
-        for i, _ in enumerate(dashboard_json["result"]["views"][key])
+        for key in response_json_success["result"]["views"]
+        for i, _ in enumerate(response_json_success["result"]["views"][key])
     }
     matcher = path_type(exclude_results_data)
-    assert dashboard_json == snapshot_json(matcher=matcher)
+    assert response_json_success == snapshot_json(matcher=matcher)
 
 
 @pytest.mark.asyncio

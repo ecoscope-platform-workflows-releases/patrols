@@ -82,3 +82,49 @@ month-grouper:
       pixel_size: 1000
       max_speed_factor: 1.05
       expansion_factor: 1.3
+
+task-instance-error:
+  name: Task Instance Error
+  description: |
+    A demonstration of configuration that would raise a task instance error.
+    Specifically, `filter_patrol_events` configuration specifies an invalid bounding box.
+  raises: true
+  expected_status_code: 500
+  params:
+    workflow_details:
+      name: "Patrols Dashboard"
+      description: "A dashboard for visualizing patrol trajectories, patrols events, and time density."
+    er_client_name:
+      data_source:
+        name: "mep_dev"
+    groupers:
+      groupers: []
+    time_range:
+      since: "2015-01-01T00:00:00Z"
+      until: "2015-02-28T23:59:59Z"
+    patrol_obs:
+      patrol_type: ["05ad114e-1aff-4602-bc83-efd333cdd8a2"]
+      status: ["done"]
+    patrol_traj:
+      trajectory_segment_filter:
+        min_length_meters: 0.001
+        max_length_meters: 10000.0
+        max_time_secs: 3600.0
+        min_time_secs: 1.0
+        max_speed_kmhr: 120.0
+        min_speed_kmhr: 0.0001
+    patrol_events:
+      patrol_type: ["05ad114e-1aff-4602-bc83-efd333cdd8a2"]
+      status: ["done"]
+    filter_patrol_events:
+      min_x: -180.0
+      max_x: -181.0
+      min_y: -90.0
+      max_y: -91.0
+      filter_point_coords: []
+    patrol_events_bar_chart:
+      time_interval: "month"
+    td:
+      pixel_size: 1000
+      max_speed_factor: 1.05
+      expansion_factor: 1.3
