@@ -94,7 +94,7 @@ def run(
         result = dispatch(execution_mode, mock_io, params)
     except Exception as e:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-        trace = traceback.format_exc().splitlines()
+        trace = traceback.format_exc()
         return {"error": str(e), "traceback": trace}
     finally:
         for k in update_env:

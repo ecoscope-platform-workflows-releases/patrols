@@ -19,7 +19,7 @@ def client():
 
 
 @pytest.fixture(scope="session")
-def formdata(case: Case) -> dict:
+def formdata(success_case: Case) -> dict:
     """From a flat set of paramaters, create nested representation to reflect how the RJSF
     formdata would be structured. This is used for testing the formdata validation endpoint,
     and allows us to test the formdata validation endpoint without having to manually create
@@ -32,7 +32,7 @@ def formdata(case: Case) -> dict:
     task_groups = {
         k: list(get_args(v)[0].model_fields) for k, v in aliased_annotations.items()
     }
-    for k, v in case.params.items():
+    for k, v in success_case.params.items():
         if k in FormData.model_fields:
             formdata[k] = v
         else:
@@ -55,16 +55,16 @@ def test_get_params(client: TestClient):
     }
 
 
-def test_validate_formdata(client: TestClient, case: Case, formdata: dict):
+def test_validate_formdata(client: TestClient, success_case: Case, formdata: dict):
     invalid_request = client.post("/formdata-to-params", json={"invalid": "request"})
     assert invalid_request.status_code == 422
 
     response = client.post("/formdata-to-params", json=formdata)
     assert response.status_code == 200
 
-    assert set(case.params).issubset(set(response.json()))
+    assert set(success_case.params).issubset(set(response.json()))
 
-    if set(formdata) != set(case.params):
+    if set(formdata) != set(success_case.params):
         # this workflow uses task groups, so make one other assert
         # task groups are not required, so these asserts are skipped
         # for workflows that simply use a flat layout
@@ -72,18 +72,20 @@ def test_validate_formdata(client: TestClient, case: Case, formdata: dict):
         with pytest.raises(pydantic.ValidationError):
             Params(**formdata)
 
-    assert Params(**response.json()) == Params(**case.params)
+    assert Params(**response.json()) == Params(**success_case.params)
 
 
-def test_generate_nested_params(client: TestClient, case: Case, formdata: dict):
-    response = client.post("/params-to-formdata", json=case.params)
+def test_generate_nested_params(client: TestClient, success_case: Case, formdata: dict):
+    response = client.post("/params-to-formdata", json=success_case.params)
     assert response.status_code == 200
 
     assert FormData(**response.json()) == FormData(**formdata)
 
 
-def test_round_trip(client: TestClient, case: Case, formdata: dict):
-    generate_params_response = client.post("/params-to-formdata", json=case.params)
+def test_round_trip(client: TestClient, success_case: Case, formdata: dict):
+    generate_params_response = client.post(
+        "/params-to-formdata", json=success_case.params
+    )
     assert generate_params_response.status_code == 200
     assert generate_params_response.json() == formdata
 
@@ -92,5 +94,5 @@ def test_round_trip(client: TestClient, case: Case, formdata: dict):
     )
     assert validate_response.status_code == 200
 
-    assert set(validate_response.json()) == set(case.params)
-    assert Params(**validate_response.json()) == Params(**case.params)
+    assert set(validate_response.json()) == set(success_case.params)
+    assert Params(**validate_response.json()) == Params(**success_case.params)
