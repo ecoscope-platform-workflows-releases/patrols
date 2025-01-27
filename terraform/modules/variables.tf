@@ -75,3 +75,8 @@ variable "workflows_services_custom_audience" {
 variable "workflows_results_bucket" {
   type = string
 }
+
+variable "timeout" {
+  type = string
+  default = "1800s"
+}
