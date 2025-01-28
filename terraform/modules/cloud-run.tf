@@ -39,6 +39,11 @@ resource "google_cloud_run_v2_service" "default" {
         name  = "WORKFLOW_RESULTS_ROOT_PATH"
         value = var.workflows_results_bucket
       }
+
+      env {
+        name = "UVICORN_TIMEOUT"
+        value = var.timeout
+      }
     }
   }
   depends_on = [
