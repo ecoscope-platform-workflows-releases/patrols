@@ -78,5 +78,5 @@ variable "workflows_results_bucket" {
 
 variable "timeout" {
   type = string
-  default = "1800s"
+  default = "1800"
 }
