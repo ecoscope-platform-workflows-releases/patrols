@@ -13,15 +13,15 @@ def test_failure_response(
     response_json_failure: dict, snapshot_json: SnapshotAssertion
 ):
     error = response_json_failure["error"]
-    traceback = response_json_failure["traceback"]
+    trace = response_json_failure["trace"]
     assert isinstance(error, str)
-    assert isinstance(traceback, str)
+    assert isinstance(trace, str)
 
-    assert traceback.startswith("Traceback (most recent call last):\n ")
-    assert traceback.strip().endswith(error)
+    assert trace.startswith("Traceback (most recent call last):\n ")
+    assert trace.strip().endswith(error)
 
-    exclude_traceback = {"traceback": (str,)}
-    matcher = path_type(exclude_traceback)
+    exclude_trace = {"trace": (str,)}
+    matcher = path_type(exclude_trace)
     assert response_json_failure == snapshot_json(matcher=matcher)
 
 

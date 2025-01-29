@@ -9,4 +9,4 @@ from ecoscope_workflows_core.tasks.results import DashboardJson
 class ResponseModel(BaseModel):
     result: DashboardJson | None = None
     error: str | None = None
-    traceback: str | None = None
+    trace: str | None = None

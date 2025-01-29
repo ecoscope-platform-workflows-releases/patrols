@@ -95,7 +95,7 @@ def run(
     except Exception as e:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         trace = traceback.format_exc()
-        return {"error": str(e), "traceback": trace}
+        return {"error": str(e), "trace": trace}
     finally:
         for k in update_env:
             del os.environ[k]
