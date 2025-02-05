@@ -1,10 +1,10 @@
 id: patrols
 requirements:
   - name: ecoscope-workflows-core
-    version: 0.0.50
+    version: 0.0.51
     channel: https://repo.prefix.dev/ecoscope-workflows/
   - name: ecoscope-workflows-ext-ecoscope
-    version: 0.0.50
+    version: 0.0.51
     channel: https://repo.prefix.dev/ecoscope-workflows/
 workflow:
   - name: Set Workflow Details
@@ -13,6 +13,9 @@ workflow:
   - name: Select EarthRanger Data Source
     id: er_client_name
     task: set_er_connection
+  - name: Set EarthRanger Patrol Types
+    id: er_patrol_types
+    task: set_patrol_types
   - name: Set Groupers
     id: groupers
     task: set_groupers
@@ -31,6 +34,7 @@ workflow:
         partial:
           client: ${{ workflow.er_client_name.return }}
           time_range: ${{ workflow.time_range.return }}
+          patrol_type: ${{ workflow.er_patrol_types.return }}
           include_patrol_details: true
           raise_on_empty: true
       - name: Transform Observations to Relocations
@@ -79,6 +83,7 @@ workflow:
         partial:
           client: ${{ workflow.er_client_name.return }}
           time_range: ${{ workflow.time_range.return }}
+          patrol_type: ${{ workflow.er_patrol_types.return }}
           truncate_to_time_range: true
           raise_on_empty: true
       - name: Apply Relocation Coordinate Filter
@@ -125,7 +130,9 @@ workflow:
         partial:
           layer_style:
             fill_color_column: event_type_colormap
-          legend: null
+          legend:
+            label_column: event_type
+            color_column: event_type_colormap
         mapvalues:
           argnames: geodataframe
           argvalues: ${{ workflow.split_pe_groups.return }}
@@ -408,7 +415,7 @@ workflow:
           plot_style:
             textinfo: value
           label_column: null
-          color_column: null
+          color_column: event_type_colormap
           layout_style: null
         mapvalues:
           argnames: dataframe
@@ -477,7 +484,9 @@ workflow:
             fill_color_column: percentile_colormap
             opacity: 0.700000
             get_line_width: 0
-          legend: null
+          legend:
+            label_column: percentile
+            color_column: percentile_colormap
         mapvalues:
           argnames: geodataframe
           argvalues: ${{ workflow.td_colormap.return }}

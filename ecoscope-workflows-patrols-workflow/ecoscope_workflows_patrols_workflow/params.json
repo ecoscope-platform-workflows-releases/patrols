@@ -36,6 +36,24 @@
       "type": "object",
       "title": "Select EarthRanger Data Source"
     },
+    "er_patrol_types": {
+      "additionalProperties": false,
+      "properties": {
+        "patrol_types": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Patrol Types",
+          "type": "array",
+          "description": "list of UUID of patrol types"
+        }
+      },
+      "required": [
+        "patrol_types"
+      ],
+      "type": "object",
+      "title": "Set EarthRanger Patrol Types"
+    },
     "groupers": {
       "additionalProperties": false,
       "properties": {
@@ -86,14 +104,6 @@
     "patrol_obs": {
       "additionalProperties": false,
       "properties": {
-        "patrol_type": {
-          "items": {
-            "type": "string"
-          },
-          "title": "Patrol Type",
-          "type": "array",
-          "description": "list of UUID of patrol types"
-        },
         "status": {
           "default": [
             "done"
@@ -113,9 +123,7 @@
           "ecoscope:advanced": true
         }
       },
-      "required": [
-        "patrol_type"
-      ],
+      "required": [],
       "type": "object",
       "title": "Get Patrol Observations from EarthRanger"
     },
@@ -148,13 +156,13 @@
     "patrol_events": {
       "additionalProperties": false,
       "properties": {
-        "patrol_type": {
+        "event_type": {
           "items": {
             "type": "string"
           },
-          "title": "Patrol Type",
+          "title": "Event Type",
           "type": "array",
-          "description": "list of UUID of patrol types"
+          "description": "list of event types by name"
         },
         "status": {
           "default": [
@@ -170,7 +178,7 @@
         }
       },
       "required": [
-        "patrol_type"
+        "event_type"
       ],
       "type": "object",
       "title": "Get Patrol Events from EarthRanger"
@@ -407,6 +415,7 @@
     "ui:order": [
       "workflow_details",
       "er_client_name",
+      "er_patrol_types",
       "groupers",
       "time_range",
       "patrol_obs",

@@ -17,6 +17,15 @@ class WorkflowDetails(BaseModel):
     description: str = Field(..., description="A description", title="Description")
 
 
+class ErPatrolTypes(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    patrol_types: List[str] = Field(
+        ..., description="list of UUID of patrol types", title="Patrol Types"
+    )
+
+
 class TimeRange(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
@@ -36,9 +45,6 @@ class PatrolObs(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    patrol_type: List[str] = Field(
-        ..., description="list of UUID of patrol types", title="Patrol Type"
-    )
     status: Optional[List[StatusEnum]] = Field(
         ["done"],
         description="list of 'scheduled'/'active'/'overdue'/'done'/'cancelled'",
@@ -50,8 +56,8 @@ class PatrolEvents(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    patrol_type: List[str] = Field(
-        ..., description="list of UUID of patrol types", title="Patrol Type"
+    event_type: List[str] = Field(
+        ..., description="list of event types by name", title="Event Type"
     )
     status: Optional[List[str]] = Field(
         ["done"],
@@ -194,6 +200,9 @@ class Params(BaseModel):
     )
     er_client_name: Optional[ErClientName] = Field(
         None, title="Select EarthRanger Data Source"
+    )
+    er_patrol_types: Optional[ErPatrolTypes] = Field(
+        None, title="Set EarthRanger Patrol Types"
     )
     groupers: Optional[Groupers] = Field(None, title="Set Groupers")
     time_range: Optional[TimeRange] = Field(None, title="Set Time Range Filter")
