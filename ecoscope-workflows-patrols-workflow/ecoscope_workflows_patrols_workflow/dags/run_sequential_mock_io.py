@@ -15,6 +15,7 @@ from ecoscope_workflows_core.testing import create_task_magicmock  # 🧪
 
 from ecoscope_workflows_core.tasks.config import set_workflow_details
 from ecoscope_workflows_core.tasks.io import set_er_connection
+from ecoscope_workflows_ext_ecoscope.tasks.io import set_patrol_types
 from ecoscope_workflows_core.tasks.groupby import set_groupers
 from ecoscope_workflows_core.tasks.filter import set_time_range
 
@@ -79,6 +80,13 @@ def main(params: Params):
         .call()
     )
 
+    er_patrol_types = (
+        set_patrol_types.validate()
+        .handle_errors(task_instance_id="er_patrol_types")
+        .partial(**(params_dict.get("er_patrol_types") or {}))
+        .call()
+    )
+
     groupers = (
         set_groupers.validate()
         .handle_errors(task_instance_id="groupers")
@@ -101,6 +109,7 @@ def main(params: Params):
         .partial(
             client=er_client_name,
             time_range=time_range,
+            patrol_type=er_patrol_types,
             include_patrol_details=True,
             raise_on_empty=True,
             **(params_dict.get("patrol_obs") or {}),
@@ -161,6 +170,7 @@ def main(params: Params):
         .partial(
             client=er_client_name,
             time_range=time_range,
+            patrol_type=er_patrol_types,
             truncate_to_time_range=True,
             raise_on_empty=True,
             **(params_dict.get("patrol_events") or {}),
@@ -229,7 +239,10 @@ def main(params: Params):
         .handle_errors(task_instance_id="patrol_events_map_layers")
         .partial(
             layer_style={"fill_color_column": "event_type_colormap"},
-            legend=None,
+            legend={
+                "label_column": "event_type",
+                "color_column": "event_type_colormap",
+            },
             **(params_dict.get("patrol_events_map_layers") or {}),
         )
         .mapvalues(argnames=["geodataframe"], argvalues=split_pe_groups)
@@ -554,7 +567,7 @@ def main(params: Params):
             value_column="event_type",
             plot_style={"textinfo": "value"},
             label_column=None,
-            color_column=None,
+            color_column="event_type_colormap",
             layout_style=None,
             **(params_dict.get("patrol_events_pie_chart") or {}),
         )
@@ -626,7 +639,10 @@ def main(params: Params):
                 "opacity": 0.7,
                 "get_line_width": 0,
             },
-            legend=None,
+            legend={
+                "label_column": "percentile",
+                "color_column": "percentile_colormap",
+            },
             **(params_dict.get("td_map_layer") or {}),
         )
         .mapvalues(argnames=["geodataframe"], argvalues=td_colormap)

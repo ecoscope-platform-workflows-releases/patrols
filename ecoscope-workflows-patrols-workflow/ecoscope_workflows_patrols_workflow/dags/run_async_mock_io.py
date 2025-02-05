@@ -17,6 +17,7 @@ from ecoscope_workflows_core.graph import DependsOn, DependsOnSequence, Graph, N
 
 from ecoscope_workflows_core.tasks.config import set_workflow_details
 from ecoscope_workflows_core.tasks.io import set_er_connection
+from ecoscope_workflows_ext_ecoscope.tasks.io import set_patrol_types
 from ecoscope_workflows_core.tasks.groupby import set_groupers
 from ecoscope_workflows_core.tasks.filter import set_time_range
 
@@ -70,13 +71,14 @@ def main(params: Params):
     dependencies = {
         "workflow_details": [],
         "er_client_name": [],
+        "er_patrol_types": [],
         "groupers": [],
         "time_range": [],
-        "patrol_obs": ["er_client_name", "time_range"],
+        "patrol_obs": ["er_client_name", "time_range", "er_patrol_types"],
         "patrol_reloc": ["patrol_obs"],
         "patrol_traj": ["patrol_reloc"],
         "traj_add_temporal_index": ["patrol_traj", "groupers"],
-        "patrol_events": ["er_client_name", "time_range"],
+        "patrol_events": ["er_client_name", "time_range", "er_patrol_types"],
         "filter_patrol_events": ["patrol_events"],
         "pe_add_temporal_index": ["filter_patrol_events", "groupers"],
         "pe_colormap": ["pe_add_temporal_index"],
@@ -157,6 +159,13 @@ def main(params: Params):
             partial=(params_dict.get("er_client_name") or {}),
             method="call",
         ),
+        "er_patrol_types": Node(
+            async_task=set_patrol_types.validate()
+            .handle_errors(task_instance_id="er_patrol_types")
+            .set_executor("lithops"),
+            partial=(params_dict.get("er_patrol_types") or {}),
+            method="call",
+        ),
         "groupers": Node(
             async_task=set_groupers.validate()
             .handle_errors(task_instance_id="groupers")
@@ -181,6 +190,7 @@ def main(params: Params):
             partial={
                 "client": DependsOn("er_client_name"),
                 "time_range": DependsOn("time_range"),
+                "patrol_type": DependsOn("er_patrol_types"),
                 "include_patrol_details": True,
                 "raise_on_empty": True,
             }
@@ -244,6 +254,7 @@ def main(params: Params):
             partial={
                 "client": DependsOn("er_client_name"),
                 "time_range": DependsOn("time_range"),
+                "patrol_type": DependsOn("er_patrol_types"),
                 "truncate_to_time_range": True,
                 "raise_on_empty": True,
             }
@@ -315,7 +326,10 @@ def main(params: Params):
             .set_executor("lithops"),
             partial={
                 "layer_style": {"fill_color_column": "event_type_colormap"},
-                "legend": None,
+                "legend": {
+                    "label_column": "event_type",
+                    "color_column": "event_type_colormap",
+                },
             }
             | (params_dict.get("patrol_events_map_layers") or {}),
             method="mapvalues",
@@ -744,7 +758,7 @@ def main(params: Params):
                 "value_column": "event_type",
                 "plot_style": {"textinfo": "value"},
                 "label_column": None,
-                "color_column": None,
+                "color_column": "event_type_colormap",
                 "layout_style": None,
             }
             | (params_dict.get("patrol_events_pie_chart") or {}),
@@ -836,7 +850,10 @@ def main(params: Params):
                     "opacity": 0.7,
                     "get_line_width": 0,
                 },
-                "legend": None,
+                "legend": {
+                    "label_column": "percentile",
+                    "color_column": "percentile_colormap",
+                },
             }
             | (params_dict.get("td_map_layer") or {}),
             method="mapvalues",

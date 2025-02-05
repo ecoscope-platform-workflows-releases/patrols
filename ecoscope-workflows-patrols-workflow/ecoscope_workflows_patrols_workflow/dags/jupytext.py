@@ -13,6 +13,7 @@
 import os
 from ecoscope_workflows_core.tasks.config import set_workflow_details
 from ecoscope_workflows_core.tasks.io import set_er_connection
+from ecoscope_workflows_ext_ecoscope.tasks.io import set_patrol_types
 from ecoscope_workflows_core.tasks.groupby import set_groupers
 from ecoscope_workflows_core.tasks.filter import set_time_range
 from ecoscope_workflows_ext_ecoscope.tasks.io import get_patrol_observations
@@ -92,6 +93,27 @@ er_client_name = (
 
 
 # %% [markdown]
+# ## Set EarthRanger Patrol Types
+
+# %%
+# parameters
+
+er_patrol_types_params = dict(
+    patrol_types=...,
+)
+
+# %%
+# call the task
+
+
+er_patrol_types = (
+    set_patrol_types.handle_errors(task_instance_id="er_patrol_types")
+    .partial(**er_patrol_types_params)
+    .call()
+)
+
+
+# %% [markdown]
 # ## Set Groupers
 
 # %%
@@ -141,7 +163,6 @@ time_range = (
 # parameters
 
 patrol_obs_params = dict(
-    patrol_type=...,
     status=...,
 )
 
@@ -154,6 +175,7 @@ patrol_obs = (
     .partial(
         client=er_client_name,
         time_range=time_range,
+        patrol_type=er_patrol_types,
         include_patrol_details=True,
         raise_on_empty=True,
         **patrol_obs_params,
@@ -254,7 +276,7 @@ traj_add_temporal_index = (
 # parameters
 
 patrol_events_params = dict(
-    patrol_type=...,
+    event_type=...,
     status=...,
 )
 
@@ -267,6 +289,7 @@ patrol_events = (
     .partial(
         client=er_client_name,
         time_range=time_range,
+        patrol_type=er_patrol_types,
         truncate_to_time_range=True,
         raise_on_empty=True,
         **patrol_events_params,
@@ -407,7 +430,7 @@ patrol_events_map_layers = (
     create_point_layer.handle_errors(task_instance_id="patrol_events_map_layers")
     .partial(
         layer_style={"fill_color_column": "event_type_colormap"},
-        legend=None,
+        legend={"label_column": "event_type", "color_column": "event_type_colormap"},
         **patrol_events_map_layers_params,
     )
     .mapvalues(argnames=["geodataframe"], argvalues=split_pe_groups)
@@ -1053,7 +1076,7 @@ patrol_events_pie_chart = (
         value_column="event_type",
         plot_style={"textinfo": "value"},
         label_column=None,
-        color_column=None,
+        color_column="event_type_colormap",
         layout_style=None,
         **patrol_events_pie_chart_params,
     )
@@ -1204,7 +1227,7 @@ td_map_layer = (
             "opacity": 0.7,
             "get_line_width": 0,
         },
-        legend=None,
+        legend={"label_column": "percentile", "color_column": "percentile_colormap"},
         **td_map_layer_params,
     )
     .mapvalues(argnames=["geodataframe"], argvalues=td_colormap)
