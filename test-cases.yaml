@@ -8,13 +8,14 @@ all-grouper:
     er_client_name:
       data_source:
         name: "mep_dev"
+    er_patrol_types:
+      patrol_types: ["05ad114e-1aff-4602-bc83-efd333cdd8a2"]
     groupers:
       groupers: []
     time_range:
       since: "2015-01-01T00:00:00Z"
       until: "2015-02-28T23:59:59Z"
     patrol_obs:
-      patrol_type: ["05ad114e-1aff-4602-bc83-efd333cdd8a2"]
       status: ["done"]
     patrol_traj:
       trajectory_segment_filter:
@@ -25,7 +26,7 @@ all-grouper:
         max_speed_kmhr: 120.0
         min_speed_kmhr: 0.0001
     patrol_events:
-      patrol_type: ["05ad114e-1aff-4602-bc83-efd333cdd8a2"]
+      event_type: []
       status: ["done"]
     filter_patrol_events:
       min_x: -180.0
@@ -50,6 +51,8 @@ month-grouper:
     er_client_name:
       data_source:
         name: "mep_dev"
+    er_patrol_types:
+      patrol_types: ["05ad114e-1aff-4602-bc83-efd333cdd8a2"]
     groupers:
       groupers:
         - temporal_index: "%B"
@@ -57,7 +60,6 @@ month-grouper:
       since: "2015-01-01T00:00:00Z"
       until: "2015-02-28T23:59:59Z"
     patrol_obs:
-      patrol_type: ["05ad114e-1aff-4602-bc83-efd333cdd8a2"]
       status: ["done"]
     patrol_traj:
       trajectory_segment_filter:
@@ -68,7 +70,7 @@ month-grouper:
         max_speed_kmhr: 120.0
         min_speed_kmhr: 0.0001
     patrol_events:
-      patrol_type: ["05ad114e-1aff-4602-bc83-efd333cdd8a2"]
+      event_type: []
       status: ["done"]
     filter_patrol_events:
       min_x: -180.0
@@ -97,13 +99,14 @@ task-instance-error:
     er_client_name:
       data_source:
         name: "mep_dev"
+    er_patrol_types:
+      patrol_types: ["05ad114e-1aff-4602-bc83-efd333cdd8a2"]
     groupers:
       groupers: []
     time_range:
       since: "2015-01-01T00:00:00Z"
       until: "2015-02-28T23:59:59Z"
     patrol_obs:
-      patrol_type: ["05ad114e-1aff-4602-bc83-efd333cdd8a2"]
       status: ["done"]
     patrol_traj:
       trajectory_segment_filter:
@@ -114,7 +117,7 @@ task-instance-error:
         max_speed_kmhr: 120.0
         min_speed_kmhr: 0.0001
     patrol_events:
-      patrol_type: ["05ad114e-1aff-4602-bc83-efd333cdd8a2"]
+      event_type: []
       status: ["done"]
     filter_patrol_events:
       min_x: -180.0
