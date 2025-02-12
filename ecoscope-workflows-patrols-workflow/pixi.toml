@@ -35,11 +35,11 @@ version = "*"
 channel = "https://conda.anaconda.org/conda-forge/"
 
 [dependencies.ecoscope-workflows-core]
-version = "==0.0.51"
+version = "==0.0.53"
 channel = "https://repo.prefix.dev/ecoscope-workflows/"
 
 [dependencies.ecoscope-workflows-ext-ecoscope]
-version = "==0.0.51"
+version = "==0.0.53"
 channel = "https://repo.prefix.dev/ecoscope-workflows/"
 
 [feature.test.dependencies.pytest]
@@ -76,9 +76,6 @@ playwright-install = "playwright install --with-deps chromium"
 
 [feature.test.tasks.test-app-metadata]
 cmd = "python -m pytest -v tests/test_metadata.py"
-depends-on = [
-    "playwright-install",
-]
 
 [feature.test.tasks.test-app-async-mock-io]
 cmd = "python -m pytest -v tests/test_results.py -k 'app and async and mock-io'"

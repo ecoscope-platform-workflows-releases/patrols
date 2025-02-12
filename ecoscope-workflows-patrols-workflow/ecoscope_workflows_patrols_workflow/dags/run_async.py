@@ -15,6 +15,7 @@ from ecoscope_workflows_ext_ecoscope.tasks.preprocessing import (
     relocations_to_trajectory,
 )
 from ecoscope_workflows_core.tasks.transformation import add_temporal_index
+from ecoscope_workflows_core.tasks.transformation import map_columns
 from ecoscope_workflows_ext_ecoscope.tasks.io import get_patrol_events
 from ecoscope_workflows_ext_ecoscope.tasks.transformation import (
     apply_reloc_coord_filter,
@@ -57,11 +58,12 @@ def main(params: Params):
         "patrol_reloc": ["patrol_obs"],
         "patrol_traj": ["patrol_reloc"],
         "traj_add_temporal_index": ["patrol_traj", "groupers"],
+        "traj_rename_grouper_columns": ["traj_add_temporal_index"],
         "patrol_events": ["er_client_name", "time_range", "er_patrol_types"],
         "filter_patrol_events": ["patrol_events"],
         "pe_add_temporal_index": ["filter_patrol_events", "groupers"],
         "pe_colormap": ["pe_add_temporal_index"],
-        "split_patrol_traj_groups": ["traj_add_temporal_index", "groupers"],
+        "split_patrol_traj_groups": ["traj_rename_grouper_columns", "groupers"],
         "split_pe_groups": ["pe_colormap", "groupers"],
         "patrol_events_map_layers": ["split_pe_groups"],
         "patrol_traj_map_layers": ["split_patrol_traj_groups"],
@@ -186,7 +188,7 @@ def main(params: Params):
                     "patrol_id",
                     "patrol_start_time",
                     "patrol_end_time",
-                    "patrol_type__display",
+                    "patrol_type__value",
                     "groupby_col",
                     "fixtime",
                     "junk_status",
@@ -224,6 +226,19 @@ def main(params: Params):
                 "format": "mixed",
             }
             | (params_dict.get("traj_add_temporal_index") or {}),
+            method="call",
+        ),
+        "traj_rename_grouper_columns": Node(
+            async_task=map_columns.validate()
+            .handle_errors(task_instance_id="traj_rename_grouper_columns")
+            .set_executor("lithops"),
+            partial={
+                "df": DependsOn("traj_add_temporal_index"),
+                "drop_columns": [],
+                "retain_columns": [],
+                "rename_columns": {"extra__patrol_type__value": "patrol_type"},
+            }
+            | (params_dict.get("traj_rename_grouper_columns") or {}),
             method="call",
         ),
         "patrol_events": Node(
@@ -282,7 +297,7 @@ def main(params: Params):
             .handle_errors(task_instance_id="split_patrol_traj_groups")
             .set_executor("lithops"),
             partial={
-                "df": DependsOn("traj_add_temporal_index"),
+                "df": DependsOn("traj_rename_grouper_columns"),
                 "groupers": DependsOn("groupers"),
             }
             | (params_dict.get("split_patrol_traj_groups") or {}),
