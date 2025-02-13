@@ -341,7 +341,13 @@
       "properties": {
         "index_name": {
           "title": "Index Name",
-          "type": "string"
+          "type": "string",
+          "oneOf": [
+            {
+              "const": "patrol_type",
+              "title": "Patrol Type"
+            }
+          ]
         }
       },
       "required": [

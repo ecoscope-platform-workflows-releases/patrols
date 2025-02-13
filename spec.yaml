@@ -1,11 +1,25 @@
 id: patrols
 requirements:
   - name: ecoscope-workflows-core
-    version: 0.0.51
+    version: 0.0.53
     channel: https://repo.prefix.dev/ecoscope-workflows/
   - name: ecoscope-workflows-ext-ecoscope
-    version: 0.0.51
+    version: 0.0.53
     channel: https://repo.prefix.dev/ecoscope-workflows/
+rjsf-overrides:
+  $defs:
+    Grouper:
+      properties:
+        index_name:
+          title: Index Name
+          type: string
+          oneOf:
+            - const: patrol_type
+              title: Patrol Type
+      required:
+        - index_name
+      title: Grouper
+      type: object
 workflow:
   - name: Set Workflow Details
     id: workflow_details
@@ -46,7 +60,7 @@ workflow:
             - patrol_id
             - patrol_start_time
             - patrol_end_time
-            - patrol_type__display
+            - patrol_type__value
             - groupby_col
             - fixtime
             - junk_status
@@ -73,6 +87,15 @@ workflow:
           groupers: ${{ workflow.groupers.return }}
           cast_to_datetime: true
           format: mixed
+      - name: Rename value grouper columns for Trajectories
+        id: traj_rename_grouper_columns
+        task: map_columns
+        partial:
+          df: ${{ workflow.traj_add_temporal_index.return }}
+          drop_columns: []
+          retain_columns: []
+          rename_columns:
+            extra__patrol_type__value: patrol_type
   - title: Fetch and preprocess patrol events
     type: task-group
     description: Fetch patrol events from EarthRanger, filter them, and add a temporal index.
@@ -112,7 +135,7 @@ workflow:
     id: split_patrol_traj_groups
     task: split_groups
     partial:
-      df: ${{ workflow.traj_add_temporal_index.return }}
+      df: ${{ workflow.traj_rename_grouper_columns.return }}
       groupers: ${{ workflow.groupers.return }}
   - name: Split Patrol Events by Group
     id: split_pe_groups

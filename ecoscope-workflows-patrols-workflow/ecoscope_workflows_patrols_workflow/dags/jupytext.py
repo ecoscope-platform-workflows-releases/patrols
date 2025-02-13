@@ -22,6 +22,7 @@ from ecoscope_workflows_ext_ecoscope.tasks.preprocessing import (
     relocations_to_trajectory,
 )
 from ecoscope_workflows_core.tasks.transformation import add_temporal_index
+from ecoscope_workflows_core.tasks.transformation import map_columns
 from ecoscope_workflows_ext_ecoscope.tasks.io import get_patrol_events
 from ecoscope_workflows_ext_ecoscope.tasks.transformation import (
     apply_reloc_coord_filter,
@@ -204,7 +205,7 @@ patrol_reloc = (
             "patrol_id",
             "patrol_start_time",
             "patrol_end_time",
-            "patrol_type__display",
+            "patrol_type__value",
             "groupby_col",
             "fixtime",
             "junk_status",
@@ -264,6 +265,31 @@ traj_add_temporal_index = (
         cast_to_datetime=True,
         format="mixed",
         **traj_add_temporal_index_params,
+    )
+    .call()
+)
+
+
+# %% [markdown]
+# ## Rename value grouper columns for Trajectories
+
+# %%
+# parameters
+
+traj_rename_grouper_columns_params = dict()
+
+# %%
+# call the task
+
+
+traj_rename_grouper_columns = (
+    map_columns.handle_errors(task_instance_id="traj_rename_grouper_columns")
+    .partial(
+        df=traj_add_temporal_index,
+        drop_columns=[],
+        retain_columns=[],
+        rename_columns={"extra__patrol_type__value": "patrol_type"},
+        **traj_rename_grouper_columns_params,
     )
     .call()
 )
@@ -389,7 +415,9 @@ split_patrol_traj_groups_params = dict()
 split_patrol_traj_groups = (
     split_groups.handle_errors(task_instance_id="split_patrol_traj_groups")
     .partial(
-        df=traj_add_temporal_index, groupers=groupers, **split_patrol_traj_groups_params
+        df=traj_rename_grouper_columns,
+        groupers=groupers,
+        **split_patrol_traj_groups_params,
     )
     .call()
 )
