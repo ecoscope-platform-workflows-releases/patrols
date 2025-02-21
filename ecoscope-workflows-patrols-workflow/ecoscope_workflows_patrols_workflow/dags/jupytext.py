@@ -459,6 +459,7 @@ patrol_events_map_layers = (
     .partial(
         layer_style={"fill_color_column": "event_type_colormap"},
         legend={"label_column": "event_type", "color_column": "event_type_colormap"},
+        tooltip_columns=["id", "time", "event_type", "patrol_segment_id"],
         **patrol_events_map_layers_params,
     )
     .mapvalues(argnames=["geodataframe"], argvalues=split_pe_groups)
@@ -491,6 +492,7 @@ patrol_traj_map_layers = (
             "cap_rounded": True,
         },
         legend=None,
+        tooltip_columns=["extra__patrol_id", "patrol_type", "speed"],
         **patrol_traj_map_layers_params,
     )
     .mapvalues(argnames=["geodataframe"], argvalues=split_patrol_traj_groups)
@@ -539,6 +541,7 @@ traj_patrol_events_ecomap = (
         legend_style={"placement": "bottom-right"},
         static=False,
         title=None,
+        max_zoom=20,
         **traj_patrol_events_ecomap_params,
     )
     .mapvalues(argnames=["geo_layers"], argvalues=combined_traj_and_pe_map_layers)
@@ -1256,6 +1259,7 @@ td_map_layer = (
             "get_line_width": 0,
         },
         legend={"label_column": "percentile", "color_column": "percentile_colormap"},
+        tooltip_columns=["percentile"],
         **td_map_layer_params,
     )
     .mapvalues(argnames=["geodataframe"], argvalues=td_colormap)
@@ -1282,6 +1286,7 @@ td_ecomap = (
         legend_style={"placement": "bottom-right"},
         static=False,
         title=None,
+        max_zoom=20,
         **td_ecomap_params,
     )
     .mapvalues(argnames=["geo_layers"], argvalues=td_map_layer)

@@ -257,6 +257,7 @@ def main(params: Params):
                 "label_column": "event_type",
                 "color_column": "event_type_colormap",
             },
+            tooltip_columns=["id", "time", "event_type", "patrol_segment_id"],
             **(params_dict.get("patrol_events_map_layers") or {}),
         )
         .mapvalues(argnames=["geodataframe"], argvalues=split_pe_groups)
@@ -277,6 +278,7 @@ def main(params: Params):
                 "cap_rounded": True,
             },
             legend=None,
+            tooltip_columns=["extra__patrol_id", "patrol_type", "speed"],
             **(params_dict.get("patrol_traj_map_layers") or {}),
         )
         .mapvalues(argnames=["geodataframe"], argvalues=split_patrol_traj_groups)
@@ -301,6 +303,7 @@ def main(params: Params):
             legend_style={"placement": "bottom-right"},
             static=False,
             title=None,
+            max_zoom=20,
             **(params_dict.get("traj_patrol_events_ecomap") or {}),
         )
         .mapvalues(argnames=["geo_layers"], argvalues=combined_traj_and_pe_map_layers)
@@ -657,6 +660,7 @@ def main(params: Params):
                 "label_column": "percentile",
                 "color_column": "percentile_colormap",
             },
+            tooltip_columns=["percentile"],
             **(params_dict.get("td_map_layer") or {}),
         )
         .mapvalues(argnames=["geodataframe"], argvalues=td_colormap)
@@ -671,6 +675,7 @@ def main(params: Params):
             legend_style={"placement": "bottom-right"},
             static=False,
             title=None,
+            max_zoom=20,
             **(params_dict.get("td_ecomap") or {}),
         )
         .mapvalues(argnames=["geo_layers"], argvalues=td_map_layer)
