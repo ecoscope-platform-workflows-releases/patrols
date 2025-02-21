@@ -539,6 +539,7 @@ traj_patrol_events_ecomap = (
         legend_style={"placement": "bottom-right"},
         static=False,
         title=None,
+        max_zoom=20,
         **traj_patrol_events_ecomap_params,
     )
     .mapvalues(argnames=["geo_layers"], argvalues=combined_traj_and_pe_map_layers)
@@ -1282,6 +1283,7 @@ td_ecomap = (
         legend_style={"placement": "bottom-right"},
         static=False,
         title=None,
+        max_zoom=20,
         **td_ecomap_params,
     )
     .mapvalues(argnames=["geo_layers"], argvalues=td_map_layer)
