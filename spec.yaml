@@ -1,10 +1,10 @@
 id: patrols
 requirements:
   - name: ecoscope-workflows-core
-    version: 0.0.56
+    version: 0.0.57
     channel: https://repo.prefix.dev/ecoscope-workflows/
   - name: ecoscope-workflows-ext-ecoscope
-    version: 0.0.56
+    version: 0.0.57
     channel: https://repo.prefix.dev/ecoscope-workflows/
 rjsf-overrides:
   $defs:
@@ -14,6 +14,8 @@ rjsf-overrides:
           title: Index Name
           type: string
           oneOf:
+            - const: patrol_serial_number
+              title: Patrol Serial Number
             - const: patrol_type
               title: Patrol Type
       required:
@@ -61,6 +63,7 @@ workflow:
             - patrol_start_time
             - patrol_end_time
             - patrol_type__value
+            - patrol_serial_number
             - groupby_col
             - fixtime
             - junk_status
@@ -96,6 +99,7 @@ workflow:
           retain_columns: []
           rename_columns:
             extra__patrol_type__value: patrol_type
+            extra__patrol_serial_number: patrol_serial_number
   - title: Fetch and preprocess patrol events
     type: task-group
     description: Fetch patrol events from EarthRanger, filter them, and add a temporal index.
@@ -131,17 +135,40 @@ workflow:
           input_column_name: event_type
           colormap: tab20b
           output_column_name: event_type_colormap
+      - name: Rename value grouper columns for Events
+        id: pe_rename_grouper_columns
+        task: map_columns
+        partial:
+          df: ${{ workflow.pe_colormap.return }}
+          drop_columns: []
+          retain_columns: []
+          rename_columns:
+            serial_number: patrol_serial_number
+  - name: Cast Patrol Trajectory Columns
+    id: patrol_traj_cols_to_string
+    task: convert_column_values_to_string
+    partial:
+      df: ${{ workflow.traj_rename_grouper_columns.return }}
+      columns:
+        - patrol_serial_number
+  - name: Cast Patrol Events Columns
+    id: pe_cols_to_string
+    task: convert_column_values_to_string
+    partial:
+      df: ${{ workflow.pe_rename_grouper_columns.return }}
+      columns:
+        - patrol_serial_number
   - name: Split Patrol Trajectories by Group
     id: split_patrol_traj_groups
     task: split_groups
     partial:
-      df: ${{ workflow.traj_rename_grouper_columns.return }}
+      df: ${{ workflow.patrol_traj_cols_to_string.return }}
       groupers: ${{ workflow.groupers.return }}
   - name: Split Patrol Events by Group
     id: split_pe_groups
     task: split_groups
     partial:
-      df: ${{ workflow.pe_colormap.return }}
+      df: ${{ workflow.pe_cols_to_string.return }}
       groupers: ${{ workflow.groupers.return }}
   - title: Patrol Events and Trajectories Map
     type: task-group
