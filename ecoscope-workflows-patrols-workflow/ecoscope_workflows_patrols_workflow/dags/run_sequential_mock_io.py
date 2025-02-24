@@ -38,6 +38,7 @@ from ecoscope_workflows_ext_ecoscope.tasks.transformation import (
     apply_reloc_coord_filter,
 )
 from ecoscope_workflows_ext_ecoscope.tasks.transformation import apply_color_map
+from ecoscope_workflows_core.tasks.transformation import convert_column_values_to_string
 from ecoscope_workflows_core.tasks.groupby import split_groups
 from ecoscope_workflows_ext_ecoscope.tasks.results import create_point_layer
 from ecoscope_workflows_ext_ecoscope.tasks.results import create_polyline_layer
@@ -128,6 +129,7 @@ def main(params: Params):
                 "patrol_start_time",
                 "patrol_end_time",
                 "patrol_type__value",
+                "patrol_serial_number",
                 "groupby_col",
                 "fixtime",
                 "junk_status",
@@ -172,7 +174,10 @@ def main(params: Params):
             df=traj_add_temporal_index,
             drop_columns=[],
             retain_columns=[],
-            rename_columns={"extra__patrol_type__value": "patrol_type"},
+            rename_columns={
+                "extra__patrol_type__value": "patrol_type",
+                "extra__patrol_serial_number": "patrol_serial_number",
+            },
             **(params_dict.get("traj_rename_grouper_columns") or {}),
         )
         .call()
@@ -226,11 +231,46 @@ def main(params: Params):
         .call()
     )
 
+    pe_rename_grouper_columns = (
+        map_columns.validate()
+        .handle_errors(task_instance_id="pe_rename_grouper_columns")
+        .partial(
+            df=pe_colormap,
+            drop_columns=[],
+            retain_columns=[],
+            rename_columns={"serial_number": "patrol_serial_number"},
+            **(params_dict.get("pe_rename_grouper_columns") or {}),
+        )
+        .call()
+    )
+
+    patrol_traj_cols_to_string = (
+        convert_column_values_to_string.validate()
+        .handle_errors(task_instance_id="patrol_traj_cols_to_string")
+        .partial(
+            df=traj_rename_grouper_columns,
+            columns=["patrol_serial_number"],
+            **(params_dict.get("patrol_traj_cols_to_string") or {}),
+        )
+        .call()
+    )
+
+    pe_cols_to_string = (
+        convert_column_values_to_string.validate()
+        .handle_errors(task_instance_id="pe_cols_to_string")
+        .partial(
+            df=pe_rename_grouper_columns,
+            columns=["patrol_serial_number"],
+            **(params_dict.get("pe_cols_to_string") or {}),
+        )
+        .call()
+    )
+
     split_patrol_traj_groups = (
         split_groups.validate()
         .handle_errors(task_instance_id="split_patrol_traj_groups")
         .partial(
-            df=traj_rename_grouper_columns,
+            df=patrol_traj_cols_to_string,
             groupers=groupers,
             **(params_dict.get("split_patrol_traj_groups") or {}),
         )
@@ -241,7 +281,7 @@ def main(params: Params):
         split_groups.validate()
         .handle_errors(task_instance_id="split_pe_groups")
         .partial(
-            df=pe_colormap,
+            df=pe_cols_to_string,
             groupers=groupers,
             **(params_dict.get("split_pe_groups") or {}),
         )

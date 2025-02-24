@@ -23,7 +23,7 @@ from .response import ResponseModel
 app = FastAPI(
     title="patrols",
     debug=True,
-    version="c919d66",
+    version="af7ea13",
 )
 app.add_middleware(
     CORSMiddleware,

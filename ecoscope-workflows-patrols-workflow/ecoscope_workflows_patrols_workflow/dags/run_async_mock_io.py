@@ -40,6 +40,7 @@ from ecoscope_workflows_ext_ecoscope.tasks.transformation import (
     apply_reloc_coord_filter,
 )
 from ecoscope_workflows_ext_ecoscope.tasks.transformation import apply_color_map
+from ecoscope_workflows_core.tasks.transformation import convert_column_values_to_string
 from ecoscope_workflows_core.tasks.groupby import split_groups
 from ecoscope_workflows_ext_ecoscope.tasks.results import create_point_layer
 from ecoscope_workflows_ext_ecoscope.tasks.results import create_polyline_layer
@@ -84,8 +85,11 @@ def main(params: Params):
         "filter_patrol_events": ["patrol_events"],
         "pe_add_temporal_index": ["filter_patrol_events", "groupers"],
         "pe_colormap": ["pe_add_temporal_index"],
-        "split_patrol_traj_groups": ["traj_rename_grouper_columns", "groupers"],
-        "split_pe_groups": ["pe_colormap", "groupers"],
+        "pe_rename_grouper_columns": ["pe_colormap"],
+        "patrol_traj_cols_to_string": ["traj_rename_grouper_columns"],
+        "pe_cols_to_string": ["pe_rename_grouper_columns"],
+        "split_patrol_traj_groups": ["patrol_traj_cols_to_string", "groupers"],
+        "split_pe_groups": ["pe_cols_to_string", "groupers"],
         "patrol_events_map_layers": ["split_pe_groups"],
         "patrol_traj_map_layers": ["split_patrol_traj_groups"],
         "combined_traj_and_pe_map_layers": [
@@ -210,6 +214,7 @@ def main(params: Params):
                     "patrol_start_time",
                     "patrol_end_time",
                     "patrol_type__value",
+                    "patrol_serial_number",
                     "groupby_col",
                     "fixtime",
                     "junk_status",
@@ -257,7 +262,10 @@ def main(params: Params):
                 "df": DependsOn("traj_add_temporal_index"),
                 "drop_columns": [],
                 "retain_columns": [],
-                "rename_columns": {"extra__patrol_type__value": "patrol_type"},
+                "rename_columns": {
+                    "extra__patrol_type__value": "patrol_type",
+                    "extra__patrol_serial_number": "patrol_serial_number",
+                },
             }
             | (params_dict.get("traj_rename_grouper_columns") or {}),
             method="call",
@@ -313,12 +321,47 @@ def main(params: Params):
             | (params_dict.get("pe_colormap") or {}),
             method="call",
         ),
+        "pe_rename_grouper_columns": Node(
+            async_task=map_columns.validate()
+            .handle_errors(task_instance_id="pe_rename_grouper_columns")
+            .set_executor("lithops"),
+            partial={
+                "df": DependsOn("pe_colormap"),
+                "drop_columns": [],
+                "retain_columns": [],
+                "rename_columns": {"serial_number": "patrol_serial_number"},
+            }
+            | (params_dict.get("pe_rename_grouper_columns") or {}),
+            method="call",
+        ),
+        "patrol_traj_cols_to_string": Node(
+            async_task=convert_column_values_to_string.validate()
+            .handle_errors(task_instance_id="patrol_traj_cols_to_string")
+            .set_executor("lithops"),
+            partial={
+                "df": DependsOn("traj_rename_grouper_columns"),
+                "columns": ["patrol_serial_number"],
+            }
+            | (params_dict.get("patrol_traj_cols_to_string") or {}),
+            method="call",
+        ),
+        "pe_cols_to_string": Node(
+            async_task=convert_column_values_to_string.validate()
+            .handle_errors(task_instance_id="pe_cols_to_string")
+            .set_executor("lithops"),
+            partial={
+                "df": DependsOn("pe_rename_grouper_columns"),
+                "columns": ["patrol_serial_number"],
+            }
+            | (params_dict.get("pe_cols_to_string") or {}),
+            method="call",
+        ),
         "split_patrol_traj_groups": Node(
             async_task=split_groups.validate()
             .handle_errors(task_instance_id="split_patrol_traj_groups")
             .set_executor("lithops"),
             partial={
-                "df": DependsOn("traj_rename_grouper_columns"),
+                "df": DependsOn("patrol_traj_cols_to_string"),
                 "groupers": DependsOn("groupers"),
             }
             | (params_dict.get("split_patrol_traj_groups") or {}),
@@ -329,7 +372,7 @@ def main(params: Params):
             .handle_errors(task_instance_id="split_pe_groups")
             .set_executor("lithops"),
             partial={
-                "df": DependsOn("pe_colormap"),
+                "df": DependsOn("pe_cols_to_string"),
                 "groupers": DependsOn("groupers"),
             }
             | (params_dict.get("split_pe_groups") or {}),

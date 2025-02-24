@@ -28,6 +28,7 @@ from ecoscope_workflows_ext_ecoscope.tasks.transformation import (
     apply_reloc_coord_filter,
 )
 from ecoscope_workflows_ext_ecoscope.tasks.transformation import apply_color_map
+from ecoscope_workflows_core.tasks.transformation import convert_column_values_to_string
 from ecoscope_workflows_core.tasks.groupby import split_groups
 from ecoscope_workflows_ext_ecoscope.tasks.results import create_point_layer
 from ecoscope_workflows_ext_ecoscope.tasks.results import create_polyline_layer
@@ -206,6 +207,7 @@ patrol_reloc = (
             "patrol_start_time",
             "patrol_end_time",
             "patrol_type__value",
+            "patrol_serial_number",
             "groupby_col",
             "fixtime",
             "junk_status",
@@ -288,7 +290,10 @@ traj_rename_grouper_columns = (
         df=traj_add_temporal_index,
         drop_columns=[],
         retain_columns=[],
-        rename_columns={"extra__patrol_type__value": "patrol_type"},
+        rename_columns={
+            "extra__patrol_type__value": "patrol_type",
+            "extra__patrol_serial_number": "patrol_serial_number",
+        },
         **traj_rename_grouper_columns_params,
     )
     .call()
@@ -401,6 +406,79 @@ pe_colormap = (
 
 
 # %% [markdown]
+# ## Rename value grouper columns for Events
+
+# %%
+# parameters
+
+pe_rename_grouper_columns_params = dict()
+
+# %%
+# call the task
+
+
+pe_rename_grouper_columns = (
+    map_columns.handle_errors(task_instance_id="pe_rename_grouper_columns")
+    .partial(
+        df=pe_colormap,
+        drop_columns=[],
+        retain_columns=[],
+        rename_columns={"serial_number": "patrol_serial_number"},
+        **pe_rename_grouper_columns_params,
+    )
+    .call()
+)
+
+
+# %% [markdown]
+# ## Cast Patrol Trajectory Columns
+
+# %%
+# parameters
+
+patrol_traj_cols_to_string_params = dict()
+
+# %%
+# call the task
+
+
+patrol_traj_cols_to_string = (
+    convert_column_values_to_string.handle_errors(
+        task_instance_id="patrol_traj_cols_to_string"
+    )
+    .partial(
+        df=traj_rename_grouper_columns,
+        columns=["patrol_serial_number"],
+        **patrol_traj_cols_to_string_params,
+    )
+    .call()
+)
+
+
+# %% [markdown]
+# ## Cast Patrol Events Columns
+
+# %%
+# parameters
+
+pe_cols_to_string_params = dict()
+
+# %%
+# call the task
+
+
+pe_cols_to_string = (
+    convert_column_values_to_string.handle_errors(task_instance_id="pe_cols_to_string")
+    .partial(
+        df=pe_rename_grouper_columns,
+        columns=["patrol_serial_number"],
+        **pe_cols_to_string_params,
+    )
+    .call()
+)
+
+
+# %% [markdown]
 # ## Split Patrol Trajectories by Group
 
 # %%
@@ -415,7 +493,7 @@ split_patrol_traj_groups_params = dict()
 split_patrol_traj_groups = (
     split_groups.handle_errors(task_instance_id="split_patrol_traj_groups")
     .partial(
-        df=traj_rename_grouper_columns,
+        df=patrol_traj_cols_to_string,
         groupers=groupers,
         **split_patrol_traj_groups_params,
     )
@@ -437,7 +515,7 @@ split_pe_groups_params = dict()
 
 split_pe_groups = (
     split_groups.handle_errors(task_instance_id="split_pe_groups")
-    .partial(df=pe_colormap, groupers=groupers, **split_pe_groups_params)
+    .partial(df=pe_cols_to_string, groupers=groupers, **split_pe_groups_params)
     .call()
 )
 
@@ -448,7 +526,9 @@ split_pe_groups = (
 # %%
 # parameters
 
-patrol_events_map_layers_params = dict()
+patrol_events_map_layers_params = dict(
+    zoom=...,
+)
 
 # %%
 # call the task
@@ -472,7 +552,9 @@ patrol_events_map_layers = (
 # %%
 # parameters
 
-patrol_traj_map_layers_params = dict()
+patrol_traj_map_layers_params = dict(
+    zoom=...,
+)
 
 # %%
 # call the task
@@ -527,7 +609,9 @@ combined_traj_and_pe_map_layers = (
 # %%
 # parameters
 
-traj_patrol_events_ecomap_params = dict()
+traj_patrol_events_ecomap_params = dict(
+    view_state=...,
+)
 
 # %%
 # call the task
@@ -1244,7 +1328,9 @@ td_colormap = (
 # %%
 # parameters
 
-td_map_layer_params = dict()
+td_map_layer_params = dict(
+    zoom=...,
+)
 
 # %%
 # call the task
@@ -1272,7 +1358,9 @@ td_map_layer = (
 # %%
 # parameters
 
-td_ecomap_params = dict()
+td_ecomap_params = dict(
+    view_state=...,
+)
 
 # %%
 # call the task
