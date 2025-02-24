@@ -4,12 +4,27 @@
     "filters": {
       "schema": {
         "properties": {
+          "patrol_serial_number": {
+            "default": "23456",
+            "oneOf": [
+              {
+                "const": "23456",
+                "title": "23456"
+              },
+              {
+                "const": "23457",
+                "title": "23457"
+              }
+            ],
+            "title": "Patrol Serial Number",
+            "type": "string"
+          },
           "patrol_type": {
             "default": "ecoscope_patrol",
             "oneOf": [
               {
                 "const": "ecoscope_patrol",
-                "title": "Ecoscope_Patrol"
+                "title": "ecoscope_patrol"
               }
             ],
             "title": "Patrol Type",
@@ -18,6 +33,10 @@
         },
         "type": "object",
         "uiSchema": {
+          "patrol_serial_number": {
+            "ui:title": "Patrol Serial Number",
+            "ui:widget": "select"
+          },
           "patrol_type": {
             "ui:title": "Patrol Type",
             "ui:widget": "select"
@@ -32,7 +51,72 @@
       "title": "Patrols Dashboard"
     },
     "views": {
-      "{\"patrol_type\": \"ecoscope_patrol\"}": [
+      "{\"patrol_serial_number\": \"23456\", \"patrol_type\": \"ecoscope_patrol\"}": [
+        {
+          "data": "str",
+          "id": 0,
+          "is_filtered": true,
+          "title": "Trajectories & Patrol Events Map",
+          "widget_type": "map"
+        },
+        {
+          "data": "str",
+          "id": 1,
+          "is_filtered": true,
+          "title": "Time Density Map",
+          "widget_type": "map"
+        },
+        {
+          "data": "str",
+          "id": 2,
+          "is_filtered": true,
+          "title": "Patrol Events Bar Chart",
+          "widget_type": "graph"
+        },
+        {
+          "data": "str",
+          "id": 3,
+          "is_filtered": true,
+          "title": "Patrol Events Pie Chart",
+          "widget_type": "graph"
+        },
+        {
+          "data": "str",
+          "id": 4,
+          "is_filtered": true,
+          "title": "Total Patrols",
+          "widget_type": "stat"
+        },
+        {
+          "data": "str",
+          "id": 5,
+          "is_filtered": true,
+          "title": "Total Time",
+          "widget_type": "stat"
+        },
+        {
+          "data": "str",
+          "id": 6,
+          "is_filtered": true,
+          "title": "Total Distance",
+          "widget_type": "stat"
+        },
+        {
+          "data": "str",
+          "id": 7,
+          "is_filtered": true,
+          "title": "Average Speed",
+          "widget_type": "stat"
+        },
+        {
+          "data": "str",
+          "id": 8,
+          "is_filtered": true,
+          "title": "Max Speed",
+          "widget_type": "stat"
+        }
+      ],
+      "{\"patrol_serial_number\": \"23457\", \"patrol_type\": \"ecoscope_patrol\"}": [
         {
           "data": "str",
           "id": 0,
