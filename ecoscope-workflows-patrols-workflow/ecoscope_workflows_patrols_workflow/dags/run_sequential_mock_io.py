@@ -249,7 +249,7 @@ def main(params: Params):
         .handle_errors(task_instance_id="patrol_traj_cols_to_string")
         .partial(
             df=traj_rename_grouper_columns,
-            columns=["patrol_serial_number"],
+            columns=["patrol_serial_number", "patrol_type"],
             **(params_dict.get("patrol_traj_cols_to_string") or {}),
         )
         .call()
@@ -260,7 +260,7 @@ def main(params: Params):
         .handle_errors(task_instance_id="pe_cols_to_string")
         .partial(
             df=pe_rename_grouper_columns,
-            columns=["patrol_serial_number"],
+            columns=["patrol_serial_number", "patrol_type"],
             **(params_dict.get("pe_cols_to_string") or {}),
         )
         .call()

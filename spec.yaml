@@ -1,10 +1,10 @@
 id: patrols
 requirements:
   - name: ecoscope-workflows-core
-    version: 0.0.57
+    version: 0.0.58
     channel: https://repo.prefix.dev/ecoscope-workflows/
   - name: ecoscope-workflows-ext-ecoscope
-    version: 0.0.57
+    version: 0.0.58
     channel: https://repo.prefix.dev/ecoscope-workflows/
 rjsf-overrides:
   $defs:
@@ -151,6 +151,7 @@ workflow:
       df: ${{ workflow.traj_rename_grouper_columns.return }}
       columns:
         - patrol_serial_number
+        - patrol_type
   - name: Cast Patrol Events Columns
     id: pe_cols_to_string
     task: convert_column_values_to_string
@@ -158,6 +159,7 @@ workflow:
       df: ${{ workflow.pe_rename_grouper_columns.return }}
       columns:
         - patrol_serial_number
+        - patrol_type
   - name: Split Patrol Trajectories by Group
     id: split_patrol_traj_groups
     task: split_groups

@@ -448,7 +448,7 @@ patrol_traj_cols_to_string = (
     )
     .partial(
         df=traj_rename_grouper_columns,
-        columns=["patrol_serial_number"],
+        columns=["patrol_serial_number", "patrol_type"],
         **patrol_traj_cols_to_string_params,
     )
     .call()
@@ -471,7 +471,7 @@ pe_cols_to_string = (
     convert_column_values_to_string.handle_errors(task_instance_id="pe_cols_to_string")
     .partial(
         df=pe_rename_grouper_columns,
-        columns=["patrol_serial_number"],
+        columns=["patrol_serial_number", "patrol_type"],
         **pe_cols_to_string_params,
     )
     .call()

@@ -319,7 +319,7 @@ def main(params: Params):
             .set_executor("lithops"),
             partial={
                 "df": DependsOn("traj_rename_grouper_columns"),
-                "columns": ["patrol_serial_number"],
+                "columns": ["patrol_serial_number", "patrol_type"],
             }
             | (params_dict.get("patrol_traj_cols_to_string") or {}),
             method="call",
@@ -330,7 +330,7 @@ def main(params: Params):
             .set_executor("lithops"),
             partial={
                 "df": DependsOn("pe_rename_grouper_columns"),
-                "columns": ["patrol_serial_number"],
+                "columns": ["patrol_serial_number", "patrol_type"],
             }
             | (params_dict.get("pe_cols_to_string") or {}),
             method="call",
