@@ -231,19 +231,6 @@ def main(params: Params):
         .call()
     )
 
-    pe_rename_grouper_columns = (
-        map_columns.validate()
-        .handle_errors(task_instance_id="pe_rename_grouper_columns")
-        .partial(
-            df=pe_colormap,
-            drop_columns=[],
-            retain_columns=[],
-            rename_columns={"serial_number": "patrol_serial_number"},
-            **(params_dict.get("pe_rename_grouper_columns") or {}),
-        )
-        .call()
-    )
-
     patrol_traj_cols_to_string = (
         convert_column_values_to_string.validate()
         .handle_errors(task_instance_id="patrol_traj_cols_to_string")
@@ -259,7 +246,7 @@ def main(params: Params):
         convert_column_values_to_string.validate()
         .handle_errors(task_instance_id="pe_cols_to_string")
         .partial(
-            df=pe_rename_grouper_columns,
+            df=pe_colormap,
             columns=["patrol_serial_number", "patrol_type"],
             **(params_dict.get("pe_cols_to_string") or {}),
         )

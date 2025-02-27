@@ -406,31 +406,6 @@ pe_colormap = (
 
 
 # %% [markdown]
-# ## Rename value grouper columns for Events
-
-# %%
-# parameters
-
-pe_rename_grouper_columns_params = dict()
-
-# %%
-# call the task
-
-
-pe_rename_grouper_columns = (
-    map_columns.handle_errors(task_instance_id="pe_rename_grouper_columns")
-    .partial(
-        df=pe_colormap,
-        drop_columns=[],
-        retain_columns=[],
-        rename_columns={"serial_number": "patrol_serial_number"},
-        **pe_rename_grouper_columns_params,
-    )
-    .call()
-)
-
-
-# %% [markdown]
 # ## Cast Patrol Trajectory Columns
 
 # %%
@@ -470,7 +445,7 @@ pe_cols_to_string_params = dict()
 pe_cols_to_string = (
     convert_column_values_to_string.handle_errors(task_instance_id="pe_cols_to_string")
     .partial(
-        df=pe_rename_grouper_columns,
+        df=pe_colormap,
         columns=["patrol_serial_number", "patrol_type"],
         **pe_cols_to_string_params,
     )
