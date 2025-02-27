@@ -46,7 +46,7 @@ class PatrolObs(BaseModel):
         extra="forbid",
     )
     status: Optional[List[StatusEnum]] = Field(
-        None,
+        ["done"],
         description="list of 'scheduled'/'active'/'overdue'/'done'/'cancelled'",
         title="Status",
     )
@@ -60,7 +60,7 @@ class PatrolEvents(BaseModel):
         ..., description="list of event types by name", title="Event Type"
     )
     status: Optional[List[str]] = Field(
-        None,
+        ["done"],
         description="list of 'scheduled'/'active'/'overdue'/'done'/'cancelled'",
         title="Status",
     )
@@ -163,7 +163,16 @@ class PatrolTraj(BaseModel):
         extra="forbid",
     )
     trajectory_segment_filter: Optional[TrajectorySegmentFilter] = Field(
-        None,
+        default_factory=lambda: TrajectorySegmentFilter.model_validate(
+            {
+                "min_length_meters": 0.001,
+                "max_length_meters": 10000,
+                "min_time_secs": 1,
+                "max_time_secs": 3600,
+                "min_speed_kmhr": 0.0001,
+                "max_speed_kmhr": 120,
+            }
+        ),
         description="Trajectory Segments outside these bounds will be removed",
         title="Trajectory Segment Filter",
     )
@@ -178,7 +187,7 @@ class FilterPatrolEvents(BaseModel):
     min_y: Optional[float] = Field(-90.0, title="Min Y")
     max_y: Optional[float] = Field(90.0, title="Max Y")
     filter_point_coords: Optional[List[Coordinate]] = Field(
-        None, title="Filter Point Coords"
+        [], title="Filter Point Coords"
     )
 
 
