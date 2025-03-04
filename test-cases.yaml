@@ -28,6 +28,7 @@ all-grouper:
     patrol_events:
       event_type: []
       status: ["done"]
+      drop_null_geometry: false
     filter_patrol_events:
       min_x: -180.0
       max_x: 180.0
@@ -72,6 +73,7 @@ month-grouper:
     patrol_events:
       event_type: []
       status: ["done"]
+      drop_null_geometry: false
     filter_patrol_events:
       min_x: -180.0
       max_x: 180.0
@@ -117,6 +119,7 @@ value-grouper:
     patrol_events:
       event_type: []
       status: ["done"]
+      drop_null_geometry: false
     filter_patrol_events:
       min_x: -180.0
       max_x: 180.0
@@ -164,6 +167,7 @@ task-instance-error:
     patrol_events:
       event_type: []
       status: ["done"]
+      drop_null_geometry: false
     filter_patrol_events:
       min_x: -180.0
       max_x: -181.0
