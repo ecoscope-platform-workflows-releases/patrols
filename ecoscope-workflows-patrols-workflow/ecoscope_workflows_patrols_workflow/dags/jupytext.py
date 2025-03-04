@@ -309,6 +309,7 @@ traj_rename_grouper_columns = (
 patrol_events_params = dict(
     event_type=...,
     status=...,
+    drop_null_geometry=...,
 )
 
 # %%
