@@ -64,6 +64,11 @@ class PatrolEvents(BaseModel):
         description="list of 'scheduled'/'active'/'overdue'/'done'/'cancelled'",
         title="Status",
     )
+    drop_null_geometry: Optional[bool] = Field(
+        False,
+        description="Whether or not to keep events with no geometry data",
+        title="Drop Null Geometry",
+    )
 
 
 class TimeInterval(str, Enum):

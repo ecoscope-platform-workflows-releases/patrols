@@ -193,6 +193,13 @@
               "type": "array",
               "description": "list of 'scheduled'/'active'/'overdue'/'done'/'cancelled'",
               "ecoscope:advanced": true
+            },
+            "drop_null_geometry": {
+              "default": false,
+              "title": "Drop Null Geometry",
+              "type": "boolean",
+              "description": "Whether or not to keep events with no geometry data",
+              "ecoscope:advanced": true
             }
           },
           "required": [
