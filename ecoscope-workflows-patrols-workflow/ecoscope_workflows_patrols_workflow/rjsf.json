@@ -398,6 +398,10 @@
             {
               "const": "%H",
               "title": "Hour (24-hour clock) as number (example: 22)"
+            },
+            {
+              "const": "%Y-%m-%d",
+              "title": "Date (example: 2025-01-31)"
             }
           ],
           "title": "Temporal Index",
