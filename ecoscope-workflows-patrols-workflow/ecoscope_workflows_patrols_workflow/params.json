@@ -4,79 +4,36 @@
       "additionalProperties": false,
       "properties": {
         "name": {
-          "title": "Name",
-          "type": "string",
-          "description": "The name of your workflow"
+          "title": "Workflow Name",
+          "type": "string"
         },
         "description": {
-          "title": "Description",
-          "type": "string",
-          "description": "A description"
+          "default": "",
+          "title": "Workflow Description",
+          "type": "string"
         }
       },
       "required": [
-        "name",
-        "description"
+        "name"
       ],
       "type": "object",
-      "title": "Set Workflow Details"
+      "description": "Add information that will help to differentiate this workflow from another.",
+      "title": "Workflow Details"
     },
     "er_client_name": {
       "additionalProperties": false,
       "properties": {
         "data_source": {
           "$ref": "#/$defs/EarthRangerConnection",
-          "title": "Data Source",
-          "description": "Select one of your configured data sources by name."
+          "title": "",
+          "description": "Select one of your configured data sources."
         }
       },
       "required": [
         "data_source"
       ],
       "type": "object",
-      "title": "Select EarthRanger Data Source"
-    },
-    "er_patrol_types": {
-      "additionalProperties": false,
-      "properties": {
-        "patrol_types": {
-          "items": {
-            "type": "string"
-          },
-          "title": "Patrol Types",
-          "type": "array",
-          "description": "list of UUID of patrol types"
-        }
-      },
-      "required": [
-        "patrol_types"
-      ],
-      "type": "object",
-      "title": "Set EarthRanger Patrol Types"
-    },
-    "groupers": {
-      "additionalProperties": false,
-      "properties": {
-        "groupers": {
-          "default": null,
-          "items": {
-            "anyOf": [
-              {
-                "$ref": "#/$defs/Grouper"
-              },
-              {
-                "$ref": "#/$defs/TemporalGrouper"
-              }
-            ]
-          },
-          "title": "Groupers",
-          "type": "array",
-          "description": "            Temporal index(es) and/or column(s) to group by. This field is optional.\n            If left unfilled, all data will be presented together in a single group.\n            "
-        }
-      },
-      "type": "object",
-      "required": [],
-      "title": "Set Groupers"
+      "title": "Data Source"
     },
     "time_range": {
       "additionalProperties": false,
@@ -99,15 +56,34 @@
         "until"
       ],
       "type": "object",
-      "title": "Set Time Range Filter"
+      "description": "Choose the period of time to analyze.",
+      "title": "Time Range"
     },
-    "patrol_obs": {
+    "er_patrol_types": {
+      "additionalProperties": false,
+      "properties": {
+        "patrol_types": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Patrol Types",
+          "type": "array",
+          "description": "list of UUID of patrol types"
+        }
+      },
+      "required": [
+        "patrol_types"
+      ],
+      "type": "object",
+      "title": ""
+    },
+    "er_patrol_status": {
       "additionalProperties": false,
       "properties": {
         "status": {
-          "default": [
-            "done"
-          ],
+          "default": null,
+          "description": "List comprised of 'active'/'overdue'/'done'/'cancelled'",
+          "ecoscope:advanced": true,
           "items": {
             "enum": [
               "active",
@@ -118,14 +94,62 @@
             "type": "string"
           },
           "title": "Status",
+          "type": "array"
+        }
+      },
+      "type": "object",
+      "required": [],
+      "title": ""
+    },
+    "patrol_events": {
+      "additionalProperties": false,
+      "properties": {
+        "event_type": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Event Types",
           "type": "array",
-          "description": "list of 'scheduled'/'active'/'overdue'/'done'/'cancelled'",
+          "description": "List of event types by name"
+        },
+        "drop_null_geometry": {
+          "default": false,
+          "title": "Drop Null Geometry",
+          "type": "boolean",
+          "description": "Whether or not to keep events with no geometry data",
           "ecoscope:advanced": true
         }
       },
-      "required": [],
+      "required": [
+        "event_type"
+      ],
       "type": "object",
-      "title": "Get Patrol Observations from EarthRanger"
+      "title": ""
+    },
+    "groupers": {
+      "additionalProperties": false,
+      "properties": {
+        "groupers": {
+          "default": null,
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/ValueGrouper"
+              },
+              {
+                "$ref": "#/$defs/TemporalGrouper"
+              }
+            ],
+            "title": "Group by"
+          },
+          "title": " ",
+          "type": "array",
+          "description": "            Specify how the data should be grouped to create the views for your dashboard.\n            This field is optional; if left blank, all the data will appear in a single view.\n            "
+        }
+      },
+      "type": "object",
+      "required": [],
+      "title": "Group Data"
     },
     "patrol_traj": {
       "additionalProperties": false,
@@ -152,43 +176,6 @@
       "required": [],
       "type": "object",
       "title": "Transform Relocations to Trajectories"
-    },
-    "patrol_events": {
-      "additionalProperties": false,
-      "properties": {
-        "event_type": {
-          "items": {
-            "type": "string"
-          },
-          "title": "Event Type",
-          "type": "array",
-          "description": "list of event types by name"
-        },
-        "status": {
-          "default": [
-            "done"
-          ],
-          "items": {
-            "type": "string"
-          },
-          "title": "Status",
-          "type": "array",
-          "description": "list of 'scheduled'/'active'/'overdue'/'done'/'cancelled'",
-          "ecoscope:advanced": true
-        },
-        "drop_null_geometry": {
-          "default": false,
-          "title": "Drop Null Geometry",
-          "type": "boolean",
-          "description": "Whether or not to keep events with no geometry data",
-          "ecoscope:advanced": true
-        }
-      },
-      "required": [
-        "event_type"
-      ],
-      "type": "object",
-      "title": "Get Patrol Events from EarthRanger"
     },
     "filter_patrol_events": {
       "additionalProperties": false,
@@ -229,7 +216,7 @@
       },
       "required": [],
       "type": "object",
-      "title": "Apply Relocation Coordinate Filter"
+      "title": "Apply Coordinate Filter"
     },
     "patrol_events_bar_chart": {
       "additionalProperties": false,
@@ -284,7 +271,7 @@
     "EarthRangerConnection": {
       "properties": {
         "name": {
-          "title": "Connection Name",
+          "title": "Data Source",
           "type": "string"
         }
       },
@@ -294,61 +281,48 @@
       "title": "EarthRangerConnection",
       "type": "object"
     },
-    "Grouper": {
-      "properties": {
-        "index_name": {
-          "title": "Index Name",
-          "type": "string"
-        }
-      },
-      "required": [
-        "index_name"
-      ],
-      "title": "Grouper",
-      "type": "object"
-    },
     "TemporalGrouper": {
-      "properties": {
-        "temporal_index": {
-          "oneOf": [
-            {
-              "const": "%Y",
-              "title": "Year (example: 2024)"
-            },
-            {
-              "const": "%B",
-              "title": "Month (example: September)"
-            },
-            {
-              "const": "%Y-%m",
-              "title": "Year and Month (example: 2023-01)"
-            },
-            {
-              "const": "%j",
-              "title": "Day of the year as a number (example: 365)"
-            },
-            {
-              "const": "%d",
-              "title": "Day of the month as a number (example: 31)"
-            },
-            {
-              "const": "%A",
-              "title": "Day of the week (example: Sunday)"
-            },
-            {
-              "const": "%H",
-              "title": "Hour (24-hour clock) as number (example: 22)"
-            }
-          ],
-          "title": "Temporal Index",
-          "type": "string"
+      "oneOf": [
+        {
+          "const": "%Y",
+          "title": "Year (example: 2024)"
+        },
+        {
+          "const": "%B",
+          "title": "Month (example: September)"
+        },
+        {
+          "const": "%Y-%m",
+          "title": "Year and Month (example: 2023-01)"
+        },
+        {
+          "const": "%j",
+          "title": "Day of the year as a number (example: 365)"
+        },
+        {
+          "const": "%d",
+          "title": "Day of the month as a number (example: 31)"
+        },
+        {
+          "const": "%A",
+          "title": "Day of the week (example: Sunday)"
+        },
+        {
+          "const": "%H",
+          "title": "Hour (24-hour clock) as number (example: 22)"
+        },
+        {
+          "const": "%Y-%m-%d",
+          "title": "Date (example: 2025-01-31)"
         }
-      },
-      "required": [
-        "temporal_index"
       ],
-      "title": "TemporalGrouper",
-      "type": "object"
+      "title": "Time",
+      "type": "string"
+    },
+    "ValueGrouper": {
+      "oneOf": [],
+      "title": "Category",
+      "type": "string"
     },
     "TrajectorySegmentFilter": {
       "properties": {
@@ -422,12 +396,12 @@
     "ui:order": [
       "workflow_details",
       "er_client_name",
-      "er_patrol_types",
-      "groupers",
       "time_range",
-      "patrol_obs",
-      "patrol_traj",
+      "er_patrol_types",
+      "er_patrol_status",
       "patrol_events",
+      "groupers",
+      "patrol_traj",
       "filter_patrol_events",
       "patrol_events_bar_chart",
       "td"

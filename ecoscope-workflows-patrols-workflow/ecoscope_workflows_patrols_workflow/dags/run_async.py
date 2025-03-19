@@ -6,17 +6,18 @@ from ecoscope_workflows_core.graph import DependsOn, DependsOnSequence, Graph, N
 
 from ecoscope_workflows_core.tasks.config import set_workflow_details
 from ecoscope_workflows_core.tasks.io import set_er_connection
-from ecoscope_workflows_ext_ecoscope.tasks.io import set_patrol_types
-from ecoscope_workflows_core.tasks.groupby import set_groupers
 from ecoscope_workflows_core.tasks.filter import set_time_range
+from ecoscope_workflows_ext_ecoscope.tasks.io import set_patrol_types
+from ecoscope_workflows_ext_ecoscope.tasks.io import set_patrol_status
 from ecoscope_workflows_ext_ecoscope.tasks.io import get_patrol_observations
+from ecoscope_workflows_ext_ecoscope.tasks.io import get_patrol_events
+from ecoscope_workflows_core.tasks.groupby import set_groupers
 from ecoscope_workflows_ext_ecoscope.tasks.preprocessing import process_relocations
 from ecoscope_workflows_ext_ecoscope.tasks.preprocessing import (
     relocations_to_trajectory,
 )
 from ecoscope_workflows_core.tasks.transformation import add_temporal_index
 from ecoscope_workflows_core.tasks.transformation import map_columns
-from ecoscope_workflows_ext_ecoscope.tasks.io import get_patrol_events
 from ecoscope_workflows_ext_ecoscope.tasks.transformation import (
     apply_reloc_coord_filter,
 )
@@ -52,15 +53,26 @@ def main(params: Params):
     dependencies = {
         "workflow_details": [],
         "er_client_name": [],
-        "er_patrol_types": [],
-        "groupers": [],
         "time_range": [],
-        "patrol_obs": ["er_client_name", "time_range", "er_patrol_types"],
+        "er_patrol_types": [],
+        "er_patrol_status": [],
+        "patrol_obs": [
+            "er_client_name",
+            "time_range",
+            "er_patrol_types",
+            "er_patrol_status",
+        ],
+        "patrol_events": [
+            "er_client_name",
+            "time_range",
+            "er_patrol_types",
+            "er_patrol_status",
+        ],
+        "groupers": [],
         "patrol_reloc": ["patrol_obs"],
         "patrol_traj": ["patrol_reloc"],
         "traj_add_temporal_index": ["patrol_traj", "groupers"],
         "traj_rename_grouper_columns": ["traj_add_temporal_index"],
-        "patrol_events": ["er_client_name", "time_range", "er_patrol_types"],
         "filter_patrol_events": ["patrol_events"],
         "pe_add_temporal_index": ["filter_patrol_events", "groupers"],
         "pe_colormap": ["pe_add_temporal_index"],
@@ -143,20 +155,6 @@ def main(params: Params):
             partial=(params_dict.get("er_client_name") or {}),
             method="call",
         ),
-        "er_patrol_types": Node(
-            async_task=set_patrol_types.validate()
-            .handle_errors(task_instance_id="er_patrol_types")
-            .set_executor("lithops"),
-            partial=(params_dict.get("er_patrol_types") or {}),
-            method="call",
-        ),
-        "groupers": Node(
-            async_task=set_groupers.validate()
-            .handle_errors(task_instance_id="groupers")
-            .set_executor("lithops"),
-            partial=(params_dict.get("groupers") or {}),
-            method="call",
-        ),
         "time_range": Node(
             async_task=set_time_range.validate()
             .handle_errors(task_instance_id="time_range")
@@ -167,6 +165,20 @@ def main(params: Params):
             | (params_dict.get("time_range") or {}),
             method="call",
         ),
+        "er_patrol_types": Node(
+            async_task=set_patrol_types.validate()
+            .handle_errors(task_instance_id="er_patrol_types")
+            .set_executor("lithops"),
+            partial=(params_dict.get("er_patrol_types") or {}),
+            method="call",
+        ),
+        "er_patrol_status": Node(
+            async_task=set_patrol_status.validate()
+            .handle_errors(task_instance_id="er_patrol_status")
+            .set_executor("lithops"),
+            partial=(params_dict.get("er_patrol_status") or {}),
+            method="call",
+        ),
         "patrol_obs": Node(
             async_task=get_patrol_observations.validate()
             .handle_errors(task_instance_id="patrol_obs")
@@ -175,10 +187,33 @@ def main(params: Params):
                 "client": DependsOn("er_client_name"),
                 "time_range": DependsOn("time_range"),
                 "patrol_type": DependsOn("er_patrol_types"),
+                "status": DependsOn("er_patrol_status"),
                 "include_patrol_details": True,
                 "raise_on_empty": True,
             }
             | (params_dict.get("patrol_obs") or {}),
+            method="call",
+        ),
+        "patrol_events": Node(
+            async_task=get_patrol_events.validate()
+            .handle_errors(task_instance_id="patrol_events")
+            .set_executor("lithops"),
+            partial={
+                "client": DependsOn("er_client_name"),
+                "time_range": DependsOn("time_range"),
+                "patrol_type": DependsOn("er_patrol_types"),
+                "status": DependsOn("er_patrol_status"),
+                "truncate_to_time_range": True,
+                "raise_on_empty": True,
+            }
+            | (params_dict.get("patrol_events") or {}),
+            method="call",
+        ),
+        "groupers": Node(
+            async_task=set_groupers.validate()
+            .handle_errors(task_instance_id="groupers")
+            .set_executor("lithops"),
+            partial=(params_dict.get("groupers") or {}),
             method="call",
         ),
         "patrol_reloc": Node(
@@ -246,20 +281,6 @@ def main(params: Params):
                 },
             }
             | (params_dict.get("traj_rename_grouper_columns") or {}),
-            method="call",
-        ),
-        "patrol_events": Node(
-            async_task=get_patrol_events.validate()
-            .handle_errors(task_instance_id="patrol_events")
-            .set_executor("lithops"),
-            partial={
-                "client": DependsOn("er_client_name"),
-                "time_range": DependsOn("time_range"),
-                "patrol_type": DependsOn("er_patrol_types"),
-                "truncate_to_time_range": True,
-                "raise_on_empty": True,
-            }
-            | (params_dict.get("patrol_events") or {}),
             method="call",
         ),
         "filter_patrol_events": Node(

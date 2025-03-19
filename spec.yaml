@@ -1,58 +1,63 @@
 id: patrols
 requirements:
   - name: ecoscope-workflows-core
-    version: 0.0.61
+    version: 0.0.65
     channel: https://repo.prefix.dev/ecoscope-workflows/
   - name: ecoscope-workflows-ext-ecoscope
-    version: 0.0.61
+    version: 0.0.65
     channel: https://repo.prefix.dev/ecoscope-workflows/
 rjsf-overrides:
   $defs:
-    Grouper:
-      properties:
-        index_name:
-          title: Index Name
-          type: string
-          oneOf:
-            - const: patrol_serial_number
-              title: Patrol Serial Number
-            - const: patrol_type
-              title: Patrol Type
-      required:
-        - index_name
-      title: Grouper
-      type: object
+    ValueGrouper.oneOf:
+      - const: patrol_serial_number
+        title: Patrol Serial Number
+      - const: patrol_type
+        title: Patrol Type
 workflow:
-  - name: Set Workflow Details
+  - name: Workflow Details
     id: workflow_details
     task: set_workflow_details
-  - name: Select EarthRanger Data Source
+  - name: Data Source
     id: er_client_name
     task: set_er_connection
-  - name: Set EarthRanger Patrol Types
-    id: er_patrol_types
-    task: set_patrol_types
-  - name: Set Groupers
-    id: groupers
-    task: set_groupers
-  - name: Set Time Range Filter
+  - name: Time Range
     id: time_range
     task: set_time_range
     partial:
       time_format: '%d %b %Y %H:%M:%S %Z'
-  - title: Fetch and preprocess patrol observations
+  - title: Patrol and Event Types
     type: task-group
-    description: Fetch patrol observations from EarthRanger, preprocess them into trajectories, and add a temporal index.
+    description: Select the Patrol and Event types to be analyzed.
     tasks:
-      - name: Get Patrol Observations from EarthRanger
-        id: patrol_obs
+      - id: er_patrol_types
+        task: set_patrol_types
+      - id: er_patrol_status
+        task: set_patrol_status
+      - id: patrol_obs
         task: get_patrol_observations
         partial:
           client: ${{ workflow.er_client_name.return }}
           time_range: ${{ workflow.time_range.return }}
           patrol_type: ${{ workflow.er_patrol_types.return }}
+          status: ${{ workflow.er_patrol_status.return }}
           include_patrol_details: true
           raise_on_empty: true
+      - id: patrol_events
+        task: get_patrol_events
+        partial:
+          client: ${{ workflow.er_client_name.return }}
+          time_range: ${{ workflow.time_range.return }}
+          patrol_type: ${{ workflow.er_patrol_types.return }}
+          status: ${{ workflow.er_patrol_status.return }}
+          truncate_to_time_range: true
+          raise_on_empty: true
+  - name: Group Data
+    id: groupers
+    task: set_groupers
+  - title: Preprocess patrol observations
+    type: task-group
+    description: Preprocess patrol observations from EarthRanger.
+    tasks:
       - name: Transform Observations to Relocations
         id: patrol_reloc
         task: process_relocations
@@ -100,20 +105,11 @@ workflow:
           rename_columns:
             extra__patrol_type__value: patrol_type
             extra__patrol_serial_number: patrol_serial_number
-  - title: Fetch and preprocess patrol events
+  - title: Preprocess patrol events
     type: task-group
-    description: Fetch patrol events from EarthRanger, filter them, and add a temporal index.
+    description: Preprocess patrol events from EarthRanger.
     tasks:
-      - name: Get Patrol Events from EarthRanger
-        id: patrol_events
-        task: get_patrol_events
-        partial:
-          client: ${{ workflow.er_client_name.return }}
-          time_range: ${{ workflow.time_range.return }}
-          patrol_type: ${{ workflow.er_patrol_types.return }}
-          truncate_to_time_range: true
-          raise_on_empty: true
-      - name: Apply Relocation Coordinate Filter
+      - name: Apply Coordinate Filter
         id: filter_patrol_events
         task: apply_reloc_coord_filter
         partial:
