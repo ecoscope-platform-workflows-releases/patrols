@@ -10,13 +10,13 @@ all-grouper:
         name: "mep_dev"
     er_patrol_types:
       patrol_types: ["05ad114e-1aff-4602-bc83-efd333cdd8a2"]
+    er_patrol_status:
+      status: ["done"]
     groupers:
       groupers: []
     time_range:
       since: "2015-01-01T00:00:00Z"
       until: "2015-02-28T23:59:59Z"
-    patrol_obs:
-      status: ["done"]
     patrol_traj:
       trajectory_segment_filter:
         min_length_meters: 0.001
@@ -27,7 +27,6 @@ all-grouper:
         min_speed_kmhr: 0.0001
     patrol_events:
       event_type: []
-      status: ["done"]
       drop_null_geometry: false
     filter_patrol_events:
       min_x: -180.0
@@ -54,14 +53,14 @@ month-grouper:
         name: "mep_dev"
     er_patrol_types:
       patrol_types: ["05ad114e-1aff-4602-bc83-efd333cdd8a2"]
+    er_patrol_status:
+      status: ["done"]
     groupers:
       groupers:
-        - temporal_index: "%B"
+        - "%B"
     time_range:
       since: "2015-01-01T00:00:00Z"
       until: "2015-02-28T23:59:59Z"
-    patrol_obs:
-      status: ["done"]
     patrol_traj:
       trajectory_segment_filter:
         min_length_meters: 0.001
@@ -72,7 +71,6 @@ month-grouper:
         min_speed_kmhr: 0.0001
     patrol_events:
       event_type: []
-      status: ["done"]
       drop_null_geometry: false
     filter_patrol_events:
       min_x: -180.0
@@ -99,15 +97,15 @@ value-grouper:
         name: "mep_dev"
     er_patrol_types:
       patrol_types: ["05ad114e-1aff-4602-bc83-efd333cdd8a2"]
+    er_patrol_status:
+      status: ["done"]
     groupers:
       groupers:
-        - index_name: "patrol_type"
-        - index_name: "patrol_serial_number"
+        - "patrol_type"
+        - "patrol_serial_number"
     time_range:
       since: "2015-01-01T00:00:00Z"
       until: "2015-02-28T23:59:59Z"
-    patrol_obs:
-      status: ["done"]
     patrol_traj:
       trajectory_segment_filter:
         min_length_meters: 0.001
@@ -118,7 +116,6 @@ value-grouper:
         min_speed_kmhr: 0.0001
     patrol_events:
       event_type: []
-      status: ["done"]
       drop_null_geometry: false
     filter_patrol_events:
       min_x: -180.0
@@ -149,13 +146,13 @@ task-instance-error:
         name: "mep_dev"
     er_patrol_types:
       patrol_types: ["05ad114e-1aff-4602-bc83-efd333cdd8a2"]
+    er_patrol_status:
+      status: ["done"]
     groupers:
       groupers: []
     time_range:
       since: "2015-01-01T00:00:00Z"
       until: "2015-02-28T23:59:59Z"
-    patrol_obs:
-      status: ["done"]
     patrol_traj:
       trajectory_segment_filter:
         min_length_meters: 0.001
@@ -166,7 +163,6 @@ task-instance-error:
         min_speed_kmhr: 0.0001
     patrol_events:
       event_type: []
-      status: ["done"]
       drop_null_geometry: false
     filter_patrol_events:
       min_x: -180.0
