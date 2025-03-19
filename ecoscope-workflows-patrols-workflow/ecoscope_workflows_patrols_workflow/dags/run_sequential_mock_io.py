@@ -15,25 +15,25 @@ from ecoscope_workflows_core.testing import create_task_magicmock  # 🧪
 
 from ecoscope_workflows_core.tasks.config import set_workflow_details
 from ecoscope_workflows_core.tasks.io import set_er_connection
-from ecoscope_workflows_ext_ecoscope.tasks.io import set_patrol_types
-from ecoscope_workflows_core.tasks.groupby import set_groupers
 from ecoscope_workflows_core.tasks.filter import set_time_range
+from ecoscope_workflows_ext_ecoscope.tasks.io import set_patrol_types
+from ecoscope_workflows_ext_ecoscope.tasks.io import set_patrol_status
 
 get_patrol_observations = create_task_magicmock(  # 🧪
     anchor="ecoscope_workflows_ext_ecoscope.tasks.io",  # 🧪
     func_name="get_patrol_observations",  # 🧪
 )  # 🧪
+get_patrol_events = create_task_magicmock(  # 🧪
+    anchor="ecoscope_workflows_ext_ecoscope.tasks.io",  # 🧪
+    func_name="get_patrol_events",  # 🧪
+)  # 🧪
+from ecoscope_workflows_core.tasks.groupby import set_groupers
 from ecoscope_workflows_ext_ecoscope.tasks.preprocessing import process_relocations
 from ecoscope_workflows_ext_ecoscope.tasks.preprocessing import (
     relocations_to_trajectory,
 )
 from ecoscope_workflows_core.tasks.transformation import add_temporal_index
 from ecoscope_workflows_core.tasks.transformation import map_columns
-
-get_patrol_events = create_task_magicmock(  # 🧪
-    anchor="ecoscope_workflows_ext_ecoscope.tasks.io",  # 🧪
-    func_name="get_patrol_events",  # 🧪
-)  # 🧪
 from ecoscope_workflows_ext_ecoscope.tasks.transformation import (
     apply_reloc_coord_filter,
 )
@@ -82,6 +82,15 @@ def main(params: Params):
         .call()
     )
 
+    time_range = (
+        set_time_range.validate()
+        .handle_errors(task_instance_id="time_range")
+        .partial(
+            time_format="%d %b %Y %H:%M:%S %Z", **(params_dict.get("time_range") or {})
+        )
+        .call()
+    )
+
     er_patrol_types = (
         set_patrol_types.validate()
         .handle_errors(task_instance_id="er_patrol_types")
@@ -89,19 +98,10 @@ def main(params: Params):
         .call()
     )
 
-    groupers = (
-        set_groupers.validate()
-        .handle_errors(task_instance_id="groupers")
-        .partial(**(params_dict.get("groupers") or {}))
-        .call()
-    )
-
-    time_range = (
-        set_time_range.validate()
-        .handle_errors(task_instance_id="time_range")
-        .partial(
-            time_format="%d %b %Y %H:%M:%S %Z", **(params_dict.get("time_range") or {})
-        )
+    er_patrol_status = (
+        set_patrol_status.validate()
+        .handle_errors(task_instance_id="er_patrol_status")
+        .partial(**(params_dict.get("er_patrol_status") or {}))
         .call()
     )
 
@@ -112,10 +112,33 @@ def main(params: Params):
             client=er_client_name,
             time_range=time_range,
             patrol_type=er_patrol_types,
+            status=er_patrol_status,
             include_patrol_details=True,
             raise_on_empty=True,
             **(params_dict.get("patrol_obs") or {}),
         )
+        .call()
+    )
+
+    patrol_events = (
+        get_patrol_events.validate()
+        .handle_errors(task_instance_id="patrol_events")
+        .partial(
+            client=er_client_name,
+            time_range=time_range,
+            patrol_type=er_patrol_types,
+            status=er_patrol_status,
+            truncate_to_time_range=True,
+            raise_on_empty=True,
+            **(params_dict.get("patrol_events") or {}),
+        )
+        .call()
+    )
+
+    groupers = (
+        set_groupers.validate()
+        .handle_errors(task_instance_id="groupers")
+        .partial(**(params_dict.get("groupers") or {}))
         .call()
     )
 
@@ -179,20 +202,6 @@ def main(params: Params):
                 "extra__patrol_serial_number": "patrol_serial_number",
             },
             **(params_dict.get("traj_rename_grouper_columns") or {}),
-        )
-        .call()
-    )
-
-    patrol_events = (
-        get_patrol_events.validate()
-        .handle_errors(task_instance_id="patrol_events")
-        .partial(
-            client=er_client_name,
-            time_range=time_range,
-            patrol_type=er_patrol_types,
-            truncate_to_time_range=True,
-            raise_on_empty=True,
-            **(params_dict.get("patrol_events") or {}),
         )
         .call()
     )

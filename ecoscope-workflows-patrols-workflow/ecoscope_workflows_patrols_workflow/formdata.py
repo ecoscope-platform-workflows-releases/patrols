@@ -6,15 +6,23 @@ from __future__ import annotations
 from enum import Enum
 from typing import List, Optional, Union
 
-from pydantic import AwareDatetime, BaseModel, ConfigDict, Field
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, RootModel
 
 
 class WorkflowDetails(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    name: str = Field(..., description="The name of your workflow", title="Name")
-    description: str = Field(..., description="A description", title="Description")
+    name: str = Field(..., title="Workflow Name")
+    description: Optional[str] = Field("", title="Workflow Description")
+
+
+class TimeRange(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    since: AwareDatetime = Field(..., description="The start time", title="Since")
+    until: AwareDatetime = Field(..., description="The end time", title="Until")
 
 
 class ErPatrolTypes(BaseModel):
@@ -26,14 +34,6 @@ class ErPatrolTypes(BaseModel):
     )
 
 
-class TimeRange(BaseModel):
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    since: AwareDatetime = Field(..., description="The start time", title="Since")
-    until: AwareDatetime = Field(..., description="The end time", title="Until")
-
-
 class StatusEnum(str, Enum):
     active = "active"
     overdue = "overdue"
@@ -41,13 +41,13 @@ class StatusEnum(str, Enum):
     cancelled = "cancelled"
 
 
-class PatrolObs(BaseModel):
+class ErPatrolStatus(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
     )
     status: Optional[List[StatusEnum]] = Field(
-        ["done"],
-        description="list of 'scheduled'/'active'/'overdue'/'done'/'cancelled'",
+        None,
+        description="List comprised of 'active'/'overdue'/'done'/'cancelled'",
         title="Status",
     )
 
@@ -57,18 +57,19 @@ class PatrolEvents(BaseModel):
         extra="forbid",
     )
     event_type: List[str] = Field(
-        ..., description="list of event types by name", title="Event Type"
-    )
-    status: Optional[List[str]] = Field(
-        ["done"],
-        description="list of 'scheduled'/'active'/'overdue'/'done'/'cancelled'",
-        title="Status",
+        ..., description="List of event types by name", title="Event Types"
     )
     drop_null_geometry: Optional[bool] = Field(
         False,
         description="Whether or not to keep events with no geometry data",
         title="Drop Null Geometry",
     )
+
+
+class PatrolAndEventTypes(BaseModel):
+    er_patrol_types: Optional[ErPatrolTypes] = Field(None, title="")
+    er_patrol_status: Optional[ErPatrolStatus] = Field(None, title="")
+    patrol_events: Optional[PatrolEvents] = Field(None, title="")
 
 
 class TimeInterval(str, Enum):
@@ -110,15 +111,15 @@ class TimeDensityMap(BaseModel):
 
 
 class EarthRangerConnection(BaseModel):
-    name: str = Field(..., title="Connection Name")
+    name: str = Field(..., title="Data Source")
 
 
-class Grouper(BaseModel):
-    index_name: str = Field(..., title="Index Name")
+class TemporalGrouper(RootModel[str]):
+    root: str = Field(..., title="Time")
 
 
-class TemporalGrouper(BaseModel):
-    temporal_index: str = Field(..., title="Temporal Index")
+class ValueGrouper(RootModel[str]):
+    root: str = Field(..., title="Category")
 
 
 class TrajectorySegmentFilter(BaseModel):
@@ -156,9 +157,7 @@ class ErClientName(BaseModel):
         extra="forbid",
     )
     data_source: EarthRangerConnection = Field(
-        ...,
-        description="Select one of your configured data sources by name.",
-        title="Data Source",
+        ..., description="Select one of your configured data sources.", title=""
     )
 
 
@@ -166,10 +165,10 @@ class Groupers(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    groupers: Optional[List[Union[Grouper, TemporalGrouper]]] = Field(
+    groupers: Optional[List[Union[ValueGrouper, TemporalGrouper]]] = Field(
         None,
-        description="            Temporal index(es) and/or column(s) to group by. This field is optional.\n            If left unfilled, all data will be presented together in a single group.\n            ",
-        title="Groupers",
+        description="            Specify how the data should be grouped to create the views for your dashboard.\n            This field is optional; if left blank, all the data will appear in a single view.\n            ",
+        title=" ",
     )
 
 
@@ -193,10 +192,7 @@ class PatrolTraj(BaseModel):
     )
 
 
-class FetchAndPreprocessPatrolObservations(BaseModel):
-    patrol_obs: Optional[PatrolObs] = Field(
-        None, title="Get Patrol Observations from EarthRanger"
-    )
+class PreprocessPatrolObservations(BaseModel):
     patrol_traj: Optional[PatrolTraj] = Field(
         None, title="Transform Relocations to Trajectories"
     )
@@ -215,12 +211,9 @@ class FilterPatrolEvents(BaseModel):
     )
 
 
-class FetchAndPreprocessPatrolEvents(BaseModel):
-    patrol_events: Optional[PatrolEvents] = Field(
-        None, title="Get Patrol Events from EarthRanger"
-    )
+class PreprocessPatrolEvents(BaseModel):
     filter_patrol_events: Optional[FilterPatrolEvents] = Field(
-        None, title="Apply Relocation Coordinate Filter"
+        None, title="Apply Coordinate Filter"
     )
 
 
@@ -229,29 +222,29 @@ class FormData(BaseModel):
         extra="forbid",
     )
     workflow_details: Optional[WorkflowDetails] = Field(
-        None, title="Set Workflow Details"
-    )
-    er_client_name: Optional[ErClientName] = Field(
-        None, title="Select EarthRanger Data Source"
-    )
-    er_patrol_types: Optional[ErPatrolTypes] = Field(
-        None, title="Set EarthRanger Patrol Types"
-    )
-    groupers: Optional[Groupers] = Field(None, title="Set Groupers")
-    time_range: Optional[TimeRange] = Field(None, title="Set Time Range Filter")
-    Fetch_and_preprocess_patrol_observations: Optional[
-        FetchAndPreprocessPatrolObservations
-    ] = Field(
         None,
-        alias="Fetch and preprocess patrol observations",
-        description="Fetch patrol observations from EarthRanger, preprocess them into trajectories, and add a temporal index.",
+        description="Add information that will help to differentiate this workflow from another.",
+        title="Workflow Details",
     )
-    Fetch_and_preprocess_patrol_events: Optional[FetchAndPreprocessPatrolEvents] = (
-        Field(
-            None,
-            alias="Fetch and preprocess patrol events",
-            description="Fetch patrol events from EarthRanger, filter them, and add a temporal index.",
-        )
+    er_client_name: Optional[ErClientName] = Field(None, title="Data Source")
+    time_range: Optional[TimeRange] = Field(
+        None, description="Choose the period of time to analyze.", title="Time Range"
+    )
+    Patrol_and_Event_Types: Optional[PatrolAndEventTypes] = Field(
+        None,
+        alias="Patrol and Event Types",
+        description="Select the Patrol and Event types to be analyzed.",
+    )
+    groupers: Optional[Groupers] = Field(None, title="Group Data")
+    Preprocess_patrol_observations: Optional[PreprocessPatrolObservations] = Field(
+        None,
+        alias="Preprocess patrol observations",
+        description="Preprocess patrol observations from EarthRanger.",
+    )
+    Preprocess_patrol_events: Optional[PreprocessPatrolEvents] = Field(
+        None,
+        alias="Preprocess patrol events",
+        description="Preprocess patrol events from EarthRanger.",
     )
     Patrol_events_bar_chart: Optional[PatrolEventsBarChart] = Field(
         None,

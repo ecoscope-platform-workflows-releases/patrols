@@ -13,17 +13,18 @@
 import os
 from ecoscope_workflows_core.tasks.config import set_workflow_details
 from ecoscope_workflows_core.tasks.io import set_er_connection
-from ecoscope_workflows_ext_ecoscope.tasks.io import set_patrol_types
-from ecoscope_workflows_core.tasks.groupby import set_groupers
 from ecoscope_workflows_core.tasks.filter import set_time_range
+from ecoscope_workflows_ext_ecoscope.tasks.io import set_patrol_types
+from ecoscope_workflows_ext_ecoscope.tasks.io import set_patrol_status
 from ecoscope_workflows_ext_ecoscope.tasks.io import get_patrol_observations
+from ecoscope_workflows_ext_ecoscope.tasks.io import get_patrol_events
+from ecoscope_workflows_core.tasks.groupby import set_groupers
 from ecoscope_workflows_ext_ecoscope.tasks.preprocessing import process_relocations
 from ecoscope_workflows_ext_ecoscope.tasks.preprocessing import (
     relocations_to_trajectory,
 )
 from ecoscope_workflows_core.tasks.transformation import add_temporal_index
 from ecoscope_workflows_core.tasks.transformation import map_columns
-from ecoscope_workflows_ext_ecoscope.tasks.io import get_patrol_events
 from ecoscope_workflows_ext_ecoscope.tasks.transformation import (
     apply_reloc_coord_filter,
 )
@@ -51,7 +52,7 @@ from ecoscope_workflows_ext_ecoscope.tasks.results import create_polygon_layer
 from ecoscope_workflows_core.tasks.results import gather_dashboard
 
 # %% [markdown]
-# ## Set Workflow Details
+# ## Workflow Details
 
 # %%
 # parameters
@@ -74,7 +75,7 @@ workflow_details = (
 
 
 # %% [markdown]
-# ## Select EarthRanger Data Source
+# ## Data Source
 
 # %%
 # parameters
@@ -95,49 +96,7 @@ er_client_name = (
 
 
 # %% [markdown]
-# ## Set EarthRanger Patrol Types
-
-# %%
-# parameters
-
-er_patrol_types_params = dict(
-    patrol_types=...,
-)
-
-# %%
-# call the task
-
-
-er_patrol_types = (
-    set_patrol_types.handle_errors(task_instance_id="er_patrol_types")
-    .partial(**er_patrol_types_params)
-    .call()
-)
-
-
-# %% [markdown]
-# ## Set Groupers
-
-# %%
-# parameters
-
-groupers_params = dict(
-    groupers=...,
-)
-
-# %%
-# call the task
-
-
-groupers = (
-    set_groupers.handle_errors(task_instance_id="groupers")
-    .partial(**groupers_params)
-    .call()
-)
-
-
-# %% [markdown]
-# ## Set Time Range Filter
+# ## Time Range
 
 # %%
 # parameters
@@ -159,14 +118,54 @@ time_range = (
 
 
 # %% [markdown]
-# ## Get Patrol Observations from EarthRanger
+# ##
 
 # %%
 # parameters
 
-patrol_obs_params = dict(
+er_patrol_types_params = dict(
+    patrol_types=...,
+)
+
+# %%
+# call the task
+
+
+er_patrol_types = (
+    set_patrol_types.handle_errors(task_instance_id="er_patrol_types")
+    .partial(**er_patrol_types_params)
+    .call()
+)
+
+
+# %% [markdown]
+# ##
+
+# %%
+# parameters
+
+er_patrol_status_params = dict(
     status=...,
 )
+
+# %%
+# call the task
+
+
+er_patrol_status = (
+    set_patrol_status.handle_errors(task_instance_id="er_patrol_status")
+    .partial(**er_patrol_status_params)
+    .call()
+)
+
+
+# %% [markdown]
+# ##
+
+# %%
+# parameters
+
+patrol_obs_params = dict()
 
 # %%
 # call the task
@@ -178,10 +177,62 @@ patrol_obs = (
         client=er_client_name,
         time_range=time_range,
         patrol_type=er_patrol_types,
+        status=er_patrol_status,
         include_patrol_details=True,
         raise_on_empty=True,
         **patrol_obs_params,
     )
+    .call()
+)
+
+
+# %% [markdown]
+# ##
+
+# %%
+# parameters
+
+patrol_events_params = dict(
+    event_type=...,
+    drop_null_geometry=...,
+)
+
+# %%
+# call the task
+
+
+patrol_events = (
+    get_patrol_events.handle_errors(task_instance_id="patrol_events")
+    .partial(
+        client=er_client_name,
+        time_range=time_range,
+        patrol_type=er_patrol_types,
+        status=er_patrol_status,
+        truncate_to_time_range=True,
+        raise_on_empty=True,
+        **patrol_events_params,
+    )
+    .call()
+)
+
+
+# %% [markdown]
+# ## Group Data
+
+# %%
+# parameters
+
+groupers_params = dict(
+    groupers=...,
+)
+
+# %%
+# call the task
+
+
+groupers = (
+    set_groupers.handle_errors(task_instance_id="groupers")
+    .partial(**groupers_params)
     .call()
 )
 
@@ -301,37 +352,7 @@ traj_rename_grouper_columns = (
 
 
 # %% [markdown]
-# ## Get Patrol Events from EarthRanger
-
-# %%
-# parameters
-
-patrol_events_params = dict(
-    event_type=...,
-    status=...,
-    drop_null_geometry=...,
-)
-
-# %%
-# call the task
-
-
-patrol_events = (
-    get_patrol_events.handle_errors(task_instance_id="patrol_events")
-    .partial(
-        client=er_client_name,
-        time_range=time_range,
-        patrol_type=er_patrol_types,
-        truncate_to_time_range=True,
-        raise_on_empty=True,
-        **patrol_events_params,
-    )
-    .call()
-)
-
-
-# %% [markdown]
-# ## Apply Relocation Coordinate Filter
+# ## Apply Coordinate Filter
 
 # %%
 # parameters
