@@ -5,15 +5,15 @@
       "schema": {
         "properties": {
           "TemporalGrouper_%B": {
-            "default": "February",
+            "default": "January",
             "oneOf": [
-              {
-                "const": "February",
-                "title": "February"
-              },
               {
                 "const": "January",
                 "title": "January"
+              },
+              {
+                "const": "February",
+                "title": "February"
               }
             ],
             "title": "Month",
