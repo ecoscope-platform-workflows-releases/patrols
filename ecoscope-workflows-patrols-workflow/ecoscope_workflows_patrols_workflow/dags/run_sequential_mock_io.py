@@ -209,7 +209,12 @@ def main(params: Params):
     filter_patrol_events = (
         apply_reloc_coord_filter.validate()
         .handle_errors(task_instance_id="filter_patrol_events")
-        .partial(df=patrol_events, **(params_dict.get("filter_patrol_events") or {}))
+        .partial(
+            df=patrol_events,
+            roi_gdf=None,
+            roi_name=None,
+            **(params_dict.get("filter_patrol_events") or {}),
+        )
         .call()
     )
 

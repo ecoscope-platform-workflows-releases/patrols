@@ -309,6 +309,8 @@ def main(params: Params):
             .set_executor("lithops"),
             partial={
                 "df": DependsOn("patrol_events"),
+                "roi_gdf": None,
+                "roi_name": None,
             }
             | (params_dict.get("filter_patrol_events") or {}),
             method="call",
