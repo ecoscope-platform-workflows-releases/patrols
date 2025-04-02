@@ -66,6 +66,13 @@ class PatrolEvents(BaseModel):
     )
 
 
+class SetPatrolTrajColorColumn(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    var: str = Field(..., title="")
+
+
 class TimeInterval(str, Enum):
     year = "year"
     month = "month"
@@ -117,7 +124,7 @@ class TrajectorySegmentFilter(BaseModel):
         1, description="Minimum Segment Duration in Seconds", title="Min Time Secs"
     )
     max_time_secs: Optional[float] = Field(
-        3600, description="Maximum Segment Duration in Seconds", title="Max Time Secs"
+        57600, description="Maximum Segment Duration in Seconds", title="Max Time Secs"
     )
     min_speed_kmhr: Optional[float] = Field(
         0.0001,
@@ -125,7 +132,7 @@ class TrajectorySegmentFilter(BaseModel):
         title="Min Speed Kmhr",
     )
     max_speed_kmhr: Optional[float] = Field(
-        120,
+        300,
         description="Maximum Segment Speed in Kilometers per Hour",
         title="Max Speed Kmhr",
     )
@@ -166,9 +173,9 @@ class PatrolTraj(BaseModel):
                 "min_length_meters": 0.001,
                 "max_length_meters": 10000,
                 "min_time_secs": 1,
-                "max_time_secs": 3600,
+                "max_time_secs": 57600,
                 "min_speed_kmhr": 0.0001,
-                "max_speed_kmhr": 120,
+                "max_speed_kmhr": 300,
             }
         ),
         description="Trajectory Segments outside these bounds will be removed",
@@ -206,6 +213,9 @@ class Params(BaseModel):
     er_patrol_status: Optional[ErPatrolStatus] = Field(None, title="")
     patrol_events: Optional[PatrolEvents] = Field(None, title="")
     groupers: Optional[Groupers] = Field(None, title="Group Data")
+    set_patrol_traj_color_column: Optional[SetPatrolTrajColorColumn] = Field(
+        None, title="Style Trajectory By Category"
+    )
     patrol_traj: Optional[PatrolTraj] = Field(
         None, title="Transform Relocations to Trajectories"
     )

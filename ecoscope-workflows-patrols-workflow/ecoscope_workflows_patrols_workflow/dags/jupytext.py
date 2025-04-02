@@ -20,15 +20,16 @@ from ecoscope_workflows_ext_ecoscope.tasks.io import get_patrol_observations
 from ecoscope_workflows_ext_ecoscope.tasks.io import get_patrol_events
 from ecoscope_workflows_core.tasks.groupby import set_groupers
 from ecoscope_workflows_ext_ecoscope.tasks.preprocessing import process_relocations
+from ecoscope_workflows_core.tasks.config import set_string_var
 from ecoscope_workflows_ext_ecoscope.tasks.preprocessing import (
     relocations_to_trajectory,
 )
 from ecoscope_workflows_core.tasks.transformation import add_temporal_index
 from ecoscope_workflows_core.tasks.transformation import map_columns
+from ecoscope_workflows_ext_ecoscope.tasks.transformation import apply_color_map
 from ecoscope_workflows_ext_ecoscope.tasks.transformation import (
     apply_reloc_coord_filter,
 )
-from ecoscope_workflows_ext_ecoscope.tasks.transformation import apply_color_map
 from ecoscope_workflows_core.tasks.transformation import convert_column_values_to_string
 from ecoscope_workflows_core.tasks.groupby import split_groups
 from ecoscope_workflows_ext_ecoscope.tasks.results import create_point_layer
@@ -259,6 +260,8 @@ patrol_reloc = (
             "patrol_end_time",
             "patrol_type__value",
             "patrol_serial_number",
+            "patrol_status",
+            "patrol_subject",
             "groupby_col",
             "fixtime",
             "junk_status",
@@ -272,6 +275,27 @@ patrol_reloc = (
         ],
         **patrol_reloc_params,
     )
+    .call()
+)
+
+
+# %% [markdown]
+# ## Style Trajectory By Category
+
+# %%
+# parameters
+
+set_patrol_traj_color_column_params = dict(
+    var=...,
+)
+
+# %%
+# call the task
+
+
+set_patrol_traj_color_column = (
+    set_string_var.handle_errors(task_instance_id="set_patrol_traj_color_column")
+    .partial(**set_patrol_traj_color_column_params)
     .call()
 )
 
@@ -344,8 +368,52 @@ traj_rename_grouper_columns = (
         rename_columns={
             "extra__patrol_type__value": "patrol_type",
             "extra__patrol_serial_number": "patrol_serial_number",
+            "extra__patrol_status": "patrol_status",
+            "extra__patrol_subject": "patrol_subject",
         },
         **traj_rename_grouper_columns_params,
+    )
+    .call()
+)
+
+
+# %% [markdown]
+# ## Patrol Traj Colormap
+
+# %%
+# parameters
+
+traj_colormap_params = dict()
+
+# %%
+# call the task
+
+
+traj_colormap = (
+    apply_color_map.handle_errors(task_instance_id="traj_colormap")
+    .partial(
+        df=traj_rename_grouper_columns,
+        colormap=[
+            "#FF9600",
+            "#F23B0E",
+            "#A100CB",
+            "#F04564",
+            "#03421A",
+            "#3089FF",
+            "#E26FFF",
+            "#8C1700",
+            "#002960",
+            "#FFD000",
+            "#B62879",
+            "#680078",
+            "#005A56",
+            "#0056C7",
+            "#331878",
+            "#E76826",
+        ],
+        input_column_name=set_patrol_traj_color_column,
+        output_column_name="patrol_traj_colormap",
+        **traj_colormap_params,
     )
     .call()
 )
@@ -371,7 +439,9 @@ filter_patrol_events_params = dict(
 
 filter_patrol_events = (
     apply_reloc_coord_filter.handle_errors(task_instance_id="filter_patrol_events")
-    .partial(df=patrol_events, **filter_patrol_events_params)
+    .partial(
+        df=patrol_events, roi_gdf=None, roi_name=None, **filter_patrol_events_params
+    )
     .call()
 )
 
@@ -444,7 +514,7 @@ patrol_traj_cols_to_string = (
         task_instance_id="patrol_traj_cols_to_string"
     )
     .partial(
-        df=traj_rename_grouper_columns,
+        df=traj_colormap,
         columns=["patrol_serial_number", "patrol_type"],
         **patrol_traj_cols_to_string_params,
     )
@@ -535,7 +605,7 @@ patrol_events_map_layers = (
     create_point_layer.handle_errors(task_instance_id="patrol_events_map_layers")
     .partial(
         layer_style={"fill_color_column": "event_type_colormap"},
-        legend={"label_column": "event_type", "color_column": "event_type_colormap"},
+        legend=None,
         tooltip_columns=["id", "time", "event_type", "patrol_segment_id"],
         **patrol_events_map_layers_params,
     )
@@ -566,12 +636,22 @@ patrol_traj_map_layers = (
             "pickable": True,
             "get_color": None,
             "get_width": 3.0,
-            "color_column": None,
+            "color_column": "patrol_traj_colormap",
             "width_units": "pixels",
             "cap_rounded": True,
         },
-        legend=None,
-        tooltip_columns=["extra__patrol_id", "patrol_type", "speed"],
+        legend={
+            "label_column": set_patrol_traj_color_column,
+            "color_column": "patrol_traj_colormap",
+        },
+        tooltip_columns=[
+            "extra__patrol_id",
+            "patrol_type",
+            "patrol_status",
+            "patrol_subject",
+            "patrol_serial_number",
+            "speed",
+        ],
         **patrol_traj_map_layers_params,
     )
     .mapvalues(argnames=["geodataframe"], argvalues=split_patrol_traj_groups)
