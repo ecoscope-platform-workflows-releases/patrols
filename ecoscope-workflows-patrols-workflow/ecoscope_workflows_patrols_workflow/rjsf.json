@@ -170,6 +170,40 @@
       "description": "Preprocess patrol observations from EarthRanger.",
       "ecoscope:task_group": true,
       "properties": {
+        "set_patrol_traj_color_column": {
+          "additionalProperties": false,
+          "properties": {
+            "var": {
+              "title": "Category",
+              "type": "string",
+              "oneOf": [
+                {
+                  "const": "patrol_type",
+                  "title": "Patrol Type"
+                },
+                {
+                  "const": "patrol_status",
+                  "title": "Patrol Status"
+                },
+                {
+                  "const": "patrol_subject",
+                  "title": "Patrol Subject"
+                },
+                {
+                  "const": "patrol_serial_number",
+                  "title": "Patrol Serial Number"
+                }
+              ],
+              "description": "Select a category to color and differentiate patrol trajectories.",
+              "default": "patrol_type"
+            }
+          },
+          "required": [
+            "var"
+          ],
+          "type": "object",
+          "title": "Style Trajectory By Category"
+        },
         "patrol_traj": {
           "additionalProperties": false,
           "properties": {
@@ -183,9 +217,9 @@
                 "min_length_meters": 0.001,
                 "max_length_meters": 10000,
                 "min_time_secs": 1,
-                "max_time_secs": 3600,
+                "max_time_secs": 57600,
                 "min_speed_kmhr": 0.0001,
-                "max_speed_kmhr": 120
+                "max_speed_kmhr": 300
               },
               "title": "Trajectory Segment Filter",
               "description": "Trajectory Segments outside these bounds will be removed",
@@ -199,6 +233,7 @@
       },
       "uiSchema": {
         "ui:order": [
+          "set_patrol_traj_color_column",
           "patrol_traj"
         ]
       }
@@ -419,7 +454,7 @@
           "type": "number"
         },
         "max_time_secs": {
-          "default": 3600,
+          "default": 57600,
           "description": "Maximum Segment Duration in Seconds",
           "ecoscope:advanced": true,
           "title": "Max Time Secs",
@@ -433,7 +468,7 @@
           "type": "number"
         },
         "max_speed_kmhr": {
-          "default": 120,
+          "default": 300,
           "description": "Maximum Segment Speed in Kilometers per Hour",
           "ecoscope:advanced": true,
           "title": "Max Speed Kmhr",

@@ -13,15 +13,16 @@ from ecoscope_workflows_ext_ecoscope.tasks.io import get_patrol_observations
 from ecoscope_workflows_ext_ecoscope.tasks.io import get_patrol_events
 from ecoscope_workflows_core.tasks.groupby import set_groupers
 from ecoscope_workflows_ext_ecoscope.tasks.preprocessing import process_relocations
+from ecoscope_workflows_core.tasks.config import set_string_var
 from ecoscope_workflows_ext_ecoscope.tasks.preprocessing import (
     relocations_to_trajectory,
 )
 from ecoscope_workflows_core.tasks.transformation import add_temporal_index
 from ecoscope_workflows_core.tasks.transformation import map_columns
+from ecoscope_workflows_ext_ecoscope.tasks.transformation import apply_color_map
 from ecoscope_workflows_ext_ecoscope.tasks.transformation import (
     apply_reloc_coord_filter,
 )
-from ecoscope_workflows_ext_ecoscope.tasks.transformation import apply_color_map
 from ecoscope_workflows_core.tasks.transformation import convert_column_values_to_string
 from ecoscope_workflows_core.tasks.groupby import split_groups
 from ecoscope_workflows_ext_ecoscope.tasks.results import create_point_layer
@@ -70,18 +71,26 @@ def main(params: Params):
         ],
         "groupers": [],
         "patrol_reloc": ["patrol_obs"],
+        "set_patrol_traj_color_column": [],
         "patrol_traj": ["patrol_reloc"],
         "traj_add_temporal_index": ["patrol_traj", "groupers"],
         "traj_rename_grouper_columns": ["traj_add_temporal_index"],
+        "traj_colormap": [
+            "traj_rename_grouper_columns",
+            "set_patrol_traj_color_column",
+        ],
         "filter_patrol_events": ["patrol_events"],
         "pe_add_temporal_index": ["filter_patrol_events", "groupers"],
         "pe_colormap": ["pe_add_temporal_index"],
-        "patrol_traj_cols_to_string": ["traj_rename_grouper_columns"],
+        "patrol_traj_cols_to_string": ["traj_colormap"],
         "pe_cols_to_string": ["pe_colormap"],
         "split_patrol_traj_groups": ["patrol_traj_cols_to_string", "groupers"],
         "split_pe_groups": ["pe_cols_to_string", "groupers"],
         "patrol_events_map_layers": ["split_pe_groups"],
-        "patrol_traj_map_layers": ["split_patrol_traj_groups"],
+        "patrol_traj_map_layers": [
+            "set_patrol_traj_color_column",
+            "split_patrol_traj_groups",
+        ],
         "combined_traj_and_pe_map_layers": [
             "patrol_traj_map_layers",
             "patrol_events_map_layers",
@@ -228,6 +237,8 @@ def main(params: Params):
                     "patrol_end_time",
                     "patrol_type__value",
                     "patrol_serial_number",
+                    "patrol_status",
+                    "patrol_subject",
                     "groupby_col",
                     "fixtime",
                     "junk_status",
@@ -241,6 +252,13 @@ def main(params: Params):
                 ],
             }
             | (params_dict.get("patrol_reloc") or {}),
+            method="call",
+        ),
+        "set_patrol_traj_color_column": Node(
+            async_task=set_string_var.validate()
+            .handle_errors(task_instance_id="set_patrol_traj_color_column")
+            .set_executor("lithops"),
+            partial=(params_dict.get("set_patrol_traj_color_column") or {}),
             method="call",
         ),
         "patrol_traj": Node(
@@ -278,9 +296,41 @@ def main(params: Params):
                 "rename_columns": {
                     "extra__patrol_type__value": "patrol_type",
                     "extra__patrol_serial_number": "patrol_serial_number",
+                    "extra__patrol_status": "patrol_status",
+                    "extra__patrol_subject": "patrol_subject",
                 },
             }
             | (params_dict.get("traj_rename_grouper_columns") or {}),
+            method="call",
+        ),
+        "traj_colormap": Node(
+            async_task=apply_color_map.validate()
+            .handle_errors(task_instance_id="traj_colormap")
+            .set_executor("lithops"),
+            partial={
+                "df": DependsOn("traj_rename_grouper_columns"),
+                "colormap": [
+                    "#FF9600",
+                    "#F23B0E",
+                    "#A100CB",
+                    "#F04564",
+                    "#03421A",
+                    "#3089FF",
+                    "#E26FFF",
+                    "#8C1700",
+                    "#002960",
+                    "#FFD000",
+                    "#B62879",
+                    "#680078",
+                    "#005A56",
+                    "#0056C7",
+                    "#331878",
+                    "#E76826",
+                ],
+                "input_column_name": DependsOn("set_patrol_traj_color_column"),
+                "output_column_name": "patrol_traj_colormap",
+            }
+            | (params_dict.get("traj_colormap") or {}),
             method="call",
         ),
         "filter_patrol_events": Node(
@@ -289,6 +339,8 @@ def main(params: Params):
             .set_executor("lithops"),
             partial={
                 "df": DependsOn("patrol_events"),
+                "roi_gdf": None,
+                "roi_name": None,
             }
             | (params_dict.get("filter_patrol_events") or {}),
             method="call",
@@ -325,7 +377,7 @@ def main(params: Params):
             .handle_errors(task_instance_id="patrol_traj_cols_to_string")
             .set_executor("lithops"),
             partial={
-                "df": DependsOn("traj_rename_grouper_columns"),
+                "df": DependsOn("traj_colormap"),
                 "columns": ["patrol_serial_number", "patrol_type"],
             }
             | (params_dict.get("patrol_traj_cols_to_string") or {}),
@@ -370,10 +422,7 @@ def main(params: Params):
             .set_executor("lithops"),
             partial={
                 "layer_style": {"fill_color_column": "event_type_colormap"},
-                "legend": {
-                    "label_column": "event_type",
-                    "color_column": "event_type_colormap",
-                },
+                "legend": None,
                 "tooltip_columns": ["id", "time", "event_type", "patrol_segment_id"],
             }
             | (params_dict.get("patrol_events_map_layers") or {}),
@@ -394,12 +443,22 @@ def main(params: Params):
                     "pickable": True,
                     "get_color": None,
                     "get_width": 3.0,
-                    "color_column": None,
+                    "color_column": "patrol_traj_colormap",
                     "width_units": "pixels",
                     "cap_rounded": True,
                 },
-                "legend": None,
-                "tooltip_columns": ["extra__patrol_id", "patrol_type", "speed"],
+                "legend": {
+                    "label_column": DependsOn("set_patrol_traj_color_column"),
+                    "color_column": "patrol_traj_colormap",
+                },
+                "tooltip_columns": [
+                    "extra__patrol_id",
+                    "patrol_type",
+                    "patrol_status",
+                    "patrol_subject",
+                    "patrol_serial_number",
+                    "speed",
+                ],
             }
             | (params_dict.get("patrol_traj_map_layers") or {}),
             method="mapvalues",

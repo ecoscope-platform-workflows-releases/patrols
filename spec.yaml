@@ -1,12 +1,25 @@
 id: patrols
 requirements:
   - name: ecoscope-workflows-core
-    version: 0.0.65
+    version: 0.0.67
     channel: https://repo.prefix.dev/ecoscope-workflows/
   - name: ecoscope-workflows-ext-ecoscope
-    version: 0.0.65
+    version: 0.0.67
     channel: https://repo.prefix.dev/ecoscope-workflows/
 rjsf-overrides:
+  properties:
+    Preprocess patrol observations.properties.set_patrol_traj_color_column.properties.var.oneOf:
+      - const: patrol_type
+        title: Patrol Type
+      - const: patrol_status
+        title: Patrol Status
+      - const: patrol_subject
+        title: Patrol Subject
+      - const: patrol_serial_number
+        title: Patrol Serial Number
+    Preprocess patrol observations.properties.set_patrol_traj_color_column.properties.var.description: Select a category to color and differentiate patrol trajectories.
+    Preprocess patrol observations.properties.set_patrol_traj_color_column.properties.var.title: Category
+    Preprocess patrol observations.properties.set_patrol_traj_color_column.properties.var.default: patrol_type
   $defs:
     ValueGrouper.oneOf:
       - const: patrol_serial_number
@@ -69,6 +82,8 @@ workflow:
             - patrol_end_time
             - patrol_type__value
             - patrol_serial_number
+            - patrol_status
+            - patrol_subject
             - groupby_col
             - fixtime
             - junk_status
@@ -81,6 +96,9 @@ workflow:
               y: 0.000000
             - x: 1.000000
               y: 1.000000
+      - name: Style Trajectory By Category
+        id: set_patrol_traj_color_column
+        task: set_string_var
       - name: Transform Relocations to Trajectories
         id: patrol_traj
         task: relocations_to_trajectory
@@ -105,6 +123,32 @@ workflow:
           rename_columns:
             extra__patrol_type__value: patrol_type
             extra__patrol_serial_number: patrol_serial_number
+            extra__patrol_status: patrol_status
+            extra__patrol_subject: patrol_subject
+      - name: Patrol Traj Colormap
+        id: traj_colormap
+        task: apply_color_map
+        partial:
+          df: ${{ workflow.traj_rename_grouper_columns.return }}
+          colormap:
+            - '#FF9600'
+            - '#F23B0E'
+            - '#A100CB'
+            - '#F04564'
+            - '#03421A'
+            - '#3089FF'
+            - '#E26FFF'
+            - '#8C1700'
+            - '#002960'
+            - '#FFD000'
+            - '#B62879'
+            - '#680078'
+            - '#005A56'
+            - '#0056C7'
+            - '#331878'
+            - '#E76826'
+          input_column_name: ${{ workflow.set_patrol_traj_color_column.return }}
+          output_column_name: patrol_traj_colormap
   - title: Preprocess patrol events
     type: task-group
     description: Preprocess patrol events from EarthRanger.
@@ -114,6 +158,8 @@ workflow:
         task: apply_reloc_coord_filter
         partial:
           df: ${{ workflow.patrol_events.return }}
+          roi_gdf: null
+          roi_name: null
       - name: Add temporal index to Patrol Events
         id: pe_add_temporal_index
         task: add_temporal_index
@@ -135,7 +181,7 @@ workflow:
     id: patrol_traj_cols_to_string
     task: convert_column_values_to_string
     partial:
-      df: ${{ workflow.traj_rename_grouper_columns.return }}
+      df: ${{ workflow.traj_colormap.return }}
       columns:
         - patrol_serial_number
         - patrol_type
@@ -169,9 +215,7 @@ workflow:
         partial:
           layer_style:
             fill_color_column: event_type_colormap
-          legend:
-            label_column: event_type
-            color_column: event_type_colormap
+          legend: null
           tooltip_columns:
             - id
             - time
@@ -190,13 +234,18 @@ workflow:
             pickable: true
             get_color: null
             get_width: 3.000000
-            color_column: null
+            color_column: patrol_traj_colormap
             width_units: pixels
             cap_rounded: true
-          legend: null
+          legend:
+            label_column: ${{ workflow.set_patrol_traj_color_column.return }}
+            color_column: patrol_traj_colormap
           tooltip_columns:
             - extra__patrol_id
             - patrol_type
+            - patrol_status
+            - patrol_subject
+            - patrol_serial_number
             - speed
         mapvalues:
           argnames: geodataframe
