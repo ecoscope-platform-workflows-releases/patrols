@@ -25,6 +25,8 @@ all-grouper:
         min_time_secs: 1.0
         max_speed_kmhr: 120.0
         min_speed_kmhr: 0.0001
+    set_patrol_traj_color_column:
+      var: "patrol_subject"
     patrol_events:
       event_type: []
       drop_null_geometry: false
@@ -69,6 +71,8 @@ month-grouper:
         min_time_secs: 1.0
         max_speed_kmhr: 120.0
         min_speed_kmhr: 0.0001
+    set_patrol_traj_color_column:
+      var: "patrol_subject"
     patrol_events:
       event_type: []
       drop_null_geometry: false
@@ -114,6 +118,8 @@ value-grouper:
         min_time_secs: 1.0
         max_speed_kmhr: 120.0
         min_speed_kmhr: 0.0001
+    set_patrol_traj_color_column:
+      var: "patrol_subject"
     patrol_events:
       event_type: []
       drop_null_geometry: false
@@ -161,6 +167,8 @@ task-instance-error:
         min_time_secs: 1.0
         max_speed_kmhr: 120.0
         min_speed_kmhr: 0.0001
+    set_patrol_traj_color_column:
+      var: "patrol_subject"
     patrol_events:
       event_type: []
       drop_null_geometry: false
