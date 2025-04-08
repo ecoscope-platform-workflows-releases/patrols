@@ -291,6 +291,58 @@
         ]
       }
     },
+    "base_map_defs": {
+      "additionalProperties": false,
+      "properties": {
+        "base_maps": {
+          "default": [
+            {
+              "layer_name": "TERRAIN",
+              "url": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
+              "opacity": 1
+            },
+            {
+              "layer_name": "SATELLITE",
+              "url": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+              "opacity": 0.5
+            }
+          ],
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/OpenStreetMap"
+              },
+              {
+                "$ref": "#/$defs/Roadmap"
+              },
+              {
+                "$ref": "#/$defs/Satellite"
+              },
+              {
+                "$ref": "#/$defs/Terrain"
+              },
+              {
+                "$ref": "#/$defs/LandDx"
+              },
+              {
+                "$ref": "#/$defs/Hillshade"
+              },
+              {
+                "$ref": "#/$defs/CustomTileLayer"
+              }
+            ],
+            "title": "Base Layer or Custom Layer"
+          },
+          "title": "Set Map Base Layers",
+          "type": "array",
+          "description": "Select tile layers to use as base layers in map outputs. The first layer in the list will be the bottommost layer displayed.",
+          "ecoscope:advanced": true
+        }
+      },
+      "type": "object",
+      "required": [],
+      "title": "Base Maps"
+    },
     "Patrol events bar chart": {
       "type": "object",
       "description": "Create the patrol events bar chart.",
@@ -495,6 +547,177 @@
       ],
       "title": "Coordinate",
       "type": "object"
+    },
+    "CustomTileLayer": {
+      "properties": {
+        "custom_url": {
+          "default": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+          "description": "The URL of a publicly accessible tiled raster service.",
+          "pattern": "https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}([-a-zA-Z0-9()@:%_\\+.~#?&//=\\{\\}]*)",
+          "title": "Custom Layer URL",
+          "type": "string"
+        },
+        "custom_opacity": {
+          "default": 1,
+          "description": "Set layer transparency from 1 (fully visible) to 0 (hidden).",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Custom Layer Opacity",
+          "type": "number"
+        },
+        "custom_max_zoom": {
+          "default": null,
+          "description": "Set the maximum zoom level to fetch tiles for.",
+          "title": "Custom Layer Max Zoom",
+          "type": "integer"
+        },
+        "custom_min_zoom": {
+          "default": null,
+          "description": "Set the minimum zoom level to fetch tiles for.",
+          "title": "Custom Layer Min Zoom",
+          "type": "integer"
+        }
+      },
+      "title": "Custom Layer (Advanced)",
+      "type": "object"
+    },
+    "Hillshade": {
+      "properties": {
+        "url": {
+          "const": "https://server.arcgisonline.com/arcgis/rest/services/Elevation/World_Hillshade/MapServer/tile/{z}/{y}/{x}",
+          "default": "https://server.arcgisonline.com/arcgis/rest/services/Elevation/World_Hillshade/MapServer/tile/{z}/{y}/{x}",
+          "enum": [
+            "https://server.arcgisonline.com/arcgis/rest/services/Elevation/World_Hillshade/MapServer/tile/{z}/{y}/{x}"
+          ],
+          "title": "Preset Layer URL",
+          "type": "string"
+        },
+        "opacity": {
+          "default": 1,
+          "description": "Set layer transparency from 1 (fully visible) to 0 (hidden).",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Layer Opacity",
+          "type": "number"
+        }
+      },
+      "title": "USGS Hillshade",
+      "type": "object"
+    },
+    "LandDx": {
+      "properties": {
+        "url": {
+          "const": "https://tiles.arcgis.com/tiles/POUcpLYXNckpLjnY/arcgis/rest/services/landDx_basemap_tiles_mapservice/MapServer/tile/{z}/{y}/{x}",
+          "default": "https://tiles.arcgis.com/tiles/POUcpLYXNckpLjnY/arcgis/rest/services/landDx_basemap_tiles_mapservice/MapServer/tile/{z}/{y}/{x}",
+          "enum": [
+            "https://tiles.arcgis.com/tiles/POUcpLYXNckpLjnY/arcgis/rest/services/landDx_basemap_tiles_mapservice/MapServer/tile/{z}/{y}/{x}"
+          ],
+          "title": "Preset Layer URL",
+          "type": "string"
+        },
+        "opacity": {
+          "default": 1,
+          "description": "Set layer transparency from 1 (fully visible) to 0 (hidden).",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Layer Opacity",
+          "type": "number"
+        }
+      },
+      "title": "LandDx",
+      "type": "object"
+    },
+    "OpenStreetMap": {
+      "properties": {
+        "url": {
+          "const": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+          "default": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+          "enum": [
+            "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+          ],
+          "title": "Preset Layer URL",
+          "type": "string"
+        },
+        "opacity": {
+          "default": 1,
+          "description": "Set layer transparency from 1 (fully visible) to 0 (hidden).",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Layer Opacity",
+          "type": "number"
+        }
+      },
+      "title": "Open Street Map",
+      "type": "object"
+    },
+    "Roadmap": {
+      "properties": {
+        "url": {
+          "const": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
+          "default": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
+          "enum": [
+            "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
+          ],
+          "title": "Preset Layer URL",
+          "type": "string"
+        },
+        "opacity": {
+          "default": 1,
+          "description": "Set layer transparency from 1 (fully visible) to 0 (hidden).",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Layer Opacity",
+          "type": "number"
+        }
+      },
+      "title": "Roadmap",
+      "type": "object"
+    },
+    "Satellite": {
+      "properties": {
+        "url": {
+          "const": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+          "default": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+          "enum": [
+            "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+          ],
+          "title": "Preset Layer URL",
+          "type": "string"
+        },
+        "opacity": {
+          "default": 1,
+          "description": "Set layer transparency from 1 (fully visible) to 0 (hidden).",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Layer Opacity",
+          "type": "number"
+        }
+      },
+      "title": "Satellite",
+      "type": "object"
+    },
+    "Terrain": {
+      "properties": {
+        "url": {
+          "const": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
+          "default": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
+          "enum": [
+            "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
+          ],
+          "title": "Preset Layer URL",
+          "type": "string"
+        },
+        "opacity": {
+          "default": 1,
+          "description": "Set layer transparency from 1 (fully visible) to 0 (hidden).",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Layer Opacity",
+          "type": "number"
+        }
+      },
+      "title": "Terrain",
+      "type": "object"
     }
   },
   "additionalProperties": false,
@@ -507,6 +730,7 @@
       "groupers",
       "Preprocess patrol observations",
       "Preprocess patrol events",
+      "base_map_defs",
       "Patrol events bar chart",
       "Time Density Map"
     ]

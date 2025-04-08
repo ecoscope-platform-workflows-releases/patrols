@@ -42,7 +42,7 @@ async def test_iframes(
     check: pytest_check.context_manager.CheckContextManager,
 ):
     screenshots = await asyncio.gather(*screenshot_coros)
-    assert len(screenshots) >= 1, "No screenshots taken"
+    assert len(screenshots) == len(screenshot_coros)
     for widget_title, actual_png in screenshots:
         with check:
             assert actual_png == snapshot_png(name=widget_title.replace(" ", "_"))

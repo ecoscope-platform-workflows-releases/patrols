@@ -1,10 +1,10 @@
 id: patrols
 requirements:
   - name: ecoscope-workflows-core
-    version: 0.0.67
+    version: 0.0.68
     channel: https://repo.prefix.dev/ecoscope-workflows/
   - name: ecoscope-workflows-ext-ecoscope
-    version: 0.0.67
+    version: 0.0.68
     channel: https://repo.prefix.dev/ecoscope-workflows/
 rjsf-overrides:
   properties:
@@ -205,6 +205,9 @@ workflow:
     partial:
       df: ${{ workflow.pe_cols_to_string.return }}
       groupers: ${{ workflow.groupers.return }}
+  - name: Base Maps
+    id: base_map_defs
+    task: set_base_maps
   - title: Patrol Events and Trajectories Map
     type: task-group
     description: Create a combined patrol trajectories and events map.
@@ -261,10 +264,7 @@ workflow:
         id: traj_patrol_events_ecomap
         task: draw_ecomap
         partial:
-          tile_layers:
-            - name: TERRAIN
-            - name: SATELLITE
-              opacity: 0.500000
+          tile_layers: ${{ workflow.base_map_defs.return }}
           north_arrow_style:
             placement: top-left
           legend_style:
@@ -594,10 +594,7 @@ workflow:
         id: td_ecomap
         task: draw_ecomap
         partial:
-          tile_layers:
-            - name: TERRAIN
-            - name: SATELLITE
-              opacity: 0.500000
+          tile_layers: ${{ workflow.base_map_defs.return }}
           north_arrow_style:
             placement: top-left
           legend_style:
