@@ -4,9 +4,17 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import List, Optional, Union
+from typing import List, Literal, Optional, Union
 
-from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, RootModel
+from pydantic import (
+    AwareDatetime,
+    BaseModel,
+    ConfigDict,
+    Field,
+    RootModel,
+    confloat,
+    constr,
+)
 
 
 class WorkflowDetails(BaseModel):
@@ -143,6 +151,140 @@ class Coordinate(BaseModel):
     y: float = Field(..., title="Y")
 
 
+class CustomTileLayer(BaseModel):
+    custom_url: Optional[
+        constr(
+            pattern=r"https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}([-a-zA-Z0-9()@:%_\+.~#?&//=\{\}]*)"
+        )
+    ] = Field(
+        "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        description="The URL of a publicly accessible tiled raster service.",
+        title="Custom Layer URL",
+    )
+    custom_opacity: Optional[confloat(ge=0.0, le=1.0)] = Field(
+        1,
+        description="Set layer transparency from 1 (fully visible) to 0 (hidden).",
+        title="Custom Layer Opacity",
+    )
+    custom_max_zoom: Optional[int] = Field(
+        None,
+        description="Set the maximum zoom level to fetch tiles for.",
+        title="Custom Layer Max Zoom",
+    )
+    custom_min_zoom: Optional[int] = Field(
+        None,
+        description="Set the minimum zoom level to fetch tiles for.",
+        title="Custom Layer Min Zoom",
+    )
+
+
+class Url(str, Enum):
+    https___server_arcgisonline_com_arcgis_rest_services_Elevation_World_Hillshade_MapServer_tile__z___y___x_ = "https://server.arcgisonline.com/arcgis/rest/services/Elevation/World_Hillshade/MapServer/tile/{z}/{y}/{x}"
+
+
+class Hillshade(BaseModel):
+    url: Literal[
+        "https://server.arcgisonline.com/arcgis/rest/services/Elevation/World_Hillshade/MapServer/tile/{z}/{y}/{x}"
+    ] = Field(
+        "https://server.arcgisonline.com/arcgis/rest/services/Elevation/World_Hillshade/MapServer/tile/{z}/{y}/{x}",
+        title="Preset Layer URL",
+    )
+    opacity: Optional[confloat(ge=0.0, le=1.0)] = Field(
+        1,
+        description="Set layer transparency from 1 (fully visible) to 0 (hidden).",
+        title="Layer Opacity",
+    )
+
+
+class Url1(str, Enum):
+    https___tiles_arcgis_com_tiles_POUcpLYXNckpLjnY_arcgis_rest_services_landDx_basemap_tiles_mapservice_MapServer_tile__z___y___x_ = "https://tiles.arcgis.com/tiles/POUcpLYXNckpLjnY/arcgis/rest/services/landDx_basemap_tiles_mapservice/MapServer/tile/{z}/{y}/{x}"
+
+
+class LandDx(BaseModel):
+    url: Literal[
+        "https://tiles.arcgis.com/tiles/POUcpLYXNckpLjnY/arcgis/rest/services/landDx_basemap_tiles_mapservice/MapServer/tile/{z}/{y}/{x}"
+    ] = Field(
+        "https://tiles.arcgis.com/tiles/POUcpLYXNckpLjnY/arcgis/rest/services/landDx_basemap_tiles_mapservice/MapServer/tile/{z}/{y}/{x}",
+        title="Preset Layer URL",
+    )
+    opacity: Optional[confloat(ge=0.0, le=1.0)] = Field(
+        1,
+        description="Set layer transparency from 1 (fully visible) to 0 (hidden).",
+        title="Layer Opacity",
+    )
+
+
+class Url2(str, Enum):
+    https___tile_openstreetmap_org__z___x___y__png = (
+        "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+    )
+
+
+class OpenStreetMap(BaseModel):
+    url: Literal["https://tile.openstreetmap.org/{z}/{x}/{y}.png"] = Field(
+        "https://tile.openstreetmap.org/{z}/{x}/{y}.png", title="Preset Layer URL"
+    )
+    opacity: Optional[confloat(ge=0.0, le=1.0)] = Field(
+        1,
+        description="Set layer transparency from 1 (fully visible) to 0 (hidden).",
+        title="Layer Opacity",
+    )
+
+
+class Url3(str, Enum):
+    https___server_arcgisonline_com_ArcGIS_rest_services_World_Street_Map_MapServer_tile__z___y___x_ = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
+
+
+class Roadmap(BaseModel):
+    url: Literal[
+        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
+    ] = Field(
+        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
+        title="Preset Layer URL",
+    )
+    opacity: Optional[confloat(ge=0.0, le=1.0)] = Field(
+        1,
+        description="Set layer transparency from 1 (fully visible) to 0 (hidden).",
+        title="Layer Opacity",
+    )
+
+
+class Url4(str, Enum):
+    https___server_arcgisonline_com_ArcGIS_rest_services_World_Imagery_MapServer_tile__z___y___x_ = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+
+
+class Satellite(BaseModel):
+    url: Literal[
+        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+    ] = Field(
+        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+        title="Preset Layer URL",
+    )
+    opacity: Optional[confloat(ge=0.0, le=1.0)] = Field(
+        1,
+        description="Set layer transparency from 1 (fully visible) to 0 (hidden).",
+        title="Layer Opacity",
+    )
+
+
+class Url5(str, Enum):
+    https___server_arcgisonline_com_ArcGIS_rest_services_World_Topo_Map_MapServer_tile__z___y___x_ = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
+
+
+class Terrain(BaseModel):
+    url: Literal[
+        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
+    ] = Field(
+        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
+        title="Preset Layer URL",
+    )
+    opacity: Optional[confloat(ge=0.0, le=1.0)] = Field(
+        1,
+        description="Set layer transparency from 1 (fully visible) to 0 (hidden).",
+        title="Layer Opacity",
+    )
+
+
 class ErClientName(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
@@ -196,6 +338,40 @@ class FilterPatrolEvents(BaseModel):
     )
 
 
+class BaseMapDefs(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    base_maps: Optional[
+        List[
+            Union[
+                OpenStreetMap,
+                Roadmap,
+                Satellite,
+                Terrain,
+                LandDx,
+                Hillshade,
+                CustomTileLayer,
+            ]
+        ]
+    ] = Field(
+        [
+            {
+                "layer_name": "TERRAIN",
+                "url": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
+                "opacity": 1,
+            },
+            {
+                "layer_name": "SATELLITE",
+                "url": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+                "opacity": 0.5,
+            },
+        ],
+        description="Select tile layers to use as base layers in map outputs. The first layer in the list will be the bottommost layer displayed.",
+        title="Set Map Base Layers",
+    )
+
+
 class Params(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
@@ -222,6 +398,7 @@ class Params(BaseModel):
     filter_patrol_events: Optional[FilterPatrolEvents] = Field(
         None, title="Apply Coordinate Filter"
     )
+    base_map_defs: Optional[BaseMapDefs] = Field(None, title="Base Maps")
     patrol_events_bar_chart: Optional[PatrolEventsBarChart] = Field(
         None, title="Draw Time Series Bar Chart for Patrols Events"
     )

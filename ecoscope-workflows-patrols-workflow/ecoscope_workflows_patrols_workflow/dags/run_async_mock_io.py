@@ -43,6 +43,7 @@ from ecoscope_workflows_ext_ecoscope.tasks.transformation import (
 )
 from ecoscope_workflows_core.tasks.transformation import convert_column_values_to_string
 from ecoscope_workflows_core.tasks.groupby import split_groups
+from ecoscope_workflows_ext_ecoscope.tasks.results import set_base_maps
 from ecoscope_workflows_ext_ecoscope.tasks.results import create_point_layer
 from ecoscope_workflows_ext_ecoscope.tasks.results import create_polyline_layer
 from ecoscope_workflows_core.tasks.groupby import groupbykey
@@ -106,6 +107,7 @@ def main(params: Params):
         "pe_cols_to_string": ["pe_colormap"],
         "split_patrol_traj_groups": ["patrol_traj_cols_to_string", "groupers"],
         "split_pe_groups": ["pe_cols_to_string", "groupers"],
+        "base_map_defs": [],
         "patrol_events_map_layers": ["split_pe_groups"],
         "patrol_traj_map_layers": [
             "set_patrol_traj_color_column",
@@ -115,7 +117,10 @@ def main(params: Params):
             "patrol_traj_map_layers",
             "patrol_events_map_layers",
         ],
-        "traj_patrol_events_ecomap": ["combined_traj_and_pe_map_layers"],
+        "traj_patrol_events_ecomap": [
+            "base_map_defs",
+            "combined_traj_and_pe_map_layers",
+        ],
         "traj_pe_ecomap_html_urls": ["traj_patrol_events_ecomap"],
         "traj_pe_map_widgets_single_views": ["traj_pe_ecomap_html_urls"],
         "traj_pe_grouped_map_widget": ["traj_pe_map_widgets_single_views"],
@@ -149,7 +154,7 @@ def main(params: Params):
         "td": ["split_patrol_traj_groups"],
         "td_colormap": ["td", "td"],
         "td_map_layer": ["td_colormap"],
-        "td_ecomap": ["td_map_layer"],
+        "td_ecomap": ["base_map_defs", "td_map_layer"],
         "td_ecomap_html_url": ["td_ecomap"],
         "td_map_widget": ["td_ecomap_html_url"],
         "td_grouped_map_widget": ["td_map_widget"],
@@ -436,6 +441,13 @@ def main(params: Params):
             | (params_dict.get("split_pe_groups") or {}),
             method="call",
         ),
+        "base_map_defs": Node(
+            async_task=set_base_maps.validate()
+            .handle_errors(task_instance_id="base_map_defs")
+            .set_executor("lithops"),
+            partial=(params_dict.get("base_map_defs") or {}),
+            method="call",
+        ),
         "patrol_events_map_layers": Node(
             async_task=create_point_layer.validate()
             .handle_errors(task_instance_id="patrol_events_map_layers")
@@ -507,10 +519,7 @@ def main(params: Params):
             .handle_errors(task_instance_id="traj_patrol_events_ecomap")
             .set_executor("lithops"),
             partial={
-                "tile_layers": [
-                    {"name": "TERRAIN"},
-                    {"name": "SATELLITE", "opacity": 0.5},
-                ],
+                "tile_layers": DependsOn("base_map_defs"),
                 "north_arrow_style": {"placement": "top-left"},
                 "legend_style": {"placement": "bottom-right"},
                 "static": False,
@@ -994,10 +1003,7 @@ def main(params: Params):
             .handle_errors(task_instance_id="td_ecomap")
             .set_executor("lithops"),
             partial={
-                "tile_layers": [
-                    {"name": "TERRAIN"},
-                    {"name": "SATELLITE", "opacity": 0.5},
-                ],
+                "tile_layers": DependsOn("base_map_defs"),
                 "north_arrow_style": {"placement": "top-left"},
                 "legend_style": {"placement": "bottom-right"},
                 "static": False,

@@ -32,6 +32,7 @@ from ecoscope_workflows_ext_ecoscope.tasks.transformation import (
 )
 from ecoscope_workflows_core.tasks.transformation import convert_column_values_to_string
 from ecoscope_workflows_core.tasks.groupby import split_groups
+from ecoscope_workflows_ext_ecoscope.tasks.results import set_base_maps
 from ecoscope_workflows_ext_ecoscope.tasks.results import create_point_layer
 from ecoscope_workflows_ext_ecoscope.tasks.results import create_polyline_layer
 from ecoscope_workflows_core.tasks.groupby import groupbykey
@@ -588,6 +589,27 @@ split_pe_groups = (
 
 
 # %% [markdown]
+# ## Base Maps
+
+# %%
+# parameters
+
+base_map_defs_params = dict(
+    base_maps=...,
+)
+
+# %%
+# call the task
+
+
+base_map_defs = (
+    set_base_maps.handle_errors(task_instance_id="base_map_defs")
+    .partial(**base_map_defs_params)
+    .call()
+)
+
+
+# %% [markdown]
 # ## Create map layers for each Patrols Events group
 
 # %%
@@ -697,7 +719,7 @@ traj_patrol_events_ecomap_params = dict(
 traj_patrol_events_ecomap = (
     draw_ecomap.handle_errors(task_instance_id="traj_patrol_events_ecomap")
     .partial(
-        tile_layers=[{"name": "TERRAIN"}, {"name": "SATELLITE", "opacity": 0.5}],
+        tile_layers=base_map_defs,
         north_arrow_style={"placement": "top-left"},
         legend_style={"placement": "bottom-right"},
         static=False,
@@ -1446,7 +1468,7 @@ td_ecomap_params = dict(
 td_ecomap = (
     draw_ecomap.handle_errors(task_instance_id="td_ecomap")
     .partial(
-        tile_layers=[{"name": "TERRAIN"}, {"name": "SATELLITE", "opacity": 0.5}],
+        tile_layers=base_map_defs,
         north_arrow_style={"placement": "top-left"},
         legend_style={"placement": "bottom-right"},
         static=False,
