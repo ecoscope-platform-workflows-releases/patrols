@@ -1,10 +1,10 @@
 id: patrols
 requirements:
   - name: ecoscope-workflows-core
-    version: 0.0.72
+    version: 0.0.73
     channel: https://repo.prefix.dev/ecoscope-workflows/
   - name: ecoscope-workflows-ext-ecoscope
-    version: 0.0.72
+    version: 0.0.73
     channel: https://repo.prefix.dev/ecoscope-workflows/
 rjsf-overrides:
   properties:
@@ -20,6 +20,8 @@ rjsf-overrides:
     Preprocess patrol observations.properties.set_patrol_traj_color_column.properties.var.description: Select a category to color and differentiate patrol trajectories.
     Preprocess patrol observations.properties.set_patrol_traj_color_column.properties.var.title: Category
     Preprocess patrol observations.properties.set_patrol_traj_color_column.properties.var.default: patrol_type
+    Patrol and Event Types.properties.er_patrol_types.properties.patrol_types.ecoscope:patrol_type: properties.er_client_name.properties.data_source.properties.name
+    Patrol and Event Types.properties.patrol_events.properties.event_type.ecoscope:event_type: properties.er_client_name.properties.data_source.properties.name
   $defs:
     ValueGrouper.oneOf:
       - const: patrol_serial_number
