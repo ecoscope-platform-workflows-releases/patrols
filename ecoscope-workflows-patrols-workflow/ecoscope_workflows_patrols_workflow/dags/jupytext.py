@@ -34,6 +34,7 @@ from ecoscope_workflows_core.tasks.transformation import convert_column_values_t
 from ecoscope_workflows_core.tasks.groupby import split_groups
 from ecoscope_workflows_ext_ecoscope.tasks.results import set_base_maps
 from ecoscope_workflows_ext_ecoscope.tasks.results import create_point_layer
+from ecoscope_workflows_core.tasks.transformation import map_values_with_unit
 from ecoscope_workflows_ext_ecoscope.tasks.results import create_polyline_layer
 from ecoscope_workflows_core.tasks.groupby import groupbykey
 from ecoscope_workflows_ext_ecoscope.tasks.results import draw_ecomap
@@ -260,6 +261,7 @@ patrol_reloc = (
             "patrol_start_time",
             "patrol_end_time",
             "patrol_type__value",
+            "patrol_type__display",
             "patrol_serial_number",
             "patrol_status",
             "patrol_subject",
@@ -610,6 +612,35 @@ base_map_defs = (
 
 
 # %% [markdown]
+# ## Rename patrol events columns for map tooltip display
+
+# %%
+# parameters
+
+pe_rename_display_columns_params = dict()
+
+# %%
+# call the task
+
+
+pe_rename_display_columns = (
+    map_columns.handle_errors(task_instance_id="pe_rename_display_columns")
+    .partial(
+        drop_columns=[],
+        retain_columns=[],
+        rename_columns={
+            "patrol_serial_number": "Patrol Serial",
+            "serial_number": "Event Serial",
+            "event_type": "Event Type",
+            "time": "Event Time",
+        },
+        **pe_rename_display_columns_params,
+    )
+    .mapvalues(argnames=["df"], argvalues=split_pe_groups)
+)
+
+
+# %% [markdown]
 # ## Create map layers for each Patrols Events group
 
 # %%
@@ -628,10 +659,66 @@ patrol_events_map_layers = (
     .partial(
         layer_style={"fill_color_column": "event_type_colormap"},
         legend=None,
-        tooltip_columns=["id", "time", "event_type", "patrol_segment_id"],
+        tooltip_columns=["Patrol Serial", "Event Serial", "Event Type", "Event Time"],
         **patrol_events_map_layers_params,
     )
-    .mapvalues(argnames=["geodataframe"], argvalues=split_pe_groups)
+    .mapvalues(argnames=["geodataframe"], argvalues=pe_rename_display_columns)
+)
+
+
+# %% [markdown]
+# ## Format speed values for display
+
+# %%
+# parameters
+
+speed_val_with_unit_params = dict()
+
+# %%
+# call the task
+
+
+speed_val_with_unit = (
+    map_values_with_unit.handle_errors(task_instance_id="speed_val_with_unit")
+    .partial(
+        input_column_name="speed_kmhr",
+        output_column_name="speed_kmhr",
+        original_unit="km/h",
+        new_unit="km/h",
+        decimal_places=1,
+        **speed_val_with_unit_params,
+    )
+    .mapvalues(argnames=["df"], argvalues=split_patrol_traj_groups)
+)
+
+
+# %% [markdown]
+# ## Rename patrol traj columns for map tooltip display
+
+# %%
+# parameters
+
+patrol_traj_rename_columns_params = dict()
+
+# %%
+# call the task
+
+
+patrol_traj_rename_columns = (
+    map_columns.handle_errors(task_instance_id="patrol_traj_rename_columns")
+    .partial(
+        drop_columns=[],
+        retain_columns=[],
+        rename_columns={
+            "patrol_serial_number": "Patrol Serial",
+            "extra__patrol_type__display": "Patrol Type",
+            "segment_start": "Start",
+            "timespan_seconds": "Duration (s)",
+            "speed_kmhr": "Speed (kph)",
+        },
+        **patrol_traj_rename_columns_params,
+    )
+    .mapvalues(argnames=["df"], argvalues=speed_val_with_unit)
 )
 
 
@@ -667,16 +754,15 @@ patrol_traj_map_layers = (
             "color_column": "patrol_traj_colormap",
         },
         tooltip_columns=[
-            "extra__patrol_id",
-            "patrol_type",
-            "patrol_status",
-            "patrol_subject",
-            "patrol_serial_number",
-            "speed",
+            "Patrol Serial",
+            "Patrol Type",
+            "Start",
+            "Duration (s)",
+            "Speed (kph)",
         ],
         **patrol_traj_map_layers_params,
     )
-    .mapvalues(argnames=["geodataframe"], argvalues=split_patrol_traj_groups)
+    .mapvalues(argnames=["geodataframe"], argvalues=patrol_traj_rename_columns)
 )
 
 
@@ -1422,6 +1508,30 @@ td_colormap = (
 
 
 # %% [markdown]
+# ## Rename patrol traj columns for map tooltip display
+
+# %%
+# parameters
+
+patrol_td_rename_columns_params = dict()
+
+# %%
+# call the task
+
+
+patrol_td_rename_columns = (
+    map_columns.handle_errors(task_instance_id="patrol_td_rename_columns")
+    .partial(
+        drop_columns=[],
+        retain_columns=[],
+        rename_columns={"percentile": "Percentile"},
+        **patrol_td_rename_columns_params,
+    )
+    .mapvalues(argnames=["df"], argvalues=td_colormap)
+)
+
+
+# %% [markdown]
 # ## Create map layer from Time Density
 
 # %%
@@ -1443,11 +1553,11 @@ td_map_layer = (
             "opacity": 0.7,
             "get_line_width": 0,
         },
-        legend={"label_column": "percentile", "color_column": "percentile_colormap"},
-        tooltip_columns=["percentile"],
+        legend={"label_column": "Percentile", "color_column": "percentile_colormap"},
+        tooltip_columns=["Percentile"],
         **td_map_layer_params,
     )
-    .mapvalues(argnames=["geodataframe"], argvalues=td_colormap)
+    .mapvalues(argnames=["geodataframe"], argvalues=patrol_td_rename_columns)
 )
 
 
