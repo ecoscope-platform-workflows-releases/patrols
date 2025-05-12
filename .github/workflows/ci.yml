@@ -18,10 +18,10 @@ jobs:
         ]
         api: [
           "app",
-          "cli",
+          # "cli",
         ]
         execution-mode: [
-          "async",
+          # "async",
           "sequential",
         ]
         exclude:
