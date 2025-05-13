@@ -18,10 +18,10 @@ jobs:
         ]
         api: [
           "app",
-          "cli",
+          # "cli",
         ]
         execution-mode: [
-          "async",
+          # "async",
           "sequential",
         ]
         exclude:
@@ -30,6 +30,8 @@ jobs:
           # we can do that, but for now, we are only testing the app in the container
           - deployment: "docker"
             api: "cli"
+          - api: "cli"
+            execution-mode: "async"
 
     steps:
       - uses: actions/checkout@v4

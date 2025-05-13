@@ -43,6 +43,7 @@ from ecoscope_workflows_core.tasks.transformation import convert_column_values_t
 from ecoscope_workflows_core.tasks.groupby import split_groups
 from ecoscope_workflows_ext_ecoscope.tasks.results import set_base_maps
 from ecoscope_workflows_ext_ecoscope.tasks.results import create_point_layer
+from ecoscope_workflows_core.tasks.transformation import map_values_with_unit
 from ecoscope_workflows_ext_ecoscope.tasks.results import create_polyline_layer
 from ecoscope_workflows_core.tasks.groupby import groupbykey
 from ecoscope_workflows_ext_ecoscope.tasks.results import draw_ecomap
@@ -154,6 +155,7 @@ def main(params: Params):
                 "patrol_start_time",
                 "patrol_end_time",
                 "patrol_type__value",
+                "patrol_type__display",
                 "patrol_serial_number",
                 "patrol_status",
                 "patrol_subject",
@@ -339,16 +341,70 @@ def main(params: Params):
         .call()
     )
 
+    pe_rename_display_columns = (
+        map_columns.validate()
+        .handle_errors(task_instance_id="pe_rename_display_columns")
+        .partial(
+            drop_columns=[],
+            retain_columns=[],
+            rename_columns={
+                "patrol_serial_number": "Patrol Serial",
+                "serial_number": "Event Serial",
+                "event_type": "Event Type",
+                "time": "Event Time",
+            },
+            **(params_dict.get("pe_rename_display_columns") or {}),
+        )
+        .mapvalues(argnames=["df"], argvalues=split_pe_groups)
+    )
+
     patrol_events_map_layers = (
         create_point_layer.validate()
         .handle_errors(task_instance_id="patrol_events_map_layers")
         .partial(
             layer_style={"fill_color_column": "event_type_colormap"},
             legend=None,
-            tooltip_columns=["id", "time", "event_type", "patrol_segment_id"],
+            tooltip_columns=[
+                "Patrol Serial",
+                "Event Serial",
+                "Event Type",
+                "Event Time",
+            ],
             **(params_dict.get("patrol_events_map_layers") or {}),
         )
-        .mapvalues(argnames=["geodataframe"], argvalues=split_pe_groups)
+        .mapvalues(argnames=["geodataframe"], argvalues=pe_rename_display_columns)
+    )
+
+    speed_val_with_unit = (
+        map_values_with_unit.validate()
+        .handle_errors(task_instance_id="speed_val_with_unit")
+        .partial(
+            input_column_name="speed_kmhr",
+            output_column_name="speed_kmhr",
+            original_unit="km/h",
+            new_unit="km/h",
+            decimal_places=1,
+            **(params_dict.get("speed_val_with_unit") or {}),
+        )
+        .mapvalues(argnames=["df"], argvalues=split_patrol_traj_groups)
+    )
+
+    patrol_traj_rename_columns = (
+        map_columns.validate()
+        .handle_errors(task_instance_id="patrol_traj_rename_columns")
+        .partial(
+            drop_columns=[],
+            retain_columns=[],
+            rename_columns={
+                "patrol_serial_number": "Patrol Serial",
+                "extra__patrol_type__display": "Patrol Type",
+                "segment_start": "Start",
+                "timespan_seconds": "Duration (s)",
+                "speed_kmhr": "Speed (kph)",
+            },
+            **(params_dict.get("patrol_traj_rename_columns") or {}),
+        )
+        .mapvalues(argnames=["df"], argvalues=speed_val_with_unit)
     )
 
     patrol_traj_map_layers = (
@@ -370,16 +426,15 @@ def main(params: Params):
                 "color_column": "patrol_traj_colormap",
             },
             tooltip_columns=[
-                "extra__patrol_id",
-                "patrol_type",
-                "patrol_status",
-                "patrol_subject",
-                "patrol_serial_number",
-                "speed",
+                "Patrol Serial",
+                "Patrol Type",
+                "Start",
+                "Duration (s)",
+                "Speed (kph)",
             ],
             **(params_dict.get("patrol_traj_map_layers") or {}),
         )
-        .mapvalues(argnames=["geodataframe"], argvalues=split_patrol_traj_groups)
+        .mapvalues(argnames=["geodataframe"], argvalues=patrol_traj_rename_columns)
     )
 
     combined_traj_and_pe_map_layers = (
@@ -745,6 +800,18 @@ def main(params: Params):
         .mapvalues(argnames=["df"], argvalues=td)
     )
 
+    patrol_td_rename_columns = (
+        map_columns.validate()
+        .handle_errors(task_instance_id="patrol_td_rename_columns")
+        .partial(
+            drop_columns=[],
+            retain_columns=[],
+            rename_columns={"percentile": "Percentile"},
+            **(params_dict.get("patrol_td_rename_columns") or {}),
+        )
+        .mapvalues(argnames=["df"], argvalues=td_colormap)
+    )
+
     td_map_layer = (
         create_polygon_layer.validate()
         .handle_errors(task_instance_id="td_map_layer")
@@ -755,13 +822,13 @@ def main(params: Params):
                 "get_line_width": 0,
             },
             legend={
-                "label_column": "percentile",
+                "label_column": "Percentile",
                 "color_column": "percentile_colormap",
             },
-            tooltip_columns=["percentile"],
+            tooltip_columns=["Percentile"],
             **(params_dict.get("td_map_layer") or {}),
         )
-        .mapvalues(argnames=["geodataframe"], argvalues=td_colormap)
+        .mapvalues(argnames=["geodataframe"], argvalues=patrol_td_rename_columns)
     )
 
     td_ecomap = (

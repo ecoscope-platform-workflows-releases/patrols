@@ -45,6 +45,7 @@ from ecoscope_workflows_core.tasks.transformation import convert_column_values_t
 from ecoscope_workflows_core.tasks.groupby import split_groups
 from ecoscope_workflows_ext_ecoscope.tasks.results import set_base_maps
 from ecoscope_workflows_ext_ecoscope.tasks.results import create_point_layer
+from ecoscope_workflows_core.tasks.transformation import map_values_with_unit
 from ecoscope_workflows_ext_ecoscope.tasks.results import create_polyline_layer
 from ecoscope_workflows_core.tasks.groupby import groupbykey
 from ecoscope_workflows_ext_ecoscope.tasks.results import draw_ecomap
@@ -108,10 +109,13 @@ def main(params: Params):
         "split_patrol_traj_groups": ["patrol_traj_cols_to_string", "groupers"],
         "split_pe_groups": ["pe_cols_to_string", "groupers"],
         "base_map_defs": [],
-        "patrol_events_map_layers": ["split_pe_groups"],
+        "pe_rename_display_columns": ["split_pe_groups"],
+        "patrol_events_map_layers": ["pe_rename_display_columns"],
+        "speed_val_with_unit": ["split_patrol_traj_groups"],
+        "patrol_traj_rename_columns": ["speed_val_with_unit"],
         "patrol_traj_map_layers": [
             "set_patrol_traj_color_column",
-            "split_patrol_traj_groups",
+            "patrol_traj_rename_columns",
         ],
         "combined_traj_and_pe_map_layers": [
             "patrol_traj_map_layers",
@@ -153,7 +157,8 @@ def main(params: Params):
         "patrol_events_pie_widget_grouped": ["patrol_events_pie_chart_widgets"],
         "td": ["split_patrol_traj_groups"],
         "td_colormap": ["td", "td"],
-        "td_map_layer": ["td_colormap"],
+        "patrol_td_rename_columns": ["td_colormap"],
+        "td_map_layer": ["patrol_td_rename_columns"],
         "td_ecomap": ["base_map_defs", "td_map_layer"],
         "td_ecomap_html_url": ["td_ecomap"],
         "td_map_widget": ["td_ecomap_html_url"],
@@ -261,6 +266,7 @@ def main(params: Params):
                     "patrol_start_time",
                     "patrol_end_time",
                     "patrol_type__value",
+                    "patrol_type__display",
                     "patrol_serial_number",
                     "patrol_status",
                     "patrol_subject",
@@ -448,6 +454,27 @@ def main(params: Params):
             partial=(params_dict.get("base_map_defs") or {}),
             method="call",
         ),
+        "pe_rename_display_columns": Node(
+            async_task=map_columns.validate()
+            .handle_errors(task_instance_id="pe_rename_display_columns")
+            .set_executor("lithops"),
+            partial={
+                "drop_columns": [],
+                "retain_columns": [],
+                "rename_columns": {
+                    "patrol_serial_number": "Patrol Serial",
+                    "serial_number": "Event Serial",
+                    "event_type": "Event Type",
+                    "time": "Event Time",
+                },
+            }
+            | (params_dict.get("pe_rename_display_columns") or {}),
+            method="mapvalues",
+            kwargs={
+                "argnames": ["df"],
+                "argvalues": DependsOn("split_pe_groups"),
+            },
+        ),
         "patrol_events_map_layers": Node(
             async_task=create_point_layer.validate()
             .handle_errors(task_instance_id="patrol_events_map_layers")
@@ -455,13 +482,58 @@ def main(params: Params):
             partial={
                 "layer_style": {"fill_color_column": "event_type_colormap"},
                 "legend": None,
-                "tooltip_columns": ["id", "time", "event_type", "patrol_segment_id"],
+                "tooltip_columns": [
+                    "Patrol Serial",
+                    "Event Serial",
+                    "Event Type",
+                    "Event Time",
+                ],
             }
             | (params_dict.get("patrol_events_map_layers") or {}),
             method="mapvalues",
             kwargs={
                 "argnames": ["geodataframe"],
-                "argvalues": DependsOn("split_pe_groups"),
+                "argvalues": DependsOn("pe_rename_display_columns"),
+            },
+        ),
+        "speed_val_with_unit": Node(
+            async_task=map_values_with_unit.validate()
+            .handle_errors(task_instance_id="speed_val_with_unit")
+            .set_executor("lithops"),
+            partial={
+                "input_column_name": "speed_kmhr",
+                "output_column_name": "speed_kmhr",
+                "original_unit": "km/h",
+                "new_unit": "km/h",
+                "decimal_places": 1,
+            }
+            | (params_dict.get("speed_val_with_unit") or {}),
+            method="mapvalues",
+            kwargs={
+                "argnames": ["df"],
+                "argvalues": DependsOn("split_patrol_traj_groups"),
+            },
+        ),
+        "patrol_traj_rename_columns": Node(
+            async_task=map_columns.validate()
+            .handle_errors(task_instance_id="patrol_traj_rename_columns")
+            .set_executor("lithops"),
+            partial={
+                "drop_columns": [],
+                "retain_columns": [],
+                "rename_columns": {
+                    "patrol_serial_number": "Patrol Serial",
+                    "extra__patrol_type__display": "Patrol Type",
+                    "segment_start": "Start",
+                    "timespan_seconds": "Duration (s)",
+                    "speed_kmhr": "Speed (kph)",
+                },
+            }
+            | (params_dict.get("patrol_traj_rename_columns") or {}),
+            method="mapvalues",
+            kwargs={
+                "argnames": ["df"],
+                "argvalues": DependsOn("speed_val_with_unit"),
             },
         ),
         "patrol_traj_map_layers": Node(
@@ -484,19 +556,18 @@ def main(params: Params):
                     "color_column": "patrol_traj_colormap",
                 },
                 "tooltip_columns": [
-                    "extra__patrol_id",
-                    "patrol_type",
-                    "patrol_status",
-                    "patrol_subject",
-                    "patrol_serial_number",
-                    "speed",
+                    "Patrol Serial",
+                    "Patrol Type",
+                    "Start",
+                    "Duration (s)",
+                    "Speed (kph)",
                 ],
             }
             | (params_dict.get("patrol_traj_map_layers") or {}),
             method="mapvalues",
             kwargs={
                 "argnames": ["geodataframe"],
-                "argvalues": DependsOn("split_patrol_traj_groups"),
+                "argvalues": DependsOn("patrol_traj_rename_columns"),
             },
         ),
         "combined_traj_and_pe_map_layers": Node(
@@ -975,6 +1046,22 @@ def main(params: Params):
                 "argvalues": DependsOn("td"),
             },
         ),
+        "patrol_td_rename_columns": Node(
+            async_task=map_columns.validate()
+            .handle_errors(task_instance_id="patrol_td_rename_columns")
+            .set_executor("lithops"),
+            partial={
+                "drop_columns": [],
+                "retain_columns": [],
+                "rename_columns": {"percentile": "Percentile"},
+            }
+            | (params_dict.get("patrol_td_rename_columns") or {}),
+            method="mapvalues",
+            kwargs={
+                "argnames": ["df"],
+                "argvalues": DependsOn("td_colormap"),
+            },
+        ),
         "td_map_layer": Node(
             async_task=create_polygon_layer.validate()
             .handle_errors(task_instance_id="td_map_layer")
@@ -986,16 +1073,16 @@ def main(params: Params):
                     "get_line_width": 0,
                 },
                 "legend": {
-                    "label_column": "percentile",
+                    "label_column": "Percentile",
                     "color_column": "percentile_colormap",
                 },
-                "tooltip_columns": ["percentile"],
+                "tooltip_columns": ["Percentile"],
             }
             | (params_dict.get("td_map_layer") or {}),
             method="mapvalues",
             kwargs={
                 "argnames": ["geodataframe"],
-                "argvalues": DependsOn("td_colormap"),
+                "argvalues": DependsOn("patrol_td_rename_columns"),
             },
         ),
         "td_ecomap": Node(
