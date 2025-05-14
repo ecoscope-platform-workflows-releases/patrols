@@ -14,6 +14,12 @@ variable "location" {
   default     = "us-west1"
 }
 
+variable "application" {
+  type = string
+  description = "Name of the application"
+  default = "workflow-patrols"
+}
+
 variable "ingress" {
   type        = string
   description = "Provides the ingress settings for this Service"
