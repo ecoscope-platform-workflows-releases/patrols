@@ -25,7 +25,7 @@ resource "google_pubsub_subscription" "run_from_pubsub" {
     }
   }
 
-  ack_deadline_seconds    = 60
+  ack_deadline_seconds    = 600
   enable_message_ordering = true
 
   expiration_policy {
