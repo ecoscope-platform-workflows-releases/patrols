@@ -1,10 +1,10 @@
 id: patrols
 requirements:
   - name: ecoscope-workflows-core
-    version: 0.0.69
+    version: 0.1.2
     channel: https://repo.prefix.dev/ecoscope-workflows/
   - name: ecoscope-workflows-ext-ecoscope
-    version: 0.0.69
+    version: 0.1.2
     channel: https://repo.prefix.dev/ecoscope-workflows/
 rjsf-overrides:
   properties:
@@ -20,6 +20,8 @@ rjsf-overrides:
     Preprocess patrol observations.properties.set_patrol_traj_color_column.properties.var.description: Select a category to color and differentiate patrol trajectories.
     Preprocess patrol observations.properties.set_patrol_traj_color_column.properties.var.title: Category
     Preprocess patrol observations.properties.set_patrol_traj_color_column.properties.var.default: patrol_type
+    Patrol and Event Types.properties.er_patrol_types.properties.patrol_types.ecoscope:patrol_type: properties.er_client_name.properties.data_source.properties.name
+    Patrol and Event Types.properties.patrol_events.properties.event_type.ecoscope:event_type: properties.er_client_name.properties.data_source.properties.name
   $defs:
     ValueGrouper.oneOf:
       - const: patrol_serial_number
@@ -81,6 +83,7 @@ workflow:
             - patrol_start_time
             - patrol_end_time
             - patrol_type__value
+            - patrol_type__display
             - patrol_serial_number
             - patrol_status
             - patrol_subject
@@ -212,6 +215,20 @@ workflow:
     type: task-group
     description: Create a combined patrol trajectories and events map.
     tasks:
+      - name: Rename patrol events columns for map tooltip display
+        id: pe_rename_display_columns
+        task: map_columns
+        partial:
+          drop_columns: []
+          retain_columns: []
+          rename_columns:
+            patrol_serial_number: Patrol Serial
+            serial_number: Event Serial
+            event_type: Event Type
+            time: Event Time
+        mapvalues:
+          argnames: df
+          argvalues: ${{ workflow.split_pe_groups.return }}
       - name: Create map layers for each Patrols Events group
         id: patrol_events_map_layers
         task: create_point_layer
@@ -220,13 +237,40 @@ workflow:
             fill_color_column: event_type_colormap
           legend: null
           tooltip_columns:
-            - id
-            - time
-            - event_type
-            - patrol_segment_id
+            - Patrol Serial
+            - Event Serial
+            - Event Type
+            - Event Time
         mapvalues:
           argnames: geodataframe
-          argvalues: ${{ workflow.split_pe_groups.return }}
+          argvalues: ${{ workflow.pe_rename_display_columns.return }}
+      - name: Format speed values for display
+        id: speed_val_with_unit
+        task: map_values_with_unit
+        partial:
+          input_column_name: speed_kmhr
+          output_column_name: speed_kmhr
+          original_unit: km/h
+          new_unit: km/h
+          decimal_places: 1
+        mapvalues:
+          argnames: df
+          argvalues: ${{ workflow.split_patrol_traj_groups.return }}
+      - name: Rename patrol traj columns for map tooltip display
+        id: patrol_traj_rename_columns
+        task: map_columns
+        partial:
+          drop_columns: []
+          retain_columns: []
+          rename_columns:
+            patrol_serial_number: Patrol Serial
+            extra__patrol_type__display: Patrol Type
+            segment_start: Start
+            timespan_seconds: Duration (s)
+            speed_kmhr: Speed (kph)
+        mapvalues:
+          argnames: df
+          argvalues: ${{ workflow.speed_val_with_unit.return }}
       - name: Create map layer for each Patrol Trajectories group
         id: patrol_traj_map_layers
         task: create_polyline_layer
@@ -244,15 +288,14 @@ workflow:
             label_column: ${{ workflow.set_patrol_traj_color_column.return }}
             color_column: patrol_traj_colormap
           tooltip_columns:
-            - extra__patrol_id
-            - patrol_type
-            - patrol_status
-            - patrol_subject
-            - patrol_serial_number
-            - speed
+            - Patrol Serial
+            - Patrol Type
+            - Start
+            - Duration (s)
+            - Speed (kph)
         mapvalues:
           argnames: geodataframe
-          argvalues: ${{ workflow.split_patrol_traj_groups.return }}
+          argvalues: ${{ workflow.patrol_traj_rename_columns.return }}
       - name: Combine Trajectories and Patrol Events layers
         id: combined_traj_and_pe_map_layers
         task: groupbykey
@@ -574,6 +617,17 @@ workflow:
         mapvalues:
           argnames: df
           argvalues: ${{ workflow.td.return }}
+      - name: Rename patrol traj columns for map tooltip display
+        id: patrol_td_rename_columns
+        task: map_columns
+        partial:
+          drop_columns: []
+          retain_columns: []
+          rename_columns:
+            percentile: Percentile
+        mapvalues:
+          argnames: df
+          argvalues: ${{ workflow.td_colormap.return }}
       - name: Create map layer from Time Density
         id: td_map_layer
         task: create_polygon_layer
@@ -583,13 +637,13 @@ workflow:
             opacity: 0.700000
             get_line_width: 0
           legend:
-            label_column: percentile
+            label_column: Percentile
             color_column: percentile_colormap
           tooltip_columns:
-            - percentile
+            - Percentile
         mapvalues:
           argnames: geodataframe
-          argvalues: ${{ workflow.td_colormap.return }}
+          argvalues: ${{ workflow.patrol_td_rename_columns.return }}
       - name: Draw Ecomap from Time Density
         id: td_ecomap
         task: draw_ecomap

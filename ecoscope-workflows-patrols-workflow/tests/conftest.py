@@ -4,10 +4,10 @@
 import functools
 import hashlib
 import io
-import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Coroutine, Generator, Literal, Iterator
+from unittest.mock import patch
 
 import numpy as np
 import pytest
@@ -21,16 +21,16 @@ from syrupy.extensions.image import PNGImageSnapshotExtension
 from syrupy.location import PyTestLocation
 from syrupy.terminal import reset
 from syrupy.types import SerializedData, SnapshotIndex
-from ecoscope_workflows_core.testing import Case, CaseRunner
 
-from ecoscope_workflows_patrols_workflow.app import app
-
+from ecoscope_workflows_runner.app import app
+from ecoscope_workflows_runner.testing import Case, CaseRunner
 
 ARTIFACTS = Path(__file__).parent.parent
 SNAPSHOT_DIRNAME = ARTIFACTS.parent / "__results_snapshots__"
 SNAPSHOT_DIFF_OUTPUT_DIRNAME = ARTIFACTS.parent / "__diff_output__"
 TEST_CASES_YAML = ARTIFACTS.parent / "test-cases.yaml"
-ENTRYPOINT = f"{sys.executable} -m ecoscope_workflows_patrols_workflow.cli"
+ENTRYPOINT = "pixi run -e default ecoscope-workflows-patrols-workflow"
+MATCHSPEC_OVERRIDE = "ecoscope-workflows-patrols-workflow"
 
 yaml = ruamel.yaml.YAML(typ="safe")
 
@@ -246,6 +246,7 @@ def _run_test_case(
     run_params: RunParams,
     case: Case,
     results_dir: Path,
+    matchspec_override: str,
 ) -> Generator[dict, None, None]:
     results_subdir = (
         results_dir / run_params.subdir_name / case.name.lower().replace(" ", "-")
@@ -259,7 +260,11 @@ def _run_test_case(
     )
     match run_params.api:
         case "app":
-            yield case_runner.run_app(app)
+            with patch.dict(
+                "os.environ",
+                {"ECOSCOPE_WORKFLOWS_MATCHSPEC_OVERRIDE": matchspec_override},
+            ):
+                yield case_runner.run_app(app)
         case "cli":
             if case.raises:
                 pytest.skip("CLI tests do not yet support error handling.")
@@ -269,12 +274,18 @@ def _run_test_case(
 
 
 @pytest.fixture(scope="session")
+def matchspec_override() -> str:
+    return MATCHSPEC_OVERRIDE
+
+
+@pytest.fixture(scope="session")
 def response_json_success(
     run_params: RunParams,
     success_case: Case,
     results_dir: Path,
+    matchspec_override: str,
 ) -> Generator[dict, None, None]:
-    yield from _run_test_case(run_params, success_case, results_dir)
+    yield from _run_test_case(run_params, success_case, results_dir, matchspec_override)
 
 
 @pytest.fixture(scope="session")
@@ -282,8 +293,9 @@ def response_json_failure(
     run_params: RunParams,
     failure_case: Case,
     results_dir: Path,
+    matchspec_override: str,
 ) -> Generator[dict, None, None]:
-    yield from _run_test_case(run_params, failure_case, results_dir)
+    yield from _run_test_case(run_params, failure_case, results_dir, matchspec_override)
 
 
 def _iframe_widgets_from_response_json(response_json: dict) -> list[dict]:

@@ -28,3 +28,9 @@ resource "google_storage_bucket_iam_member" "workflow-results-member" {
   role   = "roles/storage.objectAdmin"
   member = "serviceAccount:${google_service_account.default.email}"
 }
+
+resource "google_project_iam_member" "pubsub-subscriber-member" {
+  project = var.project_id
+  role    = "roles/pubsub.subscriber"
+  member  = "serviceAccount:${google_service_account.default.email}"
+}
