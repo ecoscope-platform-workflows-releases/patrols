@@ -8,7 +8,7 @@ data "google_pubsub_topic" "workflow_topic_dlq" {
   project = var.project_id
 }
 
-resource "google_pubsub_subscription" "configuration-events" {
+resource "google_pubsub_subscription" "run_from_pubsub" {
   name    = "${var.application}-sub"
   project = var.project_id
   topic   = data.google_pubsub_topic.workflow_topic.name
