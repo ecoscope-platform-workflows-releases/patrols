@@ -14,7 +14,7 @@ resource "google_pubsub_subscription" "run_from_pubsub" {
   topic   = data.google_pubsub_topic.workflow_topic.name
 
   filter = <<EOF
-    attributes.integration_type = "${replace(var.application, "workflow-", "")}"
+    attributes.workflow_name = "${replace(var.application, "workflow-", "")}"
   EOF
 
   push_config {
