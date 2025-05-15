@@ -2,11 +2,12 @@
 
 
 FROM bitnami/minideb:bullseye AS fetch
-RUN apt-get update && apt-get install -y curl
+RUN apt-get update && apt-get install -y curl ca-certificates
 RUN curl -fsSL https://pixi.sh/install.sh | PIXI_VERSION=v0.42.1 bash
 
 FROM bitnami/minideb:bullseye AS install
 COPY --from=fetch /root/.pixi /root/.pixi
+COPY --from=fetch /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 ENV PATH="/root/.pixi/bin:$PATH"
 
 WORKDIR /app
