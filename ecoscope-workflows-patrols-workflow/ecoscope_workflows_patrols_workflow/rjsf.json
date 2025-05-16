@@ -217,11 +217,11 @@
               ],
               "default": {
                 "min_length_meters": 0.001,
-                "max_length_meters": 10000,
+                "max_length_meters": 100000,
                 "min_time_secs": 1,
-                "max_time_secs": 57600,
+                "max_time_secs": 172800,
                 "min_speed_kmhr": 0.0001,
-                "max_speed_kmhr": 300
+                "max_speed_kmhr": 500
               },
               "title": "Trajectory Segment Filter",
               "description": "Trajectory Segments outside these bounds will be removed",
@@ -642,7 +642,7 @@
           "type": "number"
         },
         "max_length_meters": {
-          "default": 10000,
+          "default": 100000,
           "description": "Maximum Segment Length in Meters",
           "ecoscope:advanced": true,
           "title": "Max Length Meters",
@@ -656,7 +656,7 @@
           "type": "number"
         },
         "max_time_secs": {
-          "default": 57600,
+          "default": 172800,
           "description": "Maximum Segment Duration in Seconds",
           "ecoscope:advanced": true,
           "title": "Max Time Secs",
@@ -670,7 +670,7 @@
           "type": "number"
         },
         "max_speed_kmhr": {
-          "default": 300,
+          "default": 500,
           "description": "Maximum Segment Speed in Kilometers per Hour",
           "ecoscope:advanced": true,
           "title": "Max Speed Kmhr",

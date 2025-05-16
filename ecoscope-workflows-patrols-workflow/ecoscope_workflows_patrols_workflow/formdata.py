@@ -312,13 +312,15 @@ class TrajectorySegmentFilter(BaseModel):
         0.001, description="Minimum Segment Length in Meters", title="Min Length Meters"
     )
     max_length_meters: Optional[float] = Field(
-        10000, description="Maximum Segment Length in Meters", title="Max Length Meters"
+        100000,
+        description="Maximum Segment Length in Meters",
+        title="Max Length Meters",
     )
     min_time_secs: Optional[float] = Field(
         1, description="Minimum Segment Duration in Seconds", title="Min Time Secs"
     )
     max_time_secs: Optional[float] = Field(
-        57600, description="Maximum Segment Duration in Seconds", title="Max Time Secs"
+        172800, description="Maximum Segment Duration in Seconds", title="Max Time Secs"
     )
     min_speed_kmhr: Optional[float] = Field(
         0.0001,
@@ -326,7 +328,7 @@ class TrajectorySegmentFilter(BaseModel):
         title="Min Speed Kmhr",
     )
     max_speed_kmhr: Optional[float] = Field(
-        300,
+        500,
         description="Maximum Segment Speed in Kilometers per Hour",
         title="Max Speed Kmhr",
     )
@@ -365,11 +367,11 @@ class PatrolTraj(BaseModel):
         default_factory=lambda: TrajectorySegmentFilter.model_validate(
             {
                 "min_length_meters": 0.001,
-                "max_length_meters": 10000,
+                "max_length_meters": 100000,
                 "min_time_secs": 1,
-                "max_time_secs": 57600,
+                "max_time_secs": 172800,
                 "min_speed_kmhr": 0.0001,
-                "max_speed_kmhr": 300,
+                "max_speed_kmhr": 500,
             }
         ),
         description="Trajectory Segments outside these bounds will be removed",
