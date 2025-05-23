@@ -457,11 +457,17 @@
     "td": {
       "additionalProperties": false,
       "properties": {
-        "pixel_size": {
-          "default": 250.0,
-          "title": "Pixel Size",
-          "type": "number",
-          "description": "Raster pixel size in meters."
+        "auto_scale_or_custom_cell_size": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/AutoScaleOrCustomCellSize"
+            }
+          ],
+          "default": {
+            "auto_scale_or_custom": "Auto-scale"
+          },
+          "title": "",
+          "ecoscope:advanced": true
         },
         "max_speed_factor": {
           "default": 1.05,
@@ -478,7 +484,7 @@
       },
       "required": [],
       "type": "object",
-      "title": "Calculate Time Density from Trajectory"
+      "title": ""
     }
   },
   "$defs": {
@@ -602,6 +608,54 @@
         "y"
       ],
       "title": "Coordinate",
+      "type": "object"
+    },
+    "AutoScaleOrCustomCellSize": {
+      "dependencies": {
+        "auto_scale_or_custom": {
+          "oneOf": [
+            {
+              "properties": {
+                "auto_scale_or_custom": {
+                  "enum": [
+                    "Auto-Scale"
+                  ]
+                }
+              }
+            },
+            {
+              "properties": {
+                "auto_scale_or_custom": {
+                  "enum": [
+                    "Customize"
+                  ]
+                },
+                "grid_cell_size": {
+                  "default": 5000,
+                  "title": "Custom Raster Pixel Size (Meters)",
+                  "type": "number"
+                }
+              },
+              "required": [
+                "grid_cell_size"
+              ]
+            }
+          ]
+        }
+      },
+      "properties": {
+        "auto_scale_or_custom": {
+          "default": "Auto-scale",
+          "description": "Define the resolution of the raster grid (in meters per pixel). Auto-scale for an optimized grid based on the data, or Customize to set a specific resolution.",
+          "enum": [
+            "Auto-scale",
+            "Customize"
+          ],
+          "title": "Auto Scale Or Custom",
+          "type": "string"
+        }
+      },
+      "title": "AutoScaleOrCustomCellSize",
       "type": "object"
     }
   },
