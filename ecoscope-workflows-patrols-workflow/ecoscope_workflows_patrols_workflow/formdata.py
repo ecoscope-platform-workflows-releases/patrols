@@ -280,21 +280,6 @@ class PatrolEventsBarChart(BaseModel):
     )
 
 
-class Td(BaseModel):
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    pixel_size: Optional[float] = Field(
-        250.0, description="Raster pixel size in meters.", title="Pixel Size"
-    )
-    max_speed_factor: Optional[float] = Field(1.05, title="Max Speed Factor")
-    expansion_factor: Optional[float] = Field(1.3, title="Expansion Factor")
-
-
-class TimeDensityMap(BaseModel):
-    td: Optional[Td] = Field(None, title="Calculate Time Density from Trajectory")
-
-
 class EarthRangerConnection(BaseModel):
     name: str = Field(..., title="Data Source")
 
@@ -337,6 +322,19 @@ class TrajectorySegmentFilter(BaseModel):
 class Coordinate(BaseModel):
     x: float = Field(..., title="X")
     y: float = Field(..., title="Y")
+
+
+class AutoScaleOrCustom(str, Enum):
+    Auto_scale = "Auto-scale"
+    Customize = "Customize"
+
+
+class AutoScaleOrCustomCellSize(BaseModel):
+    auto_scale_or_custom: Optional[AutoScaleOrCustom] = Field(
+        "Auto-scale",
+        description="Define the resolution of the raster grid (in meters per pixel). Auto-scale for an optimized grid based on the data, or Customize to set a specific resolution.",
+        title="Auto Scale Or Custom",
+    )
 
 
 class ErClientName(BaseModel):
@@ -407,6 +405,24 @@ class PreprocessPatrolEvents(BaseModel):
     )
 
 
+class Td(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    auto_scale_or_custom_cell_size: Optional[AutoScaleOrCustomCellSize] = Field(
+        default_factory=lambda: AutoScaleOrCustomCellSize.model_validate(
+            {"auto_scale_or_custom": "Auto-scale"}
+        ),
+        title="",
+    )
+    max_speed_factor: Optional[float] = Field(1.05, title="Max Speed Factor")
+    expansion_factor: Optional[float] = Field(1.3, title="Expansion Factor")
+
+
+class TimeDensityMap(BaseModel):
+    td: Optional[Td] = Field(None, title="")
+
+
 class FormData(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
@@ -445,5 +461,5 @@ class FormData(BaseModel):
     Time_Density_Map: Optional[TimeDensityMap] = Field(
         None,
         alias="Time Density Map",
-        description="Calculate time density from patrol trajectories and display it on a map.",
+        description="These settings show a grid-based heatmap showing where subjects spent the most time.",
     )

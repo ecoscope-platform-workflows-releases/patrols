@@ -1284,7 +1284,6 @@ patrol_events_bar_chart = (
         agg_function="count",
         color_column="event_type_colormap",
         plot_style={"xperiodalignment": "middle"},
-        grouped_styles=None,
         layout_style=None,
         **patrol_events_bar_chart_params,
     )
@@ -1454,13 +1453,13 @@ patrol_events_pie_widget_grouped = (
 
 
 # %% [markdown]
-# ## Calculate Time Density from Trajectory
+# ##
 
 # %%
 # parameters
 
 td_params = dict(
-    pixel_size=...,
+    auto_scale_or_custom_cell_size=...,
     max_speed_factor=...,
     expansion_factor=...,
 )

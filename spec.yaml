@@ -1,10 +1,10 @@
 id: patrols
 requirements:
   - name: ecoscope-workflows-core
-    version: 0.1.9
+    version: 0.2.0
     channel: https://repo.prefix.dev/ecoscope-workflows/
   - name: ecoscope-workflows-ext-ecoscope
-    version: 0.1.9
+    version: 0.2.0
     channel: https://repo.prefix.dev/ecoscope-workflows/
 rjsf-overrides:
   properties:
@@ -516,7 +516,6 @@ workflow:
           color_column: event_type_colormap
           plot_style:
             xperiodalignment: middle
-          grouped_styles: null
           layout_style: null
         mapvalues:
           argnames: dataframe
@@ -586,9 +585,9 @@ workflow:
           widgets: ${{ workflow.patrol_events_pie_chart_widgets.return }}
   - title: Time Density Map
     type: task-group
-    description: Calculate time density from patrol trajectories and display it on a map.
+    description: These settings show a grid-based heatmap showing where subjects spent the most time.
     tasks:
-      - name: Calculate Time Density from Trajectory
+      - name: null
         id: td
         task: calculate_time_density
         partial:
