@@ -310,14 +310,28 @@ class Coordinate(BaseModel):
 
 class AutoScaleOrCustom(str, Enum):
     Auto_scale = "Auto-scale"
+
+
+class AutoScaleGridCellSize(BaseModel):
+    auto_scale_or_custom: Literal["Auto-scale"] = Field(
+        "Auto-scale",
+        description="Define the resolution of the raster grid (in meters per pixel). Auto-scale for an optimized grid based on the data, or Customize to set a specific resolution.",
+        title=" ",
+    )
+
+
+class AutoScaleOrCustom1(str, Enum):
     Customize = "Customize"
 
 
-class AutoScaleOrCustomCellSize(BaseModel):
-    auto_scale_or_custom: Optional[AutoScaleOrCustom] = Field(
-        "Auto-scale",
+class CustomGridCellSize(BaseModel):
+    auto_scale_or_custom: Literal["Customize"] = Field(
+        "Customize",
         description="Define the resolution of the raster grid (in meters per pixel). Auto-scale for an optimized grid based on the data, or Customize to set a specific resolution.",
-        title="Auto Scale Or Custom",
+        title=" ",
+    )
+    grid_cell_size: Optional[float] = Field(
+        None, description="Custom Raster Pixel Size (Meters)", title="Grid Cell Size"
     )
 
 
@@ -378,11 +392,11 @@ class Td(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    auto_scale_or_custom_cell_size: Optional[AutoScaleOrCustomCellSize] = Field(
-        default_factory=lambda: AutoScaleOrCustomCellSize.model_validate(
-            {"auto_scale_or_custom": "Auto-scale"}
-        ),
-        title="",
+    auto_scale_or_custom_cell_size: Optional[
+        Union[AutoScaleGridCellSize, CustomGridCellSize]
+    ] = Field(
+        {"auto_scale_or_custom": "Auto-scale"},
+        title="Auto Scale Or Custom Grid Cell Size",
     )
     max_speed_factor: Optional[float] = Field(1.05, title="Max Speed Factor")
     expansion_factor: Optional[float] = Field(1.3, title="Expansion Factor")
