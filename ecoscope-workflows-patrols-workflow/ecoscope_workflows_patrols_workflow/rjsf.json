@@ -740,7 +740,10 @@
         "grid_cell_size": {
           "default": null,
           "description": "Custom Raster Pixel Size (Meters)",
+          "exclusiveMaximum": 10000,
+          "exclusiveMinimum": 0,
           "gt": 0,
+          "lt": 10000,
           "title": "Grid Cell Size",
           "type": "number"
         }
