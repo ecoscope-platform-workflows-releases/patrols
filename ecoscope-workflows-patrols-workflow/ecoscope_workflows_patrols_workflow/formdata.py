@@ -346,7 +346,7 @@ class CustomGridCellSize(BaseModel):
         description="Define the resolution of the raster grid (in meters per pixel). Auto-scale for an optimized grid based on the data, or Customize to set a specific resolution.",
         title=" ",
     )
-    grid_cell_size: Optional[float] = Field(
+    grid_cell_size: Optional[confloat(lt=10000.0, gt=0.0)] = Field(
         None, description="Custom Raster Pixel Size (Meters)", title="Grid Cell Size"
     )
 
