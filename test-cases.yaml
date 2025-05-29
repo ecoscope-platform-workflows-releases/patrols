@@ -9,7 +9,7 @@ all-grouper:
       data_source:
         name: "mep_dev"
     er_patrol_types:
-      patrol_types: ["05ad114e-1aff-4602-bc83-efd333cdd8a2"]
+      patrol_types: ["ecoscope_patrol"]
     er_patrol_status:
       status: ["done"]
     groupers:
@@ -63,7 +63,7 @@ month-grouper:
       data_source:
         name: "mep_dev"
     er_patrol_types:
-      patrol_types: ["05ad114e-1aff-4602-bc83-efd333cdd8a2"]
+      patrol_types: ["ecoscope_patrol"]
     er_patrol_status:
       status: ["done"]
     groupers:
@@ -116,7 +116,7 @@ value-grouper:
       data_source:
         name: "mep_dev"
     er_patrol_types:
-      patrol_types: ["05ad114e-1aff-4602-bc83-efd333cdd8a2"]
+      patrol_types: ["ecoscope_patrol"]
     er_patrol_status:
       status: ["done"]
     groupers:
@@ -174,7 +174,7 @@ task-instance-error:
       data_source:
         name: "mep_dev"
     er_patrol_types:
-      patrol_types: ["05ad114e-1aff-4602-bc83-efd333cdd8a2"]
+      patrol_types: ["ecoscope_patrol"]
     er_patrol_status:
       status: ["done"]
     groupers:
