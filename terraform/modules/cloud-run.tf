@@ -57,7 +57,7 @@ data "google_dns_managed_zone" "ecoscope" {
 }
 
 resource "google_dns_record_set" "cname" {
-  count        = startswith(var.env, "dev-preview") ? 0 : 1
+  count        = startswith(var.env, "dev-preview") ? 1 : 0
   name         = var.service_url
   managed_zone = data.google_dns_managed_zone.ecoscope.name
   type         = "CNAME"
