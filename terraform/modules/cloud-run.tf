@@ -53,7 +53,8 @@ resource "google_cloud_run_v2_service" "default" {
 }
 
 data "google_dns_managed_zone" "ecoscope" {
-  name = var.dns_config_name
+  name    = var.dns_config_name
+  project = var.project_id
 }
 
 resource "google_dns_record_set" "cname" {
