@@ -52,6 +52,19 @@ resource "google_cloud_run_v2_service" "default" {
   ]
 }
 
+data "google_dns_managed_zone" "ecoscope" {
+  name = var.dns_config_name
+}
+
+resource "google_dns_record_set" "cname" {
+  count        = startswith(var.env, "dev-preview") ? 0 : 1
+  name         = var.service_url
+  managed_zone = data.google_dns_managed_zone.ecoscope.name
+  type         = "CNAME"
+  ttl          = 300
+  rrdatas      = ["ghs.googlehosted.com."]
+}
+
 resource "google_cloud_run_domain_mapping" "default" {
   location = var.location
   name     = var.service_url
@@ -64,4 +77,6 @@ resource "google_cloud_run_domain_mapping" "default" {
   spec {
     route_name = google_cloud_run_v2_service.default.name
   }
+
+  depends_on = [ google_dns_record_set.cname ]
 }
