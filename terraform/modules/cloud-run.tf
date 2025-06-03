@@ -50,6 +50,8 @@ resource "google_cloud_run_v2_service" "default" {
     google_service_account_iam_member.gha-sa-user,
     google_project_iam_member.serviceAgent
   ]
+
+  deletion_protection = startswith(var.env, "dev-preview")? false : true
 }
 
 data "google_dns_managed_zone" "ecoscope" {
