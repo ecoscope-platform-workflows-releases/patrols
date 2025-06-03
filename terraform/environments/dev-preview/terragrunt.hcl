@@ -18,7 +18,7 @@ inputs = {
   project_id                         = "ecoscope-poc-421907"
   env                                = "dev-preview-##PREVIEW_NAME"
   network_name                       = "ecoscope-dev"
-  service_url                        = "patrols.dev-preview-##PREVIEW_NAME.ecoscope.io"
+  service_url                        = "patrols-preview-##PREVIEW_NAME.dev.ecoscope.io"
   workflows_services_custom_audience = "ecoscope-workflows-services-dev-preview-##PREVIEW_NAME"
   workflows_results_bucket           = "ecoscope-workflows-results-dev-preview-##PREVIEW_NAME"
 }

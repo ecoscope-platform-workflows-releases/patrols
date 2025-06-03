@@ -86,3 +86,8 @@ variable "timeout" {
   type = string
   default = "1800"
 }
+
+variable "dns_config_name" {
+  type = string
+  default = "dev-ecoscope-io"
+}
