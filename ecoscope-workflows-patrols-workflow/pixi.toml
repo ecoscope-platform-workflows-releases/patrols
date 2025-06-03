@@ -18,18 +18,26 @@ platforms = [
 linux = "4.4.0"
 
 [dependencies.ecoscope-workflows-core]
-version = "==0.2.8"
+version = "==0.3.0"
 channel = "https://repo.prefix.dev/ecoscope-workflows/"
 
 [dependencies.ecoscope-workflows-ext-ecoscope]
-version = "==0.2.8"
+version = "==0.3.0"
 channel = "https://repo.prefix.dev/ecoscope-workflows/"
 
 [feature.runner.dependencies.ecoscope-workflows-runner]
-version = "==0.2.8"
+version = "==0.3.0"
 channel = "https://repo.prefix.dev/ecoscope-workflows/"
 
 [feature.runner.tasks]
+
+[feature.test.dependencies.pandas]
+version = "*"
+channel = "https://conda.anaconda.org/conda-forge/"
+
+[feature.test.dependencies.pyarrow]
+version = "*"
+channel = "https://conda.anaconda.org/conda-forge/"
 
 [feature.test.dependencies.pytest]
 version = "*"
