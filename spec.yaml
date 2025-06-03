@@ -1,10 +1,10 @@
 id: patrols
 requirements:
   - name: ecoscope-workflows-core
-    version: 0.2.8
+    version: 0.3.0
     channel: https://repo.prefix.dev/ecoscope-workflows/
   - name: ecoscope-workflows-ext-ecoscope
-    version: 0.2.8
+    version: 0.3.0
     channel: https://repo.prefix.dev/ecoscope-workflows/
 rjsf-overrides:
   properties:
@@ -28,6 +28,11 @@ rjsf-overrides:
         title: Patrol Serial Number
       - const: patrol_type
         title: Patrol Type
+task-instance-defaults:
+  skipif:
+    conditions:
+      - any_is_empty_df
+      - any_dependency_skipped
 workflow:
   - name: Workflow Details
     id: workflow_details
@@ -56,7 +61,7 @@ workflow:
           patrol_type: ${{ workflow.er_patrol_types.return }}
           status: ${{ workflow.er_patrol_status.return }}
           include_patrol_details: true
-          raise_on_empty: true
+          raise_on_empty: false
       - id: patrol_events
         task: get_patrol_events
         partial:
@@ -65,7 +70,7 @@ workflow:
           patrol_type: ${{ workflow.er_patrol_types.return }}
           status: ${{ workflow.er_patrol_status.return }}
           truncate_to_time_range: true
-          raise_on_empty: true
+          raise_on_empty: false
   - name: Group Data
     id: groupers
     task: set_groupers
@@ -298,6 +303,10 @@ workflow:
           argvalues: ${{ workflow.patrol_traj_rename_columns.return }}
       - name: Combine Trajectories and Patrol Events layers
         id: combined_traj_and_pe_map_layers
+        skipif:
+          conditions:
+            - all_keyed_iterables_are_skips
+          unpack_depth: 1
         task: groupbykey
         partial:
           iterables:
@@ -329,6 +338,9 @@ workflow:
       - name: Create Map Widgets for Patrol Events
         id: traj_pe_map_widgets_single_views
         task: create_map_widget_single_view
+        skipif:
+          conditions:
+            - never
         partial:
           title: Trajectories & Patrol Events Map
         map:
@@ -356,6 +368,9 @@ workflow:
       - name: Create Single Value Widgets for Total Patrols Per Group
         id: total_patrols_sv_widgets
         task: create_single_value_widget_single_view
+        skipif:
+          conditions:
+            - never
         partial:
           title: Total Patrols
           decimal_places: 1
@@ -389,6 +404,9 @@ workflow:
       - name: Create Single Value Widgets for Total Patrol Time Per Group
         id: total_patrol_time_sv_widgets
         task: create_single_value_widget_single_view
+        skipif:
+          conditions:
+            - never
         partial:
           title: Total Time
           decimal_places: 1
@@ -422,6 +440,9 @@ workflow:
       - name: Create Single Value Widgets for Total Distance Per Group
         id: total_patrol_dist_sv_widgets
         task: create_single_value_widget_single_view
+        skipif:
+          conditions:
+            - never
         partial:
           title: Total Distance
           decimal_places: 1
@@ -455,6 +476,9 @@ workflow:
       - name: Create Single Value Widgets for Avg Speed Per Group
         id: avg_speed_sv_widgets
         task: create_single_value_widget_single_view
+        skipif:
+          conditions:
+            - never
         partial:
           title: Average Speed
           decimal_places: 1
@@ -488,6 +512,9 @@ workflow:
       - name: Create Single Value Widgets for Max Speed Per Group
         id: max_speed_sv_widgets
         task: create_single_value_widget_single_view
+        skipif:
+          conditions:
+            - never
         partial:
           title: Max Speed
           decimal_places: 1
@@ -531,6 +558,9 @@ workflow:
       - name: Create Plot Widget for Patrol Events
         id: patrol_events_bar_chart_widget
         task: create_plot_widget_single_view
+        skipif:
+          conditions:
+            - never
         partial:
           title: Patrol Events Bar Chart
         map:
@@ -571,6 +601,9 @@ workflow:
       - name: Create Plot Widget for Patrol Events
         id: patrol_events_pie_chart_widgets
         task: create_plot_widget_single_view
+        skipif:
+          conditions:
+            - never
         partial:
           title: Patrol Events Pie Chart
         map:
@@ -669,6 +702,9 @@ workflow:
       - name: Create Time Density Map Widget
         id: td_map_widget
         task: create_map_widget_single_view
+        skipif:
+          conditions:
+            - never
         partial:
           title: Time Density Map
         map:

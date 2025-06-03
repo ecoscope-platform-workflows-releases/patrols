@@ -1,0 +1,86 @@
+{
+  "error": null,
+  "result": {
+    "filters": {
+      "schema": {
+        "properties": {},
+        "type": "object",
+        "uiSchema": {}
+      }
+    },
+    "layout": [],
+    "metadata": {
+      "description": "A dashboard for visualizing patrol trajectories, patrols events, and time density.",
+      "time_range": "From 01 Jan 2015 00:00:00 UTC to 28 Feb 2015 23:59:59 UTC",
+      "title": "Patrols Dashboard"
+    },
+    "views": {
+      "{}": [
+        {
+          "data": null,
+          "id": 0,
+          "is_filtered": false,
+          "title": "Trajectories & Patrol Events Map",
+          "widget_type": "map"
+        },
+        {
+          "data": null,
+          "id": 1,
+          "is_filtered": false,
+          "title": "Time Density Map",
+          "widget_type": "map"
+        },
+        {
+          "data": null,
+          "id": 2,
+          "is_filtered": false,
+          "title": "Patrol Events Bar Chart",
+          "widget_type": "graph"
+        },
+        {
+          "data": null,
+          "id": 3,
+          "is_filtered": false,
+          "title": "Patrol Events Pie Chart",
+          "widget_type": "graph"
+        },
+        {
+          "data": null,
+          "id": 4,
+          "is_filtered": false,
+          "title": "Total Patrols",
+          "widget_type": "stat"
+        },
+        {
+          "data": null,
+          "id": 5,
+          "is_filtered": false,
+          "title": "Total Time",
+          "widget_type": "stat"
+        },
+        {
+          "data": null,
+          "id": 6,
+          "is_filtered": false,
+          "title": "Total Distance",
+          "widget_type": "stat"
+        },
+        {
+          "data": null,
+          "id": 7,
+          "is_filtered": false,
+          "title": "Average Speed",
+          "widget_type": "stat"
+        },
+        {
+          "data": null,
+          "id": 8,
+          "is_filtered": false,
+          "title": "Max Speed",
+          "widget_type": "stat"
+        }
+      ]
+    }
+  },
+  "trace": null
+}
