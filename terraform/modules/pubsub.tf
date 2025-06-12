@@ -13,9 +13,7 @@ resource "google_pubsub_subscription" "run_from_pubsub" {
   project = var.project_id
   topic   = data.google_pubsub_topic.workflow_topic.name
 
-  filter = <<EOF
-    attributes.workflow_name = "${replace(var.application, "workflow-", "")}"
-  EOF
+  filter = "hasPrefix(attributes.workflow_name, \"${replace(var.application, "workflow-", "")}\")"
 
   push_config {
     push_endpoint = "${google_cloud_run_v2_service.default.uri}/run-from-pubsub"
