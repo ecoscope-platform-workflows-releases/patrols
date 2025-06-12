@@ -35,7 +35,7 @@ variable "min_instance_count" {
 variable "max_instance_count" {
   type        = number
   description = "Maximum number of serving instances that this resource should have."
-  default     = "1000"
+  default     = "100"
 }
 
 variable "max_instance_request_concurrency" {
