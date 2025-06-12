@@ -36,6 +36,7 @@ from ecoscope_workflows_core.tasks.transformation import convert_column_values_t
 from ecoscope_workflows_core.tasks.groupby import split_groups
 from ecoscope_workflows_ext_ecoscope.tasks.results import set_base_maps
 from ecoscope_workflows_ext_ecoscope.tasks.results import create_point_layer
+from ecoscope_workflows_ext_ecoscope.tasks.skip import all_geometry_are_none
 from ecoscope_workflows_core.tasks.transformation import map_values_with_unit
 from ecoscope_workflows_ext_ecoscope.tasks.results import create_polyline_layer
 from ecoscope_workflows_core.tasks.groupby import groupbykey
@@ -531,10 +532,7 @@ traj_colormap = (
 # parameters
 
 filter_patrol_events_params = dict(
-    min_x=...,
-    max_x=...,
-    min_y=...,
-    max_y=...,
+    bounding_box=...,
     filter_point_coords=...,
 )
 
@@ -825,6 +823,7 @@ patrol_events_map_layers = (
         conditions=[
             any_is_empty_df,
             any_dependency_skipped,
+            all_geometry_are_none,
         ],
         unpack_depth=1,
     )
@@ -928,6 +927,7 @@ patrol_traj_map_layers = (
         conditions=[
             any_is_empty_df,
             any_dependency_skipped,
+            all_geometry_are_none,
         ],
         unpack_depth=1,
     )
@@ -1979,6 +1979,7 @@ td_map_layer = (
         conditions=[
             any_is_empty_df,
             any_dependency_skipped,
+            all_geometry_are_none,
         ],
         unpack_depth=1,
     )

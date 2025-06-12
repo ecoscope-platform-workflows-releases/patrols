@@ -38,7 +38,9 @@ class ErPatrolTypes(BaseModel):
         extra="forbid",
     )
     patrol_types: List[str] = Field(
-        ..., description="list of UUID of patrol types", title="Patrol Types"
+        ...,
+        description="Select the patrol type(s) to analyze (optional). Leave empty to analyze all patrol types.",
+        title="Patrol Types",
     )
 
 
@@ -65,11 +67,13 @@ class PatrolEvents(BaseModel):
         extra="forbid",
     )
     event_type: List[str] = Field(
-        ..., description="List of event types by name", title="Event Types"
+        ...,
+        description="Select the event type(s) to analyze (optional). Leave empty to analyze all event types.",
+        title="Event Types",
     )
     drop_null_geometry: Optional[bool] = Field(
         False,
-        description="Whether or not to keep events with no geometry data",
+        description="Include Events Without a Geometry (point or polygon)",
         title="Drop Null Geometry",
     )
 
@@ -294,29 +298,30 @@ class ValueGrouper(RootModel[str]):
 
 class TrajectorySegmentFilter(BaseModel):
     min_length_meters: Optional[float] = Field(
-        0.001, description="Minimum Segment Length in Meters", title="Min Length Meters"
+        0.001, title="Minimum Segment Length (Meters)"
     )
     max_length_meters: Optional[float] = Field(
-        100000,
-        description="Maximum Segment Length in Meters",
-        title="Max Length Meters",
+        100000, title="Maximum Segment Length (Meters)"
     )
     min_time_secs: Optional[float] = Field(
-        1, description="Minimum Segment Duration in Seconds", title="Min Time Secs"
+        1, title="Minimum Segment Duration (Seconds)"
     )
     max_time_secs: Optional[float] = Field(
-        172800, description="Maximum Segment Duration in Seconds", title="Max Time Secs"
+        172800, title="Maximum Segment Duration (Seconds)"
     )
     min_speed_kmhr: Optional[float] = Field(
-        0.0001,
-        description="Minimum Segment Speed in Kilometers per Hour",
-        title="Min Speed Kmhr",
+        0.0001, title="Minimum Segment Speed (Kilometers per Hour)"
     )
     max_speed_kmhr: Optional[float] = Field(
-        500,
-        description="Maximum Segment Speed in Kilometers per Hour",
-        title="Max Speed Kmhr",
+        500, title="Maximum Segment Speed (Kilometers per Hour)"
     )
+
+
+class BoundingBox(BaseModel):
+    min_y: Optional[float] = Field(-90.0, title="Min Latitude")
+    max_y: Optional[float] = Field(90.0, title="Max Latitude")
+    min_x: Optional[float] = Field(-180.0, title="Min Longitude")
+    max_x: Optional[float] = Field(180.0, title="Max Longitude")
 
 
 class Coordinate(BaseModel):
@@ -386,7 +391,7 @@ class PatrolTraj(BaseModel):
                 "max_speed_kmhr": 500,
             }
         ),
-        description="Trajectory Segments outside these bounds will be removed",
+        description="Filter track data by setting limits on track segment length, duration, and speed. Segments outside these bounds are removed, reducing noise and to focus on meaningful movement patterns.",
         title="Trajectory Segment Filter",
     )
 
@@ -404,10 +409,13 @@ class FilterPatrolEvents(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    min_x: Optional[float] = Field(-180.0, title="Min X")
-    max_x: Optional[float] = Field(180.0, title="Max X")
-    min_y: Optional[float] = Field(-90.0, title="Min Y")
-    max_y: Optional[float] = Field(90.0, title="Max Y")
+    bounding_box: Optional[BoundingBox] = Field(
+        default_factory=lambda: BoundingBox.model_validate(
+            {"min_y": -90.0, "max_y": 90.0, "min_x": -180.0, "max_x": 180.0}
+        ),
+        description="Filter events to inside these bounding coordinates.",
+        title="Bounding Box",
+    )
     filter_point_coords: Optional[List[Coordinate]] = Field(
         [], title="Filter Point Coords"
     )
@@ -429,8 +437,16 @@ class Td(BaseModel):
         {"auto_scale_or_custom": "Auto-scale"},
         title="Auto Scale Or Custom Grid Cell Size",
     )
-    max_speed_factor: Optional[float] = Field(1.05, title="Max Speed Factor")
-    expansion_factor: Optional[float] = Field(1.3, title="Expansion Factor")
+    max_speed_factor: Optional[float] = Field(
+        1.05,
+        description="An estimate of the subject's maximum speed as a factor of the maximum measured speed value in the dataset.",
+        title="Max Speed Factor (Kilometers per Hour)",
+    )
+    expansion_factor: Optional[float] = Field(
+        1.3,
+        description="Controls how far time density values spread across the grid, affecting the smoothness of the output.",
+        title="Expansion Factor",
+    )
 
 
 class TimeDensityMap(BaseModel):
@@ -451,9 +467,7 @@ class FormData(BaseModel):
         None, description="Choose the period of time to analyze.", title="Time Range"
     )
     Patrol_and_Event_Types: Optional[PatrolAndEventTypes] = Field(
-        None,
-        alias="Patrol and Event Types",
-        description="Select the Patrol and Event types to be analyzed.",
+        None, alias="Patrol and Event Types", description=" "
     )
     groupers: Optional[Groupers] = Field(None, title="Group Data")
     Preprocess_patrol_observations: Optional[PreprocessPatrolObservations] = Field(

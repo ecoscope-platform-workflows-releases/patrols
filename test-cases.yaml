@@ -31,10 +31,11 @@ all-grouper:
       event_type: []
       drop_null_geometry: false
     filter_patrol_events:
-      min_x: -180.0
-      max_x: 180.0
-      min_y: -90.0
-      max_y: 90.0
+      bounding_box:
+        min_x: -180.0
+        max_x: 180.0
+        min_y: -90.0
+        max_y: 90.0
       filter_point_coords: []
     base_map_defs:
       base_maps:
@@ -86,10 +87,11 @@ month-grouper:
       event_type: []
       drop_null_geometry: false
     filter_patrol_events:
-      min_x: -180.0
-      max_x: 180.0
-      min_y: -90.0
-      max_y: 90.0
+      bounding_box:
+        min_x: -180.0
+        max_x: 180.0
+        min_y: -90.0
+        max_y: 90.0
       filter_point_coords: []
     base_map_defs:
       base_maps:
@@ -140,10 +142,11 @@ value-grouper:
       event_type: []
       drop_null_geometry: false
     filter_patrol_events:
-      min_x: -180.0
-      max_x: 180.0
-      min_y: -90.0
-      max_y: 90.0
+      bounding_box:
+        min_x: -180.0
+        max_x: 180.0
+        min_y: -90.0
+        max_y: 90.0
       filter_point_coords: []
     base_map_defs:
       base_maps:
@@ -163,7 +166,7 @@ task-instance-error:
   name: Task Instance Error
   description: |
     A demonstration of configuration that would raise a task instance error.
-    Specifically, `filter_patrol_events` configuration specifies an invalid bounding box.
+    Specifically, `grid_cell_size` is set to a value small enough to cause a memory-allocation error due to the number of grid cells.
   raises: true
   expected_status_code: 500
   params:
@@ -196,10 +199,11 @@ task-instance-error:
       event_type: []
       drop_null_geometry: false
     filter_patrol_events:
-      min_x: -180.0
-      max_x: -181.0
-      min_y: -90.0
-      max_y: -91.0
+      bounding_box:
+        min_x: -180.0
+        max_x: -181.0
+        min_y: -90.0
+        max_y: -91.0
       filter_point_coords: []
     base_map_defs:
       base_maps:
@@ -211,6 +215,7 @@ task-instance-error:
       time_interval: "month"
     td:
       auto_scale_or_custom_cell_size:
-        auto_scale_or_custom: "Auto-scale"
+        auto_scale_or_custom: "Customize"
+        grid_cell_size: 0.5
       max_speed_factor: 1.05
       expansion_factor: 1.3

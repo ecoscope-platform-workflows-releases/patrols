@@ -68,7 +68,7 @@
           },
           "title": "Patrol Types",
           "type": "array",
-          "description": "list of UUID of patrol types"
+          "description": "Select the patrol type(s) to analyze (optional). Leave empty to analyze all patrol types."
         }
       },
       "required": [
@@ -110,13 +110,13 @@
           },
           "title": "Event Types",
           "type": "array",
-          "description": "List of event types by name"
+          "description": "Select the event type(s) to analyze (optional). Leave empty to analyze all event types."
         },
         "drop_null_geometry": {
           "default": false,
           "title": "Drop Null Geometry",
           "type": "boolean",
-          "description": "Whether or not to keep events with no geometry data",
+          "description": "Include Events Without a Geometry (point or polygon)",
           "ecoscope:advanced": true
         }
       },
@@ -183,7 +183,7 @@
             "max_speed_kmhr": 500
           },
           "title": "Trajectory Segment Filter",
-          "description": "Trajectory Segments outside these bounds will be removed",
+          "description": "Filter track data by setting limits on track segment length, duration, and speed. Segments outside these bounds are removed, reducing noise and to focus on meaningful movement patterns.",
           "ecoscope:advanced": true
         }
       },
@@ -194,28 +194,20 @@
     "filter_patrol_events": {
       "additionalProperties": false,
       "properties": {
-        "min_x": {
-          "default": -180.0,
-          "title": "Min X",
-          "type": "number",
-          "ecoscope:advanced": true
-        },
-        "max_x": {
-          "default": 180.0,
-          "title": "Max X",
-          "type": "number",
-          "ecoscope:advanced": true
-        },
-        "min_y": {
-          "default": -90.0,
-          "title": "Min Y",
-          "type": "number",
-          "ecoscope:advanced": true
-        },
-        "max_y": {
-          "default": 90.0,
-          "title": "Max Y",
-          "type": "number",
+        "bounding_box": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/BoundingBox"
+            }
+          ],
+          "default": {
+            "min_y": -90.0,
+            "max_y": 90.0,
+            "min_x": -180.0,
+            "max_x": 180.0
+          },
+          "title": "Bounding Box",
+          "description": "Filter events to inside these bounding coordinates.",
           "ecoscope:advanced": true
         },
         "filter_point_coords": {
@@ -474,14 +466,16 @@
         },
         "max_speed_factor": {
           "default": 1.05,
-          "title": "Max Speed Factor",
+          "title": "Max Speed Factor (Kilometers per Hour)",
           "type": "number",
+          "description": "An estimate of the subject's maximum speed as a factor of the maximum measured speed value in the dataset.",
           "ecoscope:advanced": true
         },
         "expansion_factor": {
           "default": 1.3,
           "title": "Expansion Factor",
           "type": "number",
+          "description": "Controls how far time density values spread across the grid, affecting the smoothness of the output.",
           "ecoscope:advanced": true
         }
       },
@@ -551,48 +545,72 @@
       "properties": {
         "min_length_meters": {
           "default": 0.001,
-          "description": "Minimum Segment Length in Meters",
           "ecoscope:advanced": true,
-          "title": "Min Length Meters",
+          "title": "Minimum Segment Length (Meters)",
           "type": "number"
         },
         "max_length_meters": {
           "default": 100000,
-          "description": "Maximum Segment Length in Meters",
           "ecoscope:advanced": true,
-          "title": "Max Length Meters",
+          "title": "Maximum Segment Length (Meters)",
           "type": "number"
         },
         "min_time_secs": {
           "default": 1,
-          "description": "Minimum Segment Duration in Seconds",
           "ecoscope:advanced": true,
-          "title": "Min Time Secs",
+          "title": "Minimum Segment Duration (Seconds)",
           "type": "number"
         },
         "max_time_secs": {
           "default": 172800,
-          "description": "Maximum Segment Duration in Seconds",
           "ecoscope:advanced": true,
-          "title": "Max Time Secs",
+          "title": "Maximum Segment Duration (Seconds)",
           "type": "number"
         },
         "min_speed_kmhr": {
           "default": 0.0001,
-          "description": "Minimum Segment Speed in Kilometers per Hour",
           "ecoscope:advanced": true,
-          "title": "Min Speed Kmhr",
+          "title": "Minimum Segment Speed (Kilometers per Hour)",
           "type": "number"
         },
         "max_speed_kmhr": {
           "default": 500,
-          "description": "Maximum Segment Speed in Kilometers per Hour",
           "ecoscope:advanced": true,
-          "title": "Max Speed Kmhr",
+          "title": "Maximum Segment Speed (Kilometers per Hour)",
           "type": "number"
         }
       },
       "title": "TrajectorySegmentFilter",
+      "type": "object"
+    },
+    "BoundingBox": {
+      "properties": {
+        "min_y": {
+          "default": -90.0,
+          "ecoscope:advanced": true,
+          "title": "Min Latitude",
+          "type": "number"
+        },
+        "max_y": {
+          "default": 90.0,
+          "ecoscope:advanced": true,
+          "title": "Max Latitude",
+          "type": "number"
+        },
+        "min_x": {
+          "default": -180.0,
+          "ecoscope:advanced": true,
+          "title": "Min Longitude",
+          "type": "number"
+        },
+        "max_x": {
+          "default": 180.0,
+          "ecoscope:advanced": true,
+          "title": "Max Longitude",
+          "type": "number"
+        }
+      },
+      "title": "BoundingBox",
       "type": "object"
     },
     "Coordinate": {

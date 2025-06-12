@@ -1,10 +1,10 @@
 id: patrols
 requirements:
   - name: ecoscope-workflows-core
-    version: 0.3.1
+    version: 0.3.3
     channel: https://repo.prefix.dev/ecoscope-workflows/
   - name: ecoscope-workflows-ext-ecoscope
-    version: 0.3.1
+    version: 0.3.3
     channel: https://repo.prefix.dev/ecoscope-workflows/
 rjsf-overrides:
   properties:
@@ -47,7 +47,7 @@ workflow:
       time_format: '%d %b %Y %H:%M:%S %Z'
   - title: Patrol and Event Types
     type: task-group
-    description: Select the Patrol and Event types to be analyzed.
+    description: ' '
     tasks:
       - id: er_patrol_types
         task: set_patrol_types
@@ -237,6 +237,11 @@ workflow:
       - name: Create map layers for each Patrols Events group
         id: patrol_events_map_layers
         task: create_point_layer
+        skipif:
+          conditions:
+            - any_is_empty_df
+            - any_dependency_skipped
+            - all_geometry_are_none
         partial:
           layer_style:
             fill_color_column: event_type_colormap
@@ -279,6 +284,11 @@ workflow:
       - name: Create map layer for each Patrol Trajectories group
         id: patrol_traj_map_layers
         task: create_polyline_layer
+        skipif:
+          conditions:
+            - any_is_empty_df
+            - any_dependency_skipped
+            - all_geometry_are_none
         partial:
           layer_style:
             auto_highlight: false
@@ -663,6 +673,11 @@ workflow:
       - name: Create map layer from Time Density
         id: td_map_layer
         task: create_polygon_layer
+        skipif:
+          conditions:
+            - any_is_empty_df
+            - any_dependency_skipped
+            - all_geometry_are_none
         partial:
           layer_style:
             fill_color_column: percentile_colormap
