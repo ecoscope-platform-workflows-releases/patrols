@@ -336,7 +336,7 @@ class CustomGridCellSize(BaseModel):
         title=" ",
     )
     grid_cell_size: Optional[confloat(lt=10000.0, gt=0.0)] = Field(
-        None, description="Custom Raster Pixel Size (Meters)", title="Grid Cell Size"
+        5000, description="Custom Raster Pixel Size (Meters)", title="Grid Cell Size"
     )
 
 
