@@ -15,4 +15,5 @@ inputs = {
   service_url                        = "patrols.dev.ecoscope.io"
   workflows_services_custom_audience = "ecoscope-workflows-services-dev"
   workflows_results_bucket           = "ecoscope-workflows-results-dev"
+  max_instance_count                 = "5"
 }
