@@ -662,7 +662,7 @@
           "type": "string"
         },
         "grid_cell_size": {
-          "default": null,
+          "default": 5000,
           "description": "Custom Raster Pixel Size (Meters)",
           "exclusiveMaximum": 10000,
           "exclusiveMinimum": 0,
