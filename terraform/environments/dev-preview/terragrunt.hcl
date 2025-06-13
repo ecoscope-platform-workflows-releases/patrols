@@ -22,4 +22,5 @@ inputs = {
   workflows_services_custom_audience = "ecoscope-workflows-services-dev-preview-##PREVIEW_NAME"
   workflows_results_bucket           = "ecoscope-workflows-results-dev-preview-##PREVIEW_NAME"
   max_instance_count                 = "5"
+  location                           = "us-west2"
 }
