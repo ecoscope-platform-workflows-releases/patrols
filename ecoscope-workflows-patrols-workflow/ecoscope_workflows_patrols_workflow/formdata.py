@@ -325,8 +325,8 @@ class BoundingBox(BaseModel):
 
 
 class Coordinate(BaseModel):
-    x: float = Field(..., title="X")
-    y: float = Field(..., title="Y")
+    y: float = Field(..., description="Example -0.15293", title="Latitude")
+    x: float = Field(..., description="Example 37.30906", title="Longitude")
 
 
 class AutoScaleOrCustom(str, Enum):
@@ -443,9 +443,9 @@ class Td(BaseModel):
         title="Max Speed Factor (Kilometers per Hour)",
     )
     expansion_factor: Optional[float] = Field(
-        1.3,
+        1.05,
         description="Controls how far time density values spread across the grid, affecting the smoothness of the output.",
-        title="Expansion Factor",
+        title="Shape Buffer Expansion Factor",
     )
 
 

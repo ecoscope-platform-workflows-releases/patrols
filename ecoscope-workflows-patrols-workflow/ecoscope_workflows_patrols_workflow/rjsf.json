@@ -550,8 +550,8 @@
               "ecoscope:advanced": true
             },
             "expansion_factor": {
-              "default": 1.3,
-              "title": "Expansion Factor",
+              "default": 1.05,
+              "title": "Shape Buffer Expansion Factor",
               "type": "number",
               "description": "Controls how far time density values spread across the grid, affecting the smoothness of the output.",
               "ecoscope:advanced": true
@@ -709,18 +709,20 @@
     },
     "Coordinate": {
       "properties": {
-        "x": {
-          "title": "X",
+        "y": {
+          "description": "Example -0.15293",
+          "title": "Latitude",
           "type": "number"
         },
-        "y": {
-          "title": "Y",
+        "x": {
+          "description": "Example 37.30906",
+          "title": "Longitude",
           "type": "number"
         }
       },
       "required": [
-        "x",
-        "y"
+        "y",
+        "x"
       ],
       "title": "Coordinate",
       "type": "object"
