@@ -9,11 +9,11 @@ data "google_pubsub_topic" "workflow_topic_dlq" {
 }
 
 resource "google_pubsub_subscription" "run_from_pubsub" {
-  name    = "${var.application}-sub-${var.env}"
+  name    = "${var.application_name}-sub-${var.env}"
   project = var.project_id
   topic   = data.google_pubsub_topic.workflow_topic.name
 
-  filter = "hasPrefix(attributes.workflow_name, \"${replace(var.application, "workflow-", "")}\")"
+  filter = "hasPrefix(attributes.workflow_name, \"${var.application_short_name}\")"
 
   push_config {
     push_endpoint = "${google_cloud_run_v2_service.default.uri}/run-from-pubsub"

@@ -1,5 +1,5 @@
 resource "google_cloud_run_v2_service" "default" {
-  name     = "${var.application}-${var.env}"
+  name     = "${var.application_name}-${var.env}"
   project  = var.project_id
   location = var.location
   ingress  = var.ingress
@@ -43,6 +43,11 @@ resource "google_cloud_run_v2_service" "default" {
       env {
         name = "UVICORN_TIMEOUT"
         value = var.timeout
+      }
+
+      env {
+        name = "BATCH_SERVICE_ACCOUNT"
+        value = google_service_account.batch_job.email
       }
     }
   }
