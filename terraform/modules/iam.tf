@@ -1,5 +1,5 @@
 resource "google_service_account" "default" {
-  account_id = startswith(var.env, "dev-preview")? "wf-patrols-${var.env}" : "workflow-patrols-${var.env}"
+  account_id = startswith(var.env, "dev-preview")? "wf-${var.application_short_name}-${var.env}" : "${var.application_name}-${var.env}"
   project    = var.project_id
 }
 
