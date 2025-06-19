@@ -1,6 +1,6 @@
 resource "google_cloud_scheduler_job" "warmup_job" {
-  name             = "ecoscope-${var.application}-warmup-${var.env}"
-  description      = "Keeps the ecoscope ${var.application} warm by making periodic requests"
+  name             = "ecoscope-${var.application_name}-warmup-${var.env}"
+  description      = "Keeps the ecoscope ${var.application_name} warm by making periodic requests"
   schedule         = "*/10 * * * *"
   time_zone        = "Etc/UTC"
   project          = var.project_id

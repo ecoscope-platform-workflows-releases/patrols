@@ -14,11 +14,18 @@ variable "location" {
   default     = "us-west1"
 }
 
-variable "application" {
+variable "application_name" {
   type = string
   description = "Name of the application"
   default = "workflow-patrols"
 }
+
+variable "application_short_name" {
+  type = string
+  description = "Name of the application"
+  default = "patrols"
+}
+
 
 variable "ingress" {
   type        = string
