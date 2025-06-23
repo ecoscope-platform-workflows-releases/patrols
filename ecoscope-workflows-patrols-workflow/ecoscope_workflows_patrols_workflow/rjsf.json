@@ -133,13 +133,6 @@
           "type": "object",
           "title": ""
         }
-      },
-      "uiSchema": {
-        "ui:order": [
-          "er_patrol_types",
-          "er_patrol_status",
-          "patrol_events"
-        ]
       }
     },
     "groupers": {
@@ -232,12 +225,6 @@
           "type": "object",
           "title": "Transform Relocations to Trajectories"
         }
-      },
-      "uiSchema": {
-        "ui:order": [
-          "set_patrol_traj_color_column",
-          "patrol_traj"
-        ]
       }
     },
     "Preprocess patrol events": {
@@ -278,11 +265,6 @@
           "type": "object",
           "title": "Apply Coordinate Filter"
         }
-      },
-      "uiSchema": {
-        "ui:order": [
-          "filter_patrol_events"
-        ]
       }
     },
     "base_map_defs": {
@@ -512,11 +494,6 @@
           "type": "object",
           "title": "Draw Time Series Bar Chart for Patrols Events"
         }
-      },
-      "uiSchema": {
-        "ui:order": [
-          "patrol_events_bar_chart"
-        ]
       }
     },
     "Time Density Map": {
@@ -561,11 +538,6 @@
           "type": "object",
           "title": ""
         }
-      },
-      "uiSchema": {
-        "ui:order": [
-          "td"
-        ]
       }
     }
   },
@@ -772,8 +744,55 @@
       "type": "object"
     }
   },
-  "additionalProperties": false,
   "uiSchema": {
+    "workflow_details": {
+      "ui:order": [
+        "name",
+        "description"
+      ]
+    },
+    "time_range": {
+      "ui:order": [
+        "since",
+        "until"
+      ]
+    },
+    "Patrol and Event Types": {
+      "ui:order": [
+        "er_patrol_types",
+        "er_patrol_status",
+        "patrol_events"
+      ],
+      "patrol_events": {
+        "ui:order": [
+          "event_type",
+          "drop_null_geometry"
+        ]
+      }
+    },
+    "Preprocess patrol observations": {
+      "ui:order": [
+        "set_patrol_traj_color_column",
+        "patrol_traj"
+      ]
+    },
+    "Preprocess patrol events": {
+      "filter_patrol_events": {
+        "ui:order": [
+          "bounding_box",
+          "filter_point_coords"
+        ]
+      }
+    },
+    "Time Density Map": {
+      "td": {
+        "ui:order": [
+          "auto_scale_or_custom_cell_size",
+          "max_speed_factor",
+          "expansion_factor"
+        ]
+      }
+    },
     "ui:order": [
       "workflow_details",
       "er_client_name",
@@ -786,5 +805,6 @@
       "Patrol events bar chart",
       "Time Density Map"
     ]
-  }
+  },
+  "additionalProperties": false
 }
