@@ -1,10 +1,10 @@
 data "google_pubsub_topic" "workflow_topic" {
-  name    = "workflow-requests-${var.env}"
+  name    = startswith(var.env, "dev-preview") ? "workflow-requests-${var.env}" : "workflow-requests"
   project = var.project_id
 }
 
 data "google_pubsub_topic" "workflow_topic_dlq" {
-  name    = "workflow-requests-dead-letter-${var.env}"
+  name    = startswith(var.env, "dev-preview") ? "workflow-requests-dead-letter-${var.env}" : "workflow-requests-dead-letter"
   project = var.project_id
 }
 
