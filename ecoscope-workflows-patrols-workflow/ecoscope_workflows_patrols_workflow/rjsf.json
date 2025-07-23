@@ -501,7 +501,7 @@
       "description": "These settings show a grid-based heatmap showing where subjects spent the most time.",
       "ecoscope:task_group": true,
       "properties": {
-        "td": {
+        "ltd_meshgrid": {
           "additionalProperties": false,
           "properties": {
             "auto_scale_or_custom_cell_size": {
@@ -517,20 +517,6 @@
                 "auto_scale_or_custom": "Auto-scale"
               },
               "title": "Auto Scale Or Custom Grid Cell Size",
-              "ecoscope:advanced": true
-            },
-            "max_speed_factor": {
-              "default": 1.05,
-              "title": "Max Speed Factor (Kilometers per Hour)",
-              "type": "number",
-              "description": "An estimate of the subject's maximum speed as a factor of the maximum measured speed value in the dataset.",
-              "ecoscope:advanced": true
-            },
-            "expansion_factor": {
-              "default": 1.05,
-              "title": "Shape Buffer Expansion Factor",
-              "type": "number",
-              "description": "Controls how far time density values spread across the grid, affecting the smoothness of the output.",
               "ecoscope:advanced": true
             }
           },
@@ -784,15 +770,6 @@
         "ui:order": [
           "bounding_box",
           "filter_point_coords"
-        ]
-      }
-    },
-    "Time Density Map": {
-      "td": {
-        "ui:order": [
-          "auto_scale_or_custom_cell_size",
-          "max_speed_factor",
-          "expansion_factor"
         ]
       }
     },

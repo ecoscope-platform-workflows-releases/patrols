@@ -55,7 +55,11 @@ from ecoscope_workflows_core.tasks.analysis import dataframe_column_max
 from ecoscope_workflows_ext_ecoscope.tasks.results import draw_time_series_bar_chart
 from ecoscope_workflows_core.tasks.results import create_plot_widget_single_view
 from ecoscope_workflows_ext_ecoscope.tasks.results import draw_pie_chart
-from ecoscope_workflows_ext_ecoscope.tasks.analysis import calculate_time_density
+from ecoscope_workflows_ext_ecoscope.tasks.analysis import create_meshgrid
+from ecoscope_workflows_ext_ecoscope.tasks.analysis import calculate_linear_time_density
+from ecoscope_workflows_ext_ecoscope.tasks.transformation import (
+    drop_nan_values_by_column,
+)
 from ecoscope_workflows_ext_ecoscope.tasks.results import create_polygon_layer
 from ecoscope_workflows_core.tasks.results import gather_dashboard
 
@@ -1866,18 +1870,16 @@ patrol_events_pie_widget_grouped = (
 # %%
 # parameters
 
-td_params = dict(
+ltd_meshgrid_params = dict(
     auto_scale_or_custom_cell_size=...,
-    max_speed_factor=...,
-    expansion_factor=...,
 )
 
 # %%
 # call the task
 
 
-td = (
-    calculate_time_density.handle_errors(task_instance_id="td")
+ltd_meshgrid = (
+    create_meshgrid.handle_errors(task_instance_id="ltd_meshgrid")
     .skipif(
         conditions=[
             any_is_empty_df,
@@ -1886,13 +1888,65 @@ td = (
         unpack_depth=1,
     )
     .partial(
-        crs="ESRI:53042",
+        aoi=patrol_traj_cols_to_string, intersecting_only=False, **ltd_meshgrid_params
+    )
+    .call()
+)
+
+
+# %% [markdown]
+# ## Crate Linear Time Density from Trajectory
+
+# %%
+# parameters
+
+ltd_params = dict()
+
+# %%
+# call the task
+
+
+ltd = (
+    calculate_linear_time_density.handle_errors(task_instance_id="ltd")
+    .skipif(
+        conditions=[
+            any_is_empty_df,
+            any_dependency_skipped,
+        ],
+        unpack_depth=1,
+    )
+    .partial(
+        meshgrid=ltd_meshgrid,
         percentiles=[50.0, 60.0, 70.0, 80.0, 90.0, 95.0, 99.999],
-        nodata_value="nan",
-        band_count=1,
-        **td_params,
+        **ltd_params,
     )
     .mapvalues(argnames=["trajectory_gdf"], argvalues=split_patrol_traj_groups)
+)
+
+
+# %% [markdown]
+# ## Drop nan percentiles for map display
+
+# %%
+# parameters
+
+drop_nan_percentiles_params = dict()
+
+# %%
+# call the task
+
+
+drop_nan_percentiles = (
+    drop_nan_values_by_column.handle_errors(task_instance_id="drop_nan_percentiles")
+    .skipif(
+        conditions=[
+            any_is_empty_df,
+            any_dependency_skipped,
+        ],
+        unpack_depth=1,
+    )
+    .partial(column_name="percentile", **drop_nan_percentiles_params)
+    .mapvalues(argnames=["df"], argvalues=ltd)
 )
 
 
@@ -1918,13 +1972,12 @@ td_colormap = (
         unpack_depth=1,
     )
     .partial(
-        df=td,
         input_column_name="percentile",
         colormap="RdYlGn",
         output_column_name="percentile_colormap",
         **td_colormap_params,
     )
-    .mapvalues(argnames=["df"], argvalues=td)
+    .mapvalues(argnames=["df"], argvalues=drop_nan_percentiles)
 )
 
 

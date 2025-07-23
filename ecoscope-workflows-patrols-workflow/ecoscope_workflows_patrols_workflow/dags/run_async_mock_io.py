@@ -67,7 +67,11 @@ from ecoscope_workflows_core.tasks.analysis import dataframe_column_max
 from ecoscope_workflows_ext_ecoscope.tasks.results import draw_time_series_bar_chart
 from ecoscope_workflows_core.tasks.results import create_plot_widget_single_view
 from ecoscope_workflows_ext_ecoscope.tasks.results import draw_pie_chart
-from ecoscope_workflows_ext_ecoscope.tasks.analysis import calculate_time_density
+from ecoscope_workflows_ext_ecoscope.tasks.analysis import create_meshgrid
+from ecoscope_workflows_ext_ecoscope.tasks.analysis import calculate_linear_time_density
+from ecoscope_workflows_ext_ecoscope.tasks.transformation import (
+    drop_nan_values_by_column,
+)
 from ecoscope_workflows_ext_ecoscope.tasks.results import create_polygon_layer
 from ecoscope_workflows_core.tasks.results import gather_dashboard
 
@@ -161,8 +165,10 @@ def main(params: Params):
         "pe_pie_chart_html_urls": ["patrol_events_pie_chart"],
         "patrol_events_pie_chart_widgets": ["pe_pie_chart_html_urls"],
         "patrol_events_pie_widget_grouped": ["patrol_events_pie_chart_widgets"],
-        "td": ["split_patrol_traj_groups"],
-        "td_colormap": ["td", "td"],
+        "ltd_meshgrid": ["patrol_traj_cols_to_string"],
+        "ltd": ["ltd_meshgrid", "split_patrol_traj_groups"],
+        "drop_nan_percentiles": ["ltd"],
+        "td_colormap": ["drop_nan_percentiles"],
         "patrol_td_rename_columns": ["td_colormap"],
         "td_map_layer": ["patrol_td_rename_columns"],
         "td_ecomap": ["base_map_defs", "td_map_layer"],
@@ -1423,9 +1429,9 @@ def main(params: Params):
             | (params_dict.get("patrol_events_pie_widget_grouped") or {}),
             method="call",
         ),
-        "td": Node(
-            async_task=calculate_time_density.validate()
-            .handle_errors(task_instance_id="td")
+        "ltd_meshgrid": Node(
+            async_task=create_meshgrid.validate()
+            .handle_errors(task_instance_id="ltd_meshgrid")
             .skipif(
                 conditions=[
                     any_is_empty_df,
@@ -1435,16 +1441,53 @@ def main(params: Params):
             )
             .set_executor("lithops"),
             partial={
-                "crs": "ESRI:53042",
-                "percentiles": [50.0, 60.0, 70.0, 80.0, 90.0, 95.0, 99.999],
-                "nodata_value": "nan",
-                "band_count": 1,
+                "aoi": DependsOn("patrol_traj_cols_to_string"),
+                "intersecting_only": False,
             }
-            | (params_dict.get("td") or {}),
+            | (params_dict.get("ltd_meshgrid") or {}),
+            method="call",
+        ),
+        "ltd": Node(
+            async_task=calculate_linear_time_density.validate()
+            .handle_errors(task_instance_id="ltd")
+            .skipif(
+                conditions=[
+                    any_is_empty_df,
+                    any_dependency_skipped,
+                ],
+                unpack_depth=1,
+            )
+            .set_executor("lithops"),
+            partial={
+                "meshgrid": DependsOn("ltd_meshgrid"),
+                "percentiles": [50.0, 60.0, 70.0, 80.0, 90.0, 95.0, 99.999],
+            }
+            | (params_dict.get("ltd") or {}),
             method="mapvalues",
             kwargs={
                 "argnames": ["trajectory_gdf"],
                 "argvalues": DependsOn("split_patrol_traj_groups"),
+            },
+        ),
+        "drop_nan_percentiles": Node(
+            async_task=drop_nan_values_by_column.validate()
+            .handle_errors(task_instance_id="drop_nan_percentiles")
+            .skipif(
+                conditions=[
+                    any_is_empty_df,
+                    any_dependency_skipped,
+                ],
+                unpack_depth=1,
+            )
+            .set_executor("lithops"),
+            partial={
+                "column_name": "percentile",
+            }
+            | (params_dict.get("drop_nan_percentiles") or {}),
+            method="mapvalues",
+            kwargs={
+                "argnames": ["df"],
+                "argvalues": DependsOn("ltd"),
             },
         ),
         "td_colormap": Node(
@@ -1459,7 +1502,6 @@ def main(params: Params):
             )
             .set_executor("lithops"),
             partial={
-                "df": DependsOn("td"),
                 "input_column_name": "percentile",
                 "colormap": "RdYlGn",
                 "output_column_name": "percentile_colormap",
@@ -1468,7 +1510,7 @@ def main(params: Params):
             method="mapvalues",
             kwargs={
                 "argnames": ["df"],
-                "argvalues": DependsOn("td"),
+                "argvalues": DependsOn("drop_nan_percentiles"),
             },
         ),
         "patrol_td_rename_columns": Node(

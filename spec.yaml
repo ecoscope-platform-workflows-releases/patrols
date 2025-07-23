@@ -1,10 +1,10 @@
 id: patrols
 requirements:
   - name: ecoscope-workflows-core
-    version: 0.4.7
+    version: 0.5.0
     channel: https://repo.prefix.dev/ecoscope-workflows/
   - name: ecoscope-workflows-ext-ecoscope
-    version: 0.4.7
+    version: 0.5.0
     channel: https://repo.prefix.dev/ecoscope-workflows/
 rjsf-overrides:
   properties:
@@ -631,10 +631,16 @@ workflow:
     description: These settings show a grid-based heatmap showing where subjects spent the most time.
     tasks:
       - name: null
-        id: td
-        task: calculate_time_density
+        id: ltd_meshgrid
+        task: create_meshgrid
         partial:
-          crs: ESRI:53042
+          aoi: ${{ workflow.patrol_traj_cols_to_string.return }}
+          intersecting_only: false
+      - name: Crate Linear Time Density from Trajectory
+        id: ltd
+        task: calculate_linear_time_density
+        partial:
+          meshgrid: ${{ workflow.ltd_meshgrid.return }}
           percentiles:
             - 50.000000
             - 60.000000
@@ -643,22 +649,27 @@ workflow:
             - 90.000000
             - 95.000000
             - 99.999000
-          nodata_value: nan
-          band_count: 1
         mapvalues:
           argnames: trajectory_gdf
           argvalues: ${{ workflow.split_patrol_traj_groups.return }}
+      - name: Drop nan percentiles for map display
+        id: drop_nan_percentiles
+        task: drop_nan_values_by_column
+        partial:
+          column_name: percentile
+        mapvalues:
+          argnames: df
+          argvalues: ${{ workflow.ltd.return }}
       - name: Time Density Colormap
         id: td_colormap
         task: apply_color_map
         partial:
-          df: ${{ workflow.td.return }}
           input_column_name: percentile
           colormap: RdYlGn
           output_column_name: percentile_colormap
         mapvalues:
           argnames: df
-          argvalues: ${{ workflow.td.return }}
+          argvalues: ${{ workflow.drop_nan_percentiles.return }}
       - name: Rename patrol traj columns for map tooltip display
         id: patrol_td_rename_columns
         task: map_columns

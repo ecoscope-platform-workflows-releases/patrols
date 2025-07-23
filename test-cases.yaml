@@ -47,11 +47,9 @@ all-grouper:
           min_zoom: null
     patrol_events_bar_chart:
       time_interval: "month"
-    td:
+    ltd_meshgrid:
       auto_scale_or_custom_cell_size:
         auto_scale_or_custom: "Auto-scale"
-      max_speed_factor: 1.05
-      expansion_factor: 1.3
 
 month-grouper:
   name: Month Grouper
@@ -101,11 +99,9 @@ month-grouper:
           opacity: 0.5
     patrol_events_bar_chart:
       time_interval: "week"
-    td:
+    ltd_meshgrid:
       auto_scale_or_custom_cell_size:
         auto_scale_or_custom: "Auto-scale"
-      max_speed_factor: 1.05
-      expansion_factor: 1.3
 
 value-grouper:
   name: Value Grouper
@@ -156,11 +152,9 @@ value-grouper:
           opacity: 0.5
     patrol_events_bar_chart:
       time_interval: "week"
-    td:
+    ltd_meshgrid:
       auto_scale_or_custom_cell_size:
         auto_scale_or_custom: "Auto-scale"
-      max_speed_factor: 1.05
-      expansion_factor: 1.3
 
 task-instance-error:
   name: Task Instance Error
@@ -213,9 +207,7 @@ task-instance-error:
           opacity: 0.5
     patrol_events_bar_chart:
       time_interval: "month"
-    td:
+    ltd_meshgrid:
       auto_scale_or_custom_cell_size:
         auto_scale_or_custom: "Customize"
         grid_cell_size: 0.5
-      max_speed_factor: 1.05
-      expansion_factor: 1.3
