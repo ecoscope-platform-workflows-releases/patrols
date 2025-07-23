@@ -396,7 +396,7 @@ class FilterPatrolEvents(BaseModel):
     )
 
 
-class Td(BaseModel):
+class LtdMeshgrid(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
     )
@@ -405,16 +405,6 @@ class Td(BaseModel):
     ] = Field(
         {"auto_scale_or_custom": "Auto-scale"},
         title="Auto Scale Or Custom Grid Cell Size",
-    )
-    max_speed_factor: Optional[float] = Field(
-        1.05,
-        description="An estimate of the subject's maximum speed as a factor of the maximum measured speed value in the dataset.",
-        title="Max Speed Factor (Kilometers per Hour)",
-    )
-    expansion_factor: Optional[float] = Field(
-        1.05,
-        description="Controls how far time density values spread across the grid, affecting the smoothness of the output.",
-        title="Shape Buffer Expansion Factor",
     )
 
 
@@ -448,4 +438,4 @@ class Params(BaseModel):
     patrol_events_bar_chart: Optional[PatrolEventsBarChart] = Field(
         None, title="Draw Time Series Bar Chart for Patrols Events"
     )
-    td: Optional[Td] = Field(None, title="")
+    ltd_meshgrid: Optional[LtdMeshgrid] = Field(None, title="")
