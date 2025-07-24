@@ -53,6 +53,7 @@ from ecoscope_workflows_ext_ecoscope.tasks.analysis import calculate_linear_time
 from ecoscope_workflows_ext_ecoscope.tasks.transformation import (
     drop_nan_values_by_column,
 )
+from ecoscope_workflows_core.tasks.transformation import sort_values
 from ecoscope_workflows_ext_ecoscope.tasks.results import create_polygon_layer
 from ecoscope_workflows_core.tasks.results import gather_dashboard
 
@@ -147,7 +148,9 @@ def main(params: Params):
         "ltd_meshgrid": ["patrol_traj_cols_to_string"],
         "ltd": ["ltd_meshgrid", "split_patrol_traj_groups"],
         "drop_nan_percentiles": ["ltd"],
-        "td_colormap": ["drop_nan_percentiles"],
+        "sort_percentile_values": ["drop_nan_percentiles"],
+        "percentile_col_to_string": ["sort_percentile_values"],
+        "td_colormap": ["percentile_col_to_string"],
         "patrol_td_rename_columns": ["td_colormap"],
         "td_map_layer": ["patrol_td_rename_columns"],
         "td_ecomap": ["base_map_defs", "td_map_layer"],
@@ -1439,7 +1442,7 @@ def main(params: Params):
             .set_executor("lithops"),
             partial={
                 "meshgrid": DependsOn("ltd_meshgrid"),
-                "percentiles": [50.0, 60.0, 70.0, 80.0, 90.0, 95.0, 99.999],
+                "percentiles": [50.0, 60.0, 70.0, 80.0, 90.0, 95.0, 100.0],
             }
             | (params_dict.get("ltd") or {}),
             method="mapvalues",
@@ -1469,6 +1472,50 @@ def main(params: Params):
                 "argvalues": DependsOn("ltd"),
             },
         ),
+        "sort_percentile_values": Node(
+            async_task=sort_values.validate()
+            .handle_errors(task_instance_id="sort_percentile_values")
+            .skipif(
+                conditions=[
+                    any_is_empty_df,
+                    any_dependency_skipped,
+                ],
+                unpack_depth=1,
+            )
+            .set_executor("lithops"),
+            partial={
+                "column_name": "percentile",
+                "ascending": True,
+                "na_position": "last",
+            }
+            | (params_dict.get("sort_percentile_values") or {}),
+            method="mapvalues",
+            kwargs={
+                "argnames": ["df"],
+                "argvalues": DependsOn("drop_nan_percentiles"),
+            },
+        ),
+        "percentile_col_to_string": Node(
+            async_task=convert_column_values_to_string.validate()
+            .handle_errors(task_instance_id="percentile_col_to_string")
+            .skipif(
+                conditions=[
+                    any_is_empty_df,
+                    any_dependency_skipped,
+                ],
+                unpack_depth=1,
+            )
+            .set_executor("lithops"),
+            partial={
+                "columns": ["percentile"],
+            }
+            | (params_dict.get("percentile_col_to_string") or {}),
+            method="mapvalues",
+            kwargs={
+                "argnames": ["df"],
+                "argvalues": DependsOn("sort_percentile_values"),
+            },
+        ),
         "td_colormap": Node(
             async_task=apply_color_map.validate()
             .handle_errors(task_instance_id="td_colormap")
@@ -1489,7 +1536,7 @@ def main(params: Params):
             method="mapvalues",
             kwargs={
                 "argnames": ["df"],
-                "argvalues": DependsOn("drop_nan_percentiles"),
+                "argvalues": DependsOn("percentile_col_to_string"),
             },
         ),
         "patrol_td_rename_columns": Node(
