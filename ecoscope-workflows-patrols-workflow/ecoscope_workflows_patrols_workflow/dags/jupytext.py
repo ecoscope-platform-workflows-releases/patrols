@@ -60,6 +60,7 @@ from ecoscope_workflows_ext_ecoscope.tasks.analysis import calculate_linear_time
 from ecoscope_workflows_ext_ecoscope.tasks.transformation import (
     drop_nan_values_by_column,
 )
+from ecoscope_workflows_core.tasks.transformation import sort_values
 from ecoscope_workflows_ext_ecoscope.tasks.results import create_polygon_layer
 from ecoscope_workflows_core.tasks.results import gather_dashboard
 
@@ -1917,7 +1918,7 @@ ltd = (
     )
     .partial(
         meshgrid=ltd_meshgrid,
-        percentiles=[50.0, 60.0, 70.0, 80.0, 90.0, 95.0, 99.999],
+        percentiles=[50.0, 60.0, 70.0, 80.0, 90.0, 95.0, 100.0],
         **ltd_params,
     )
     .mapvalues(argnames=["trajectory_gdf"], argvalues=split_patrol_traj_groups)
@@ -1951,6 +1952,65 @@ drop_nan_percentiles = (
 
 
 # %% [markdown]
+# ## Sort LTD by percentile
+
+# %%
+# parameters
+
+sort_percentile_values_params = dict()
+
+# %%
+# call the task
+
+
+sort_percentile_values = (
+    sort_values.handle_errors(task_instance_id="sort_percentile_values")
+    .skipif(
+        conditions=[
+            any_is_empty_df,
+            any_dependency_skipped,
+        ],
+        unpack_depth=1,
+    )
+    .partial(
+        column_name="percentile",
+        ascending=True,
+        na_position="last",
+        **sort_percentile_values_params,
+    )
+    .mapvalues(argnames=["df"], argvalues=drop_nan_percentiles)
+)
+
+
+# %% [markdown]
+# ## Cast Percentile Column
+
+# %%
+# parameters
+
+percentile_col_to_string_params = dict()
+
+# %%
+# call the task
+
+
+percentile_col_to_string = (
+    convert_column_values_to_string.handle_errors(
+        task_instance_id="percentile_col_to_string"
+    )
+    .skipif(
+        conditions=[
+            any_is_empty_df,
+            any_dependency_skipped,
+        ],
+        unpack_depth=1,
+    )
+    .partial(columns=["percentile"], **percentile_col_to_string_params)
+    .mapvalues(argnames=["df"], argvalues=sort_percentile_values)
+)
+
+
+# %% [markdown]
 # ## Time Density Colormap
 
 # %%
@@ -1977,7 +2037,7 @@ td_colormap = (
         output_column_name="percentile_colormap",
         **td_colormap_params,
     )
-    .mapvalues(argnames=["df"], argvalues=drop_nan_percentiles)
+    .mapvalues(argnames=["df"], argvalues=percentile_col_to_string)
 )
 
 

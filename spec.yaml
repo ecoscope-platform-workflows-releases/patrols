@@ -1,10 +1,10 @@
 id: patrols
 requirements:
   - name: ecoscope-workflows-core
-    version: 0.5.0
+    version: 0.5.1
     channel: https://repo.prefix.dev/ecoscope-workflows/
   - name: ecoscope-workflows-ext-ecoscope
-    version: 0.5.0
+    version: 0.5.1
     channel: https://repo.prefix.dev/ecoscope-workflows/
 rjsf-overrides:
   properties:
@@ -648,7 +648,7 @@ workflow:
             - 80.000000
             - 90.000000
             - 95.000000
-            - 99.999000
+            - 100.000000
         mapvalues:
           argnames: trajectory_gdf
           argvalues: ${{ workflow.split_patrol_traj_groups.return }}
@@ -660,6 +660,25 @@ workflow:
         mapvalues:
           argnames: df
           argvalues: ${{ workflow.ltd.return }}
+      - name: Sort LTD by percentile
+        id: sort_percentile_values
+        task: sort_values
+        partial:
+          column_name: percentile
+          ascending: true
+          na_position: last
+        mapvalues:
+          argnames: df
+          argvalues: ${{ workflow.drop_nan_percentiles.return }}
+      - name: Cast Percentile Column
+        id: percentile_col_to_string
+        task: convert_column_values_to_string
+        partial:
+          columns:
+            - percentile
+        mapvalues:
+          argnames: df
+          argvalues: ${{ workflow.sort_percentile_values.return }}
       - name: Time Density Colormap
         id: td_colormap
         task: apply_color_map
@@ -669,7 +688,7 @@ workflow:
           output_column_name: percentile_colormap
         mapvalues:
           argnames: df
-          argvalues: ${{ workflow.drop_nan_percentiles.return }}
+          argvalues: ${{ workflow.percentile_col_to_string.return }}
       - name: Rename patrol traj columns for map tooltip display
         id: patrol_td_rename_columns
         task: map_columns
