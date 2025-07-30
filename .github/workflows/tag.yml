@@ -31,7 +31,7 @@ jobs:
         id: create_tag
         uses: mikefarah/yq@v4
         with:
-          cmd: yq -r '"v" + (.MAJ | tostring) + "." + (.MIN | tostring)' ${{ steps.workflow_directory.outputs.name }}/VERSION.yaml
+          cmd: yq -r '"v" + (.MAJ | tostring) + "." + (.MIN | tostring) + "." + (.PATCH | tostring)' ${{ steps.workflow_directory.outputs.name }}/VERSION.yaml
       - name: Tag
         run: |
           echo "Tagging version ${{ steps.create_tag.outputs.result }}"
