@@ -1,15 +1,17 @@
 name: Tag
 
 on:
-  push:
-    branches: ["main"]
-  workflow_dispatch:
+  pull_request:
+    types: [opened, reopened, synchronize, closed]
+    branches:
+      - 'main'
+      - 'patch-*'
 
 jobs:
-  tag:
+  generate-tag:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    outputs:
+      tag: ${{ steps.create_tag.outputs.result }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -31,11 +33,54 @@ jobs:
         id: create_tag
         uses: mikefarah/yq@v4
         with:
-          cmd: yq -r '"v" + (.MAJ | tostring) + "." + (.MIN | tostring)' ${{ steps.workflow_directory.outputs.name }}/VERSION.yaml
+          cmd: yq -r '"v" + (.MAJ | tostring) + "." + (.MIN | tostring) + "." + (.PATCH | tostring)' ${{ steps.workflow_directory.outputs.name }}/VERSION.yaml
+      - name: Validate tag doesn't already exist
+        run: |
+          if git tag -l | grep -q "${{ steps.create_tag.outputs.result }}"; then
+            echo "Tag ${{ steps.create_tag.outputs.result }} already exists. Exiting."
+            exit 1
+          else
+            echo "Tag ${{ steps.create_tag.outputs.result }} does not exist. Proceeding."
+          fi
+      - name: Validate tag contains all three semantic elements
+        run: |
+          if [[ "${{ steps.create_tag.outputs.result }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Tag ${{ steps.create_tag.outputs.result }} is valid, because it adheres to vMAJ.MIN.PATCH format."
+          else
+            echo "Tag ${{ steps.create_tag.outputs.result }} is not valid. It must adhere to vMAJ.MIN.PATCH format."
+            exit 1
+          fi
+      - name: If this is a PR to a patch branch, ensure the patch version is not 0
+        if: startsWith(github.base_ref, 'patch-')
+        run: |
+          patch_version=$(echo "${{ steps.create_tag.outputs.result }}" | cut -d '.' -f 3)
+          if [ "$patch_version" -ne 0 ]; then
+            echo "Patch version is not 0. This is an acceptable PR to a patch branch."
+          else
+            echo "Patch version is 0. Please ensure that the patch version is incremented before merging this PR."
+            exit 1
+          fi
+
+  cut-release:
+    needs: generate-tag
+    # only actually cut a tag + release when PRs to main or patch branches are merged
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          fetch-depth: 0  # get existing tags
+      - name: List existing tags
+        run: |
+          git tag -l
       - name: Tag
         run: |
-          echo "Tagging version ${{ steps.create_tag.outputs.result }}"
-          git tag ${{ steps.create_tag.outputs.result }}
+          echo "Tagging version ${{ needs.generate-tag.outputs.tag }}"
+          echo "Tagging from:\n$(git log -1)"
+          git tag ${{ needs.generate-tag.outputs.tag }}
           git tag -l
       - name: Push tag
         run: |
@@ -47,6 +92,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: >-
           gh release create
-          '${{ steps.create_tag.outputs.result }}'
+          '${{ needs.generate-tag.outputs.tag }}'
           --repo '${{ github.repository }}'
           --generate-notes
