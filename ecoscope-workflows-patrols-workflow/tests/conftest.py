@@ -33,8 +33,8 @@ TEST_CASES_YAML = ARTIFACTS.parent / "test-cases.yaml"
 ENTRYPOINT = "pixi run -e default ecoscope-workflows-patrols-workflow"
 MATCHSPEC_OVERRIDE = "ecoscope-workflows-patrols-workflow"
 IO_TASKS_IMPORTABLE_REFERENCES = [
-    "ecoscope_workflows_ext_ecoscope.tasks.io.get_patrol_observations",
-    "ecoscope_workflows_ext_ecoscope.tasks.io.get_patrol_events",
+    "ecoscope_workflows_ext_ecoscope.tasks.io.get_patrol_observations_from_combined_params",
+    "ecoscope_workflows_ext_ecoscope.tasks.io.get_patrol_events_from_combined_params",
 ]
 
 yaml = ruamel.yaml.YAML(typ="safe")

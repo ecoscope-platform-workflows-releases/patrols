@@ -1,14 +1,14 @@
 id: patrols
 requirements:
   - name: ecoscope-workflows-core
-    version: 0.6.0
+    version: 0.7.0
     channel: https://repo.prefix.dev/ecoscope-workflows/
   - name: ecoscope-workflows-ext-ecoscope
-    version: 0.6.0
+    version: 0.7.0
     channel: https://repo.prefix.dev/ecoscope-workflows/
 rjsf-overrides:
   properties:
-    Preprocess patrol observations.properties.set_patrol_traj_color_column.properties.var.oneOf:
+    Trajectory Category.properties.set_patrol_traj_color_column.properties.var.oneOf:
       - const: patrol_type
         title: Patrol Type
       - const: patrol_status
@@ -17,17 +17,32 @@ rjsf-overrides:
         title: Patrol Subject
       - const: patrol_serial_number
         title: Patrol Serial Number
-    Preprocess patrol observations.properties.set_patrol_traj_color_column.properties.var.description: Select a category to color and differentiate patrol trajectories.
-    Preprocess patrol observations.properties.set_patrol_traj_color_column.properties.var.title: Category
-    Preprocess patrol observations.properties.set_patrol_traj_color_column.properties.var.default: patrol_type
-    Patrol and Event Types.properties.er_patrol_types.properties.patrol_types.ecoscope:patrol_type: properties.er_client_name.properties.data_source.properties.name
-    Patrol and Event Types.properties.patrol_events.properties.event_type.ecoscope:event_type: properties.er_client_name.properties.data_source.properties.name
+    Trajectory Category.properties.set_patrol_traj_color_column.properties.var.title: Category
+    Trajectory Category.properties.set_patrol_traj_color_column.properties.var.default: patrol_subject
+    Patrol and Event Types.properties.er_patrol_and_events_params.properties.patrol_types.ecoscope:patrol_type: properties.er_client_name.properties.data_source.properties.name
+    Patrol and Event Types.properties.er_patrol_and_events_params.properties.event_types.ecoscope:event_type: properties.er_client_name.properties.data_source.properties.name
   $defs:
     ValueGrouper.oneOf:
       - const: patrol_serial_number
         title: Patrol Serial Number
       - const: patrol_type
         title: Patrol Type
+  uiSchema:
+    Preprocess patrol events.filter_patrol_events.filter_point_coords.items.ui:options.label: false
+    base_map_defs.base_maps.items.ui:options.label: false
+    Time Density Map.ltd_meshgrid.auto_scale_or_custom_cell_size:
+      anyOf:
+        - ui:help: Auto-scale for an optimized grid cell size based the workflow data or Customize to set a specific grid cell size.
+          ui:options:
+            label: false
+          auto_scale_or_custom:
+            ui:widget: hidden
+        - ui:options:
+            label: false
+          auto_scale_or_custom:
+            ui:widget: hidden
+      auto_scale_or_custom:
+        ui:widget: hidden
 task-instance-defaults:
   skipif:
     conditions:
@@ -49,65 +64,63 @@ workflow:
     type: task-group
     description: ' '
     tasks:
-      - id: er_patrol_types
-        task: set_patrol_types
-      - id: er_patrol_status
-        task: set_patrol_status
-      - id: patrol_obs
-        task: get_patrol_observations
+      - id: er_patrol_and_events_params
+        task: set_patrols_and_patrol_events_params
         partial:
           client: ${{ workflow.er_client_name.return }}
           time_range: ${{ workflow.time_range.return }}
-          patrol_type: ${{ workflow.er_patrol_types.return }}
-          status: ${{ workflow.er_patrol_status.return }}
           include_patrol_details: true
           raise_on_empty: false
-      - id: patrol_events
-        task: get_patrol_events
-        partial:
-          client: ${{ workflow.er_client_name.return }}
-          time_range: ${{ workflow.time_range.return }}
-          patrol_type: ${{ workflow.er_patrol_types.return }}
-          status: ${{ workflow.er_patrol_status.return }}
           truncate_to_time_range: true
-          raise_on_empty: false
+      - id: patrol_obs
+        task: get_patrol_observations_from_combined_params
+        partial:
+          combined_params: ${{ workflow.er_patrol_and_events_params.return }}
+      - id: patrol_events
+        task: get_patrol_events_from_combined_params
+        partial:
+          combined_params: ${{ workflow.er_patrol_and_events_params.return }}
   - name: Group Data
     id: groupers
     task: set_groupers
-  - title: Preprocess patrol observations
+  - title: Trajectory Category
     type: task-group
-    description: Preprocess patrol observations from EarthRanger.
+    description: Differentiate tracks by color using the selected category.
     tasks:
-      - name: Transform Observations to Relocations
-        id: patrol_reloc
-        task: process_relocations
-        partial:
-          observations: ${{ workflow.patrol_obs.return }}
-          relocs_columns:
-            - patrol_id
-            - patrol_start_time
-            - patrol_end_time
-            - patrol_type__value
-            - patrol_type__display
-            - patrol_serial_number
-            - patrol_status
-            - patrol_subject
-            - groupby_col
-            - fixtime
-            - junk_status
-            - extra__source
-            - geometry
-          filter_point_coords:
-            - x: 180.000000
-              y: 90.000000
-            - x: 0.000000
-              y: 0.000000
-            - x: 1.000000
-              y: 1.000000
-      - name: Style Trajectory By Category
+      - name: null
         id: set_patrol_traj_color_column
         task: set_string_var
-      - name: Transform Relocations to Trajectories
+  - name: Transform Observations to Relocations
+    id: patrol_reloc
+    task: process_relocations
+    partial:
+      observations: ${{ workflow.patrol_obs.return }}
+      relocs_columns:
+        - patrol_id
+        - patrol_start_time
+        - patrol_end_time
+        - patrol_type__value
+        - patrol_type__display
+        - patrol_serial_number
+        - patrol_status
+        - patrol_subject
+        - groupby_col
+        - fixtime
+        - junk_status
+        - extra__source
+        - geometry
+      filter_point_coords:
+        - x: 180.000000
+          y: 90.000000
+        - x: 0.000000
+          y: 0.000000
+        - x: 1.000000
+          y: 1.000000
+  - title: Trajectory Segment Filter
+    type: task-group
+    description: ' '
+    tasks:
+      - name: null
         id: patrol_traj
         task: relocations_to_trajectory
         partial:
@@ -157,11 +170,11 @@ workflow:
             - '#E76826'
           input_column_name: ${{ workflow.set_patrol_traj_color_column.return }}
           output_column_name: patrol_traj_colormap
-  - title: Preprocess patrol events
+  - title: Patrol Event Location Filter
     type: task-group
-    description: Preprocess patrol events from EarthRanger.
+    description: Filter events based on their location.
     tasks:
-      - name: Apply Coordinate Filter
+      - name: null
         id: filter_patrol_events
         task: apply_reloc_coord_filter
         partial:
@@ -213,7 +226,7 @@ workflow:
     partial:
       df: ${{ workflow.pe_cols_to_string.return }}
       groupers: ${{ workflow.groupers.return }}
-  - name: Base Maps
+  - name: Map Base Layers
     id: base_map_defs
     task: set_base_maps
   - title: Patrol Events and Trajectories Map
@@ -538,11 +551,11 @@ workflow:
         task: merge_widget_views
         partial:
           widgets: ${{ workflow.max_speed_sv_widgets.return }}
-  - title: Patrol events bar chart
+  - title: Patrol Events Bar Chart
     type: task-group
-    description: Create the patrol events bar chart.
+    description: The bar chart shows how many events of different types occurred over time. Choose the time interval for the x-axis to control how event counts are summarized over time.
     tasks:
-      - name: Draw Time Series Bar Chart for Patrols Events
+      - name: null
         id: patrol_events_bar_chart
         task: draw_time_series_bar_chart
         partial:

@@ -59,7 +59,7 @@
       "description": "Choose the period of time to analyze.",
       "title": "Time Range"
     },
-    "er_patrol_types": {
+    "er_patrol_and_events_params": {
       "additionalProperties": false,
       "properties": {
         "patrol_types": {
@@ -68,21 +68,19 @@
           },
           "title": "Patrol Types",
           "type": "array",
-          "description": "Select the patrol type(s) to analyze (optional). Leave empty to analyze all patrol types."
-        }
-      },
-      "required": [
-        "patrol_types"
-      ],
-      "type": "object",
-      "title": ""
-    },
-    "er_patrol_status": {
-      "additionalProperties": false,
-      "properties": {
+          "description": "Specify the patrol type(s) to analyze (optional). Leave empty to analyze all patrol types."
+        },
+        "event_types": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Event Types",
+          "type": "array",
+          "description": "Specify the event type(s) to analyze (optional). Leave this section empty to analyze all event types. Only V1 Event Types can be analyzed at this time."
+        },
         "status": {
           "default": null,
-          "description": "List comprised of 'active'/'overdue'/'done'/'cancelled'",
+          "description": "Choose to analyze patrols with a certain status. If left empty, patrols of all status will be analyzed",
           "ecoscope:advanced": true,
           "items": {
             "enum": [
@@ -95,33 +93,16 @@
           },
           "title": "Status",
           "type": "array"
-        }
-      },
-      "type": "object",
-      "required": [],
-      "title": ""
-    },
-    "patrol_events": {
-      "additionalProperties": false,
-      "properties": {
-        "event_type": {
-          "items": {
-            "type": "string"
-          },
-          "title": "Event Types",
-          "type": "array",
-          "description": "Select the event type(s) to analyze (optional). Leave empty to analyze all event types."
         },
-        "drop_null_geometry": {
-          "default": false,
-          "title": "Drop Null Geometry",
-          "type": "boolean",
-          "description": "Include Events Without a Geometry (point or polygon)",
-          "ecoscope:advanced": true
+        "include_null_geometry": {
+          "default": true,
+          "title": "Include Events Without a Geometry (point or polygon)",
+          "type": "boolean"
         }
       },
       "required": [
-        "event_type"
+        "patrol_types",
+        "event_types"
       ],
       "type": "object",
       "title": ""
@@ -163,7 +144,7 @@
         "var"
       ],
       "type": "object",
-      "title": "Style Trajectory By Category"
+      "title": ""
     },
     "patrol_traj": {
       "additionalProperties": false,
@@ -182,14 +163,14 @@
             "min_speed_kmhr": 0.01,
             "max_speed_kmhr": 500
           },
-          "title": "Trajectory Segment Filter",
+          "title": " ",
           "description": "Filter track data by setting limits on track segment length, duration, and speed. Segments outside these bounds are removed, reducing noise and to focus on meaningful movement patterns.",
           "ecoscope:advanced": true
         }
       },
       "required": [],
       "type": "object",
-      "title": "Transform Relocations to Trajectories"
+      "title": ""
     },
     "filter_patrol_events": {
       "additionalProperties": false,
@@ -215,14 +196,15 @@
           "items": {
             "$ref": "#/$defs/Coordinate"
           },
-          "title": "Filter Point Coords",
+          "title": "Filter Exact Point Coordinates",
           "type": "array",
+          "description": "By adding a filter, the workflow will not include events recorded at the specified coordinates.",
           "ecoscope:advanced": true
         }
       },
       "required": [],
       "type": "object",
-      "title": "Apply Coordinate Filter"
+      "title": ""
     },
     "base_map_defs": {
       "additionalProperties": false,
@@ -239,7 +221,7 @@
             }
           ],
           "items": {
-            "title": "Base Layer or Custom Layer",
+            "title": "Base Layer",
             "anyOf": [
               {
                 "properties": {
@@ -414,7 +396,7 @@
               }
             ]
           },
-          "title": "Set Map Base Layers",
+          "title": " ",
           "type": "array",
           "description": "Select tile layers to use as base layers in map outputs. The first layer in the list will be the bottommost layer displayed.",
           "ecoscope:advanced": true
@@ -422,7 +404,7 @@
       },
       "type": "object",
       "required": [],
-      "title": "Base Maps"
+      "title": "Map Base Layers"
     },
     "patrol_events_bar_chart": {
       "additionalProperties": false,
@@ -436,15 +418,14 @@
             "hour"
           ],
           "title": "Time Interval",
-          "type": "string",
-          "description": "Sets the time interval of the x axis."
+          "type": "string"
         }
       },
       "required": [
         "time_interval"
       ],
       "type": "object",
-      "title": "Draw Time Series Bar Chart for Patrols Events"
+      "title": ""
     },
     "ltd_meshgrid": {
       "additionalProperties": false,
@@ -461,7 +442,14 @@
           "default": {
             "auto_scale_or_custom": "Auto-scale"
           },
-          "title": "Auto Scale Or Custom Grid Cell Size",
+          "title": "Grid Cell Size",
+          "ecoscope:advanced": true
+        },
+        "crs": {
+          "default": "EPSG:3857",
+          "title": "Coordinate Reference System",
+          "type": "string",
+          "description": "The coordinate reference system in which to perform the density calculation, must be a valid CRS authority code, for example ESRI:53042",
           "ecoscope:advanced": true
         }
       },
@@ -627,12 +615,11 @@
         "auto_scale_or_custom": {
           "const": "Auto-scale",
           "default": "Auto-scale",
-          "description": "Define the resolution of the raster grid (in meters per pixel). Auto-scale for an optimized grid based on the data, or Customize to set a specific resolution.",
           "ecoscope:advanced": true,
           "enum": [
             "Auto-scale"
           ],
-          "title": " ",
+          "title": "Grid Cell Size",
           "type": "string"
         }
       },
@@ -644,22 +631,21 @@
         "auto_scale_or_custom": {
           "const": "Customize",
           "default": "Customize",
-          "description": "Define the resolution of the raster grid (in meters per pixel). Auto-scale for an optimized grid based on the data, or Customize to set a specific resolution.",
           "ecoscope:advanced": true,
           "enum": [
             "Customize"
           ],
-          "title": " ",
+          "title": "Grid Cell Size",
           "type": "string"
         },
         "grid_cell_size": {
           "default": 5000,
-          "description": "Custom Raster Pixel Size (Meters)",
+          "description": "Define the resolution of the raster grid (in metres per pixel). A smaller grid cell size provides more details, while a larger size generalizes the data.",
           "exclusiveMaximum": 10000,
           "exclusiveMinimum": 0,
           "gt": 0,
           "lt": 10000,
-          "title": "Grid Cell Size",
+          "title": "Custom Grid Cell Size (Meters)",
           "type": "number"
         }
       },
@@ -680,10 +666,12 @@
         "until"
       ]
     },
-    "patrol_events": {
+    "er_patrol_and_events_params": {
       "ui:order": [
-        "event_type",
-        "drop_null_geometry"
+        "patrol_types",
+        "event_types",
+        "status",
+        "include_null_geometry"
       ]
     },
     "filter_patrol_events": {
@@ -692,13 +680,17 @@
         "filter_point_coords"
       ]
     },
+    "ltd_meshgrid": {
+      "ui:order": [
+        "auto_scale_or_custom_cell_size",
+        "crs"
+      ]
+    },
     "ui:order": [
       "workflow_details",
       "er_client_name",
       "time_range",
-      "er_patrol_types",
-      "er_patrol_status",
-      "patrol_events",
+      "er_patrol_and_events_params",
       "groupers",
       "set_patrol_traj_color_column",
       "patrol_traj",
