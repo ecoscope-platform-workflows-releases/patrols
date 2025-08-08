@@ -8,10 +8,11 @@ all-grouper:
     er_client_name:
       data_source:
         name: "mep_dev"
-    er_patrol_types:
+    er_patrol_and_events_params:
       patrol_types: ["ecoscope_patrol"]
-    er_patrol_status:
       status: ["done"]
+      event_types: []
+      include_null_geometry: false
     groupers:
       groupers: []
     time_range:
@@ -27,9 +28,6 @@ all-grouper:
         min_speed_kmhr: 0.01
     set_patrol_traj_color_column:
       var: "patrol_subject"
-    patrol_events:
-      event_type: []
-      drop_null_geometry: false
     filter_patrol_events:
       bounding_box:
         min_x: -180.0
@@ -50,6 +48,7 @@ all-grouper:
     ltd_meshgrid:
       auto_scale_or_custom_cell_size:
         auto_scale_or_custom: "Auto-scale"
+      crs: "EPSG:3857"
 
 month-grouper:
   name: Month Grouper
@@ -61,10 +60,11 @@ month-grouper:
     er_client_name:
       data_source:
         name: "mep_dev"
-    er_patrol_types:
+    er_patrol_and_events_params:
       patrol_types: ["ecoscope_patrol"]
-    er_patrol_status:
       status: ["done"]
+      event_types: []
+      include_null_geometry: false
     groupers:
       groupers:
         - "%B"
@@ -81,9 +81,6 @@ month-grouper:
         min_speed_kmhr: 0.01
     set_patrol_traj_color_column:
       var: "patrol_subject"
-    patrol_events:
-      event_type: []
-      drop_null_geometry: false
     filter_patrol_events:
       bounding_box:
         min_x: -180.0
@@ -102,6 +99,7 @@ month-grouper:
     ltd_meshgrid:
       auto_scale_or_custom_cell_size:
         auto_scale_or_custom: "Auto-scale"
+      crs: "EPSG:3857"
 
 value-grouper:
   name: Value Grouper
@@ -113,10 +111,11 @@ value-grouper:
     er_client_name:
       data_source:
         name: "mep_dev"
-    er_patrol_types:
+    er_patrol_and_events_params:
       patrol_types: ["ecoscope_patrol"]
-    er_patrol_status:
       status: ["done"]
+      event_types: []
+      include_null_geometry: false
     groupers:
       groupers:
         - "patrol_type"
@@ -134,9 +133,6 @@ value-grouper:
         min_speed_kmhr: 0.01
     set_patrol_traj_color_column:
       var: "patrol_subject"
-    patrol_events:
-      event_type: []
-      drop_null_geometry: false
     filter_patrol_events:
       bounding_box:
         min_x: -180.0
@@ -155,6 +151,7 @@ value-grouper:
     ltd_meshgrid:
       auto_scale_or_custom_cell_size:
         auto_scale_or_custom: "Auto-scale"
+      crs: "EPSG:3857"
 
 task-instance-error:
   name: Task Instance Error
@@ -170,10 +167,11 @@ task-instance-error:
     er_client_name:
       data_source:
         name: "mep_dev"
-    er_patrol_types:
+    er_patrol_and_events_params:
       patrol_types: ["ecoscope_patrol"]
-    er_patrol_status:
       status: ["done"]
+      event_types: []
+      include_null_geometry: false
     groupers:
       groupers: []
     time_range:
@@ -189,9 +187,6 @@ task-instance-error:
         min_speed_kmhr: 0.01
     set_patrol_traj_color_column:
       var: "patrol_subject"
-    patrol_events:
-      event_type: []
-      drop_null_geometry: false
     filter_patrol_events:
       bounding_box:
         min_x: -180.0
@@ -211,3 +206,4 @@ task-instance-error:
       auto_scale_or_custom_cell_size:
         auto_scale_or_custom: "Customize"
         grid_cell_size: 0.5
+      crs: "EPSG:3857"
