@@ -64,7 +64,7 @@
       "description": " ",
       "ecoscope:task_group": true,
       "properties": {
-        "er_patrol_types": {
+        "er_patrol_and_events_params": {
           "additionalProperties": false,
           "properties": {
             "patrol_types": {
@@ -73,22 +73,21 @@
               },
               "title": "Patrol Types",
               "type": "array",
-              "description": "Select the patrol type(s) to analyze (optional). Leave empty to analyze all patrol types.",
+              "description": "Specify the patrol type(s) to analyze (optional). Leave empty to analyze all patrol types.",
               "ecoscope:patrol_type": "properties.er_client_name.properties.data_source.properties.name"
-            }
-          },
-          "required": [
-            "patrol_types"
-          ],
-          "type": "object",
-          "title": ""
-        },
-        "er_patrol_status": {
-          "additionalProperties": false,
-          "properties": {
+            },
+            "event_types": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Event Types",
+              "type": "array",
+              "description": "Specify the event type(s) to analyze (optional). Leave this section empty to analyze all event types. Only V1 Event Types can be analyzed at this time.",
+              "ecoscope:event_type": "properties.er_client_name.properties.data_source.properties.name"
+            },
             "status": {
               "default": null,
-              "description": "List comprised of 'active'/'overdue'/'done'/'cancelled'",
+              "description": "Choose to analyze patrols with a certain status. If left empty, patrols of all status will be analyzed",
               "ecoscope:advanced": true,
               "items": {
                 "enum": [
@@ -101,34 +100,16 @@
               },
               "title": "Status",
               "type": "array"
-            }
-          },
-          "type": "object",
-          "required": [],
-          "title": ""
-        },
-        "patrol_events": {
-          "additionalProperties": false,
-          "properties": {
-            "event_type": {
-              "items": {
-                "type": "string"
-              },
-              "title": "Event Types",
-              "type": "array",
-              "description": "Select the event type(s) to analyze (optional). Leave empty to analyze all event types.",
-              "ecoscope:event_type": "properties.er_client_name.properties.data_source.properties.name"
             },
-            "drop_null_geometry": {
-              "default": false,
-              "title": "Drop Null Geometry",
-              "type": "boolean",
-              "description": "Include Events Without a Geometry (point or polygon)",
-              "ecoscope:advanced": true
+            "include_null_geometry": {
+              "default": true,
+              "title": "Include Events Without a Geometry (point or polygon)",
+              "type": "boolean"
             }
           },
           "required": [
-            "event_type"
+            "patrol_types",
+            "event_types"
           ],
           "type": "object",
           "title": ""
@@ -160,9 +141,9 @@
       "required": [],
       "title": "Group Data"
     },
-    "Preprocess patrol observations": {
+    "Trajectory Category": {
       "type": "object",
-      "description": "Preprocess patrol observations from EarthRanger.",
+      "description": "Differentiate tracks by color using the selected category.",
       "ecoscope:task_group": true,
       "properties": {
         "set_patrol_traj_color_column": {
@@ -189,16 +170,22 @@
                   "title": "Patrol Serial Number"
                 }
               ],
-              "description": "Select a category to color and differentiate patrol trajectories.",
-              "default": "patrol_type"
+              "default": "patrol_subject"
             }
           },
           "required": [
             "var"
           ],
           "type": "object",
-          "title": "Style Trajectory By Category"
-        },
+          "title": ""
+        }
+      }
+    },
+    "Trajectory Segment Filter": {
+      "type": "object",
+      "description": " ",
+      "ecoscope:task_group": true,
+      "properties": {
         "patrol_traj": {
           "additionalProperties": false,
           "properties": {
@@ -216,20 +203,20 @@
                 "min_speed_kmhr": 0.01,
                 "max_speed_kmhr": 500
               },
-              "title": "Trajectory Segment Filter",
+              "title": " ",
               "description": "Filter track data by setting limits on track segment length, duration, and speed. Segments outside these bounds are removed, reducing noise and to focus on meaningful movement patterns.",
               "ecoscope:advanced": true
             }
           },
           "required": [],
           "type": "object",
-          "title": "Transform Relocations to Trajectories"
+          "title": ""
         }
       }
     },
-    "Preprocess patrol events": {
+    "Patrol Event Location Filter": {
       "type": "object",
-      "description": "Preprocess patrol events from EarthRanger.",
+      "description": "Filter events based on their location.",
       "ecoscope:task_group": true,
       "properties": {
         "filter_patrol_events": {
@@ -256,14 +243,15 @@
               "items": {
                 "$ref": "#/$defs/Coordinate"
               },
-              "title": "Filter Point Coords",
+              "title": "Filter Exact Point Coordinates",
               "type": "array",
+              "description": "By adding a filter, the workflow will not include events recorded at the specified coordinates.",
               "ecoscope:advanced": true
             }
           },
           "required": [],
           "type": "object",
-          "title": "Apply Coordinate Filter"
+          "title": ""
         }
       }
     },
@@ -282,7 +270,7 @@
             }
           ],
           "items": {
-            "title": "Base Layer or Custom Layer",
+            "title": "Base Layer",
             "anyOf": [
               {
                 "properties": {
@@ -457,7 +445,7 @@
               }
             ]
           },
-          "title": "Set Map Base Layers",
+          "title": " ",
           "type": "array",
           "description": "Select tile layers to use as base layers in map outputs. The first layer in the list will be the bottommost layer displayed.",
           "ecoscope:advanced": true
@@ -465,11 +453,11 @@
       },
       "type": "object",
       "required": [],
-      "title": "Base Maps"
+      "title": "Map Base Layers"
     },
-    "Patrol events bar chart": {
+    "Patrol Events Bar Chart": {
       "type": "object",
-      "description": "Create the patrol events bar chart.",
+      "description": "The bar chart shows how many events of different types occurred over time. Choose the time interval for the x-axis to control how event counts are summarized over time.",
       "ecoscope:task_group": true,
       "properties": {
         "patrol_events_bar_chart": {
@@ -484,15 +472,14 @@
                 "hour"
               ],
               "title": "Time Interval",
-              "type": "string",
-              "description": "Sets the time interval of the x axis."
+              "type": "string"
             }
           },
           "required": [
             "time_interval"
           ],
           "type": "object",
-          "title": "Draw Time Series Bar Chart for Patrols Events"
+          "title": ""
         }
       }
     },
@@ -516,7 +503,14 @@
               "default": {
                 "auto_scale_or_custom": "Auto-scale"
               },
-              "title": "Auto Scale Or Custom Grid Cell Size",
+              "title": "Grid Cell Size",
+              "ecoscope:advanced": true
+            },
+            "crs": {
+              "default": "EPSG:3857",
+              "title": "Coordinate Reference System",
+              "type": "string",
+              "description": "The coordinate reference system in which to perform the density calculation, must be a valid CRS authority code, for example ESRI:53042",
               "ecoscope:advanced": true
             }
           },
@@ -693,12 +687,11 @@
         "auto_scale_or_custom": {
           "const": "Auto-scale",
           "default": "Auto-scale",
-          "description": "Define the resolution of the raster grid (in meters per pixel). Auto-scale for an optimized grid based on the data, or Customize to set a specific resolution.",
           "ecoscope:advanced": true,
           "enum": [
             "Auto-scale"
           ],
-          "title": " ",
+          "title": "Grid Cell Size",
           "type": "string"
         }
       },
@@ -710,22 +703,21 @@
         "auto_scale_or_custom": {
           "const": "Customize",
           "default": "Customize",
-          "description": "Define the resolution of the raster grid (in meters per pixel). Auto-scale for an optimized grid based on the data, or Customize to set a specific resolution.",
           "ecoscope:advanced": true,
           "enum": [
             "Customize"
           ],
-          "title": " ",
+          "title": "Grid Cell Size",
           "type": "string"
         },
         "grid_cell_size": {
           "default": 5000,
-          "description": "Custom Raster Pixel Size (Meters)",
+          "description": "Define the resolution of the raster grid (in metres per pixel). A smaller grid cell size provides more details, while a larger size generalizes the data.",
           "exclusiveMaximum": 10000,
           "exclusiveMinimum": 0,
           "gt": 0,
           "lt": 10000,
-          "title": "Grid Cell Size",
+          "title": "Custom Grid Cell Size (Meters)",
           "type": "number"
         }
       },
@@ -747,30 +739,53 @@
       ]
     },
     "Patrol and Event Types": {
-      "ui:order": [
-        "er_patrol_types",
-        "er_patrol_status",
-        "patrol_events"
-      ],
-      "patrol_events": {
+      "er_patrol_and_events_params": {
         "ui:order": [
-          "event_type",
-          "drop_null_geometry"
+          "patrol_types",
+          "event_types",
+          "status",
+          "include_null_geometry"
         ]
       }
     },
-    "Preprocess patrol observations": {
-      "ui:order": [
-        "set_patrol_traj_color_column",
-        "patrol_traj"
-      ]
-    },
-    "Preprocess patrol events": {
+    "Patrol Event Location Filter": {
       "filter_patrol_events": {
         "ui:order": [
           "bounding_box",
           "filter_point_coords"
         ]
+      }
+    },
+    "Time Density Map": {
+      "ltd_meshgrid": {
+        "ui:order": [
+          "auto_scale_or_custom_cell_size",
+          "crs"
+        ],
+        "auto_scale_or_custom_cell_size": {
+          "anyOf": [
+            {
+              "ui:help": "Auto-scale for an optimized grid cell size based the workflow data or Customize to set a specific grid cell size.",
+              "ui:options": {
+                "label": false
+              },
+              "auto_scale_or_custom": {
+                "ui:widget": "hidden"
+              }
+            },
+            {
+              "ui:options": {
+                "label": false
+              },
+              "auto_scale_or_custom": {
+                "ui:widget": "hidden"
+              }
+            }
+          ],
+          "auto_scale_or_custom": {
+            "ui:widget": "hidden"
+          }
+        }
       }
     },
     "ui:order": [
@@ -779,12 +794,33 @@
       "time_range",
       "Patrol and Event Types",
       "groupers",
-      "Preprocess patrol observations",
-      "Preprocess patrol events",
+      "Trajectory Category",
+      "Trajectory Segment Filter",
+      "Patrol Event Location Filter",
       "base_map_defs",
-      "Patrol events bar chart",
+      "Patrol Events Bar Chart",
       "Time Density Map"
-    ]
+    ],
+    "Preprocess patrol events": {
+      "filter_patrol_events": {
+        "filter_point_coords": {
+          "items": {
+            "ui:options": {
+              "label": false
+            }
+          }
+        }
+      }
+    },
+    "base_map_defs": {
+      "base_maps": {
+        "items": {
+          "ui:options": {
+            "label": false
+          }
+        }
+      }
+    }
   },
   "additionalProperties": false
 }

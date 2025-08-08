@@ -18,21 +18,22 @@ from ecoscope_workflows_core.tasks.skip import any_is_empty_df
 from ecoscope_workflows_core.tasks.skip import any_dependency_skipped
 from ecoscope_workflows_core.tasks.io import set_er_connection
 from ecoscope_workflows_core.tasks.filter import set_time_range
-from ecoscope_workflows_ext_ecoscope.tasks.io import set_patrol_types
-from ecoscope_workflows_ext_ecoscope.tasks.io import set_patrol_status
+from ecoscope_workflows_ext_ecoscope.tasks.io import (
+    set_patrols_and_patrol_events_params,
+)
 
-get_patrol_observations = create_task_magicmock(  # 🧪
+get_patrol_observations_from_combined_params = create_task_magicmock(  # 🧪
     anchor="ecoscope_workflows_ext_ecoscope.tasks.io",  # 🧪
-    func_name="get_patrol_observations",  # 🧪
+    func_name="get_patrol_observations_from_combined_params",  # 🧪
 )  # 🧪
 
-get_patrol_events = create_task_magicmock(  # 🧪
+get_patrol_events_from_combined_params = create_task_magicmock(  # 🧪
     anchor="ecoscope_workflows_ext_ecoscope.tasks.io",  # 🧪
-    func_name="get_patrol_events",  # 🧪
+    func_name="get_patrol_events_from_combined_params",  # 🧪
 )  # 🧪
 from ecoscope_workflows_core.tasks.groupby import set_groupers
-from ecoscope_workflows_ext_ecoscope.tasks.preprocessing import process_relocations
 from ecoscope_workflows_core.tasks.config import set_string_var
+from ecoscope_workflows_ext_ecoscope.tasks.preprocessing import process_relocations
 from ecoscope_workflows_ext_ecoscope.tasks.preprocessing import (
     relocations_to_trajectory,
 )
@@ -126,9 +127,9 @@ def main(params: Params):
         .call()
     )
 
-    er_patrol_types = (
-        set_patrol_types.validate()
-        .handle_errors(task_instance_id="er_patrol_types")
+    er_patrol_and_events_params = (
+        set_patrols_and_patrol_events_params.validate()
+        .handle_errors(task_instance_id="er_patrol_and_events_params")
         .skipif(
             conditions=[
                 any_is_empty_df,
@@ -136,26 +137,19 @@ def main(params: Params):
             ],
             unpack_depth=1,
         )
-        .partial(**(params_dict.get("er_patrol_types") or {}))
-        .call()
-    )
-
-    er_patrol_status = (
-        set_patrol_status.validate()
-        .handle_errors(task_instance_id="er_patrol_status")
-        .skipif(
-            conditions=[
-                any_is_empty_df,
-                any_dependency_skipped,
-            ],
-            unpack_depth=1,
+        .partial(
+            client=er_client_name,
+            time_range=time_range,
+            include_patrol_details=True,
+            raise_on_empty=False,
+            truncate_to_time_range=True,
+            **(params_dict.get("er_patrol_and_events_params") or {}),
         )
-        .partial(**(params_dict.get("er_patrol_status") or {}))
         .call()
     )
 
     patrol_obs = (
-        get_patrol_observations.validate()
+        get_patrol_observations_from_combined_params.validate()
         .handle_errors(task_instance_id="patrol_obs")
         .skipif(
             conditions=[
@@ -165,19 +159,14 @@ def main(params: Params):
             unpack_depth=1,
         )
         .partial(
-            client=er_client_name,
-            time_range=time_range,
-            patrol_type=er_patrol_types,
-            status=er_patrol_status,
-            include_patrol_details=True,
-            raise_on_empty=False,
+            combined_params=er_patrol_and_events_params,
             **(params_dict.get("patrol_obs") or {}),
         )
         .call()
     )
 
     patrol_events = (
-        get_patrol_events.validate()
+        get_patrol_events_from_combined_params.validate()
         .handle_errors(task_instance_id="patrol_events")
         .skipif(
             conditions=[
@@ -187,12 +176,7 @@ def main(params: Params):
             unpack_depth=1,
         )
         .partial(
-            client=er_client_name,
-            time_range=time_range,
-            patrol_type=er_patrol_types,
-            status=er_patrol_status,
-            truncate_to_time_range=True,
-            raise_on_empty=False,
+            combined_params=er_patrol_and_events_params,
             **(params_dict.get("patrol_events") or {}),
         )
         .call()
@@ -209,6 +193,20 @@ def main(params: Params):
             unpack_depth=1,
         )
         .partial(**(params_dict.get("groupers") or {}))
+        .call()
+    )
+
+    set_patrol_traj_color_column = (
+        set_string_var.validate()
+        .handle_errors(task_instance_id="set_patrol_traj_color_column")
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(**(params_dict.get("set_patrol_traj_color_column") or {}))
         .call()
     )
 
@@ -246,20 +244,6 @@ def main(params: Params):
             ],
             **(params_dict.get("patrol_reloc") or {}),
         )
-        .call()
-    )
-
-    set_patrol_traj_color_column = (
-        set_string_var.validate()
-        .handle_errors(task_instance_id="set_patrol_traj_color_column")
-        .skipif(
-            conditions=[
-                any_is_empty_df,
-                any_dependency_skipped,
-            ],
-            unpack_depth=1,
-        )
-        .partial(**(params_dict.get("set_patrol_traj_color_column") or {}))
         .call()
     )
 

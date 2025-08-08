@@ -16,13 +16,18 @@ from ecoscope_workflows_core.tasks.skip import any_is_empty_df
 from ecoscope_workflows_core.tasks.skip import any_dependency_skipped
 from ecoscope_workflows_core.tasks.io import set_er_connection
 from ecoscope_workflows_core.tasks.filter import set_time_range
-from ecoscope_workflows_ext_ecoscope.tasks.io import set_patrol_types
-from ecoscope_workflows_ext_ecoscope.tasks.io import set_patrol_status
-from ecoscope_workflows_ext_ecoscope.tasks.io import get_patrol_observations
-from ecoscope_workflows_ext_ecoscope.tasks.io import get_patrol_events
+from ecoscope_workflows_ext_ecoscope.tasks.io import (
+    set_patrols_and_patrol_events_params,
+)
+from ecoscope_workflows_ext_ecoscope.tasks.io import (
+    get_patrol_observations_from_combined_params,
+)
+from ecoscope_workflows_ext_ecoscope.tasks.io import (
+    get_patrol_events_from_combined_params,
+)
 from ecoscope_workflows_core.tasks.groupby import set_groupers
-from ecoscope_workflows_ext_ecoscope.tasks.preprocessing import process_relocations
 from ecoscope_workflows_core.tasks.config import set_string_var
+from ecoscope_workflows_ext_ecoscope.tasks.preprocessing import process_relocations
 from ecoscope_workflows_ext_ecoscope.tasks.preprocessing import (
     relocations_to_trajectory,
 )
@@ -157,44 +162,21 @@ time_range = (
 # %%
 # parameters
 
-er_patrol_types_params = dict(
+er_patrol_and_events_params_params = dict(
     patrol_types=...,
-)
-
-# %%
-# call the task
-
-
-er_patrol_types = (
-    set_patrol_types.handle_errors(task_instance_id="er_patrol_types")
-    .skipif(
-        conditions=[
-            any_is_empty_df,
-            any_dependency_skipped,
-        ],
-        unpack_depth=1,
-    )
-    .partial(**er_patrol_types_params)
-    .call()
-)
-
-
-# %% [markdown]
-# ##
-
-# %%
-# parameters
-
-er_patrol_status_params = dict(
+    event_types=...,
     status=...,
+    include_null_geometry=...,
 )
 
 # %%
 # call the task
 
 
-er_patrol_status = (
-    set_patrol_status.handle_errors(task_instance_id="er_patrol_status")
+er_patrol_and_events_params = (
+    set_patrols_and_patrol_events_params.handle_errors(
+        task_instance_id="er_patrol_and_events_params"
+    )
     .skipif(
         conditions=[
             any_is_empty_df,
@@ -202,7 +184,14 @@ er_patrol_status = (
         ],
         unpack_depth=1,
     )
-    .partial(**er_patrol_status_params)
+    .partial(
+        client=er_client_name,
+        time_range=time_range,
+        include_patrol_details=True,
+        raise_on_empty=False,
+        truncate_to_time_range=True,
+        **er_patrol_and_events_params_params,
+    )
     .call()
 )
 
@@ -220,7 +209,9 @@ patrol_obs_params = dict()
 
 
 patrol_obs = (
-    get_patrol_observations.handle_errors(task_instance_id="patrol_obs")
+    get_patrol_observations_from_combined_params.handle_errors(
+        task_instance_id="patrol_obs"
+    )
     .skipif(
         conditions=[
             any_is_empty_df,
@@ -228,15 +219,7 @@ patrol_obs = (
         ],
         unpack_depth=1,
     )
-    .partial(
-        client=er_client_name,
-        time_range=time_range,
-        patrol_type=er_patrol_types,
-        status=er_patrol_status,
-        include_patrol_details=True,
-        raise_on_empty=False,
-        **patrol_obs_params,
-    )
+    .partial(combined_params=er_patrol_and_events_params, **patrol_obs_params)
     .call()
 )
 
@@ -247,17 +230,16 @@ patrol_obs = (
 # %%
 # parameters
 
-patrol_events_params = dict(
-    event_type=...,
-    drop_null_geometry=...,
-)
+patrol_events_params = dict()
 
 # %%
 # call the task
 
 
 patrol_events = (
-    get_patrol_events.handle_errors(task_instance_id="patrol_events")
+    get_patrol_events_from_combined_params.handle_errors(
+        task_instance_id="patrol_events"
+    )
     .skipif(
         conditions=[
             any_is_empty_df,
@@ -265,15 +247,7 @@ patrol_events = (
         ],
         unpack_depth=1,
     )
-    .partial(
-        client=er_client_name,
-        time_range=time_range,
-        patrol_type=er_patrol_types,
-        status=er_patrol_status,
-        truncate_to_time_range=True,
-        raise_on_empty=False,
-        **patrol_events_params,
-    )
+    .partial(combined_params=er_patrol_and_events_params, **patrol_events_params)
     .call()
 )
 
@@ -302,6 +276,34 @@ groupers = (
         unpack_depth=1,
     )
     .partial(**groupers_params)
+    .call()
+)
+
+
+# %% [markdown]
+# ##
+
+# %%
+# parameters
+
+set_patrol_traj_color_column_params = dict(
+    var=...,
+)
+
+# %%
+# call the task
+
+
+set_patrol_traj_color_column = (
+    set_string_var.handle_errors(task_instance_id="set_patrol_traj_color_column")
+    .skipif(
+        conditions=[
+            any_is_empty_df,
+            any_dependency_skipped,
+        ],
+        unpack_depth=1,
+    )
+    .partial(**set_patrol_traj_color_column_params)
     .call()
 )
 
@@ -356,35 +358,7 @@ patrol_reloc = (
 
 
 # %% [markdown]
-# ## Style Trajectory By Category
-
-# %%
-# parameters
-
-set_patrol_traj_color_column_params = dict(
-    var=...,
-)
-
-# %%
-# call the task
-
-
-set_patrol_traj_color_column = (
-    set_string_var.handle_errors(task_instance_id="set_patrol_traj_color_column")
-    .skipif(
-        conditions=[
-            any_is_empty_df,
-            any_dependency_skipped,
-        ],
-        unpack_depth=1,
-    )
-    .partial(**set_patrol_traj_color_column_params)
-    .call()
-)
-
-
-# %% [markdown]
-# ## Transform Relocations to Trajectories
+# ##
 
 # %%
 # parameters
@@ -531,7 +505,7 @@ traj_colormap = (
 
 
 # %% [markdown]
-# ## Apply Coordinate Filter
+# ##
 
 # %%
 # parameters
@@ -745,7 +719,7 @@ split_pe_groups = (
 
 
 # %% [markdown]
-# ## Base Maps
+# ## Map Base Layers
 
 # %%
 # parameters
@@ -1621,7 +1595,7 @@ max_speed_grouped_widget = (
 
 
 # %% [markdown]
-# ## Draw Time Series Bar Chart for Patrols Events
+# ##
 
 # %%
 # parameters
@@ -1873,6 +1847,7 @@ patrol_events_pie_widget_grouped = (
 
 ltd_meshgrid_params = dict(
     auto_scale_or_custom_cell_size=...,
+    crs=...,
 )
 
 # %%

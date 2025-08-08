@@ -33,17 +33,6 @@ class TimeRange(BaseModel):
     until: AwareDatetime = Field(..., description="The end time", title="Until")
 
 
-class ErPatrolTypes(BaseModel):
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    patrol_types: List[str] = Field(
-        ...,
-        description="Select the patrol type(s) to analyze (optional). Leave empty to analyze all patrol types.",
-        title="Patrol Types",
-    )
-
-
 class StatusEnum(str, Enum):
     active = "active"
     overdue = "overdue"
@@ -51,47 +40,46 @@ class StatusEnum(str, Enum):
     cancelled = "cancelled"
 
 
-class ErPatrolStatus(BaseModel):
+class ErPatrolAndEventsParams(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
+    )
+    patrol_types: List[str] = Field(
+        ...,
+        description="Specify the patrol type(s) to analyze (optional). Leave empty to analyze all patrol types.",
+        title="Patrol Types",
+    )
+    event_types: List[str] = Field(
+        ...,
+        description="Specify the event type(s) to analyze (optional). Leave this section empty to analyze all event types. Only V1 Event Types can be analyzed at this time.",
+        title="Event Types",
     )
     status: Optional[List[StatusEnum]] = Field(
         None,
-        description="List comprised of 'active'/'overdue'/'done'/'cancelled'",
+        description="Choose to analyze patrols with a certain status. If left empty, patrols of all status will be analyzed",
         title="Status",
     )
-
-
-class PatrolEvents(BaseModel):
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    event_type: List[str] = Field(
-        ...,
-        description="Select the event type(s) to analyze (optional). Leave empty to analyze all event types.",
-        title="Event Types",
-    )
-    drop_null_geometry: Optional[bool] = Field(
-        False,
-        description="Include Events Without a Geometry (point or polygon)",
-        title="Drop Null Geometry",
+    include_null_geometry: Optional[bool] = Field(
+        True, title="Include Events Without a Geometry (point or polygon)"
     )
 
 
 class PatrolAndEventTypes(BaseModel):
-    er_patrol_types: Optional[ErPatrolTypes] = Field(None, title="")
-    er_patrol_status: Optional[ErPatrolStatus] = Field(None, title="")
-    patrol_events: Optional[PatrolEvents] = Field(None, title="")
+    er_patrol_and_events_params: Optional[ErPatrolAndEventsParams] = Field(
+        None, title=""
+    )
 
 
 class SetPatrolTrajColorColumn(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    var: str = Field(
-        ...,
-        description="Select a category to color and differentiate patrol trajectories.",
-        title="Category",
+    var: str = Field(..., title="Category")
+
+
+class TrajectoryCategory(BaseModel):
+    set_patrol_traj_color_column: Optional[SetPatrolTrajColorColumn] = Field(
+        None, title=""
     )
 
 
@@ -257,7 +245,7 @@ class BaseMapDefs(BaseModel):
             },
         ],
         description="Select tile layers to use as base layers in map outputs. The first layer in the list will be the bottommost layer displayed.",
-        title="Set Map Base Layers",
+        title=" ",
     )
 
 
@@ -273,15 +261,11 @@ class PatrolEventsBarChart1(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    time_interval: TimeInterval = Field(
-        ..., description="Sets the time interval of the x axis.", title="Time Interval"
-    )
+    time_interval: TimeInterval = Field(..., title="Time Interval")
 
 
 class PatrolEventsBarChart(BaseModel):
-    patrol_events_bar_chart: Optional[PatrolEventsBarChart1] = Field(
-        None, title="Draw Time Series Bar Chart for Patrols Events"
-    )
+    patrol_events_bar_chart: Optional[PatrolEventsBarChart1] = Field(None, title="")
 
 
 class EarthRangerConnection(BaseModel):
@@ -335,9 +319,7 @@ class AutoScaleOrCustom(str, Enum):
 
 class AutoScaleGridCellSize(BaseModel):
     auto_scale_or_custom: Literal["Auto-scale"] = Field(
-        "Auto-scale",
-        description="Define the resolution of the raster grid (in meters per pixel). Auto-scale for an optimized grid based on the data, or Customize to set a specific resolution.",
-        title=" ",
+        "Auto-scale", title="Grid Cell Size"
     )
 
 
@@ -347,12 +329,12 @@ class AutoScaleOrCustom1(str, Enum):
 
 class CustomGridCellSize(BaseModel):
     auto_scale_or_custom: Literal["Customize"] = Field(
-        "Customize",
-        description="Define the resolution of the raster grid (in meters per pixel). Auto-scale for an optimized grid based on the data, or Customize to set a specific resolution.",
-        title=" ",
+        "Customize", title="Grid Cell Size"
     )
     grid_cell_size: Optional[confloat(lt=10000.0, gt=0.0)] = Field(
-        5000, description="Custom Raster Pixel Size (Meters)", title="Grid Cell Size"
+        5000,
+        description="Define the resolution of the raster grid (in metres per pixel). A smaller grid cell size provides more details, while a larger size generalizes the data.",
+        title="Custom Grid Cell Size (Meters)",
     )
 
 
@@ -392,17 +374,12 @@ class PatrolTraj(BaseModel):
             }
         ),
         description="Filter track data by setting limits on track segment length, duration, and speed. Segments outside these bounds are removed, reducing noise and to focus on meaningful movement patterns.",
-        title="Trajectory Segment Filter",
+        title=" ",
     )
 
 
-class PreprocessPatrolObservations(BaseModel):
-    set_patrol_traj_color_column: Optional[SetPatrolTrajColorColumn] = Field(
-        None, title="Style Trajectory By Category"
-    )
-    patrol_traj: Optional[PatrolTraj] = Field(
-        None, title="Transform Relocations to Trajectories"
-    )
+class TrajectorySegmentFilterModel(BaseModel):
+    patrol_traj: Optional[PatrolTraj] = Field(None, title="")
 
 
 class FilterPatrolEvents(BaseModel):
@@ -417,14 +394,14 @@ class FilterPatrolEvents(BaseModel):
         title="Bounding Box",
     )
     filter_point_coords: Optional[List[Coordinate]] = Field(
-        [], title="Filter Point Coords"
+        [],
+        description="By adding a filter, the workflow will not include events recorded at the specified coordinates.",
+        title="Filter Exact Point Coordinates",
     )
 
 
-class PreprocessPatrolEvents(BaseModel):
-    filter_patrol_events: Optional[FilterPatrolEvents] = Field(
-        None, title="Apply Coordinate Filter"
-    )
+class PatrolEventLocationFilter(BaseModel):
+    filter_patrol_events: Optional[FilterPatrolEvents] = Field(None, title="")
 
 
 class LtdMeshgrid(BaseModel):
@@ -433,9 +410,11 @@ class LtdMeshgrid(BaseModel):
     )
     auto_scale_or_custom_cell_size: Optional[
         Union[AutoScaleGridCellSize, CustomGridCellSize]
-    ] = Field(
-        {"auto_scale_or_custom": "Auto-scale"},
-        title="Auto Scale Or Custom Grid Cell Size",
+    ] = Field({"auto_scale_or_custom": "Auto-scale"}, title="Grid Cell Size")
+    crs: Optional[str] = Field(
+        "EPSG:3857",
+        description="The coordinate reference system in which to perform the density calculation, must be a valid CRS authority code, for example ESRI:53042",
+        title="Coordinate Reference System",
     )
 
 
@@ -460,21 +439,24 @@ class FormData(BaseModel):
         None, alias="Patrol and Event Types", description=" "
     )
     groupers: Optional[Groupers] = Field(None, title="Group Data")
-    Preprocess_patrol_observations: Optional[PreprocessPatrolObservations] = Field(
+    Trajectory_Category: Optional[TrajectoryCategory] = Field(
         None,
-        alias="Preprocess patrol observations",
-        description="Preprocess patrol observations from EarthRanger.",
+        alias="Trajectory Category",
+        description="Differentiate tracks by color using the selected category.",
     )
-    Preprocess_patrol_events: Optional[PreprocessPatrolEvents] = Field(
-        None,
-        alias="Preprocess patrol events",
-        description="Preprocess patrol events from EarthRanger.",
+    Trajectory_Segment_Filter: Optional[TrajectorySegmentFilterModel] = Field(
+        None, alias="Trajectory Segment Filter", description=" "
     )
-    base_map_defs: Optional[BaseMapDefs] = Field(None, title="Base Maps")
-    Patrol_events_bar_chart: Optional[PatrolEventsBarChart] = Field(
+    Patrol_Event_Location_Filter: Optional[PatrolEventLocationFilter] = Field(
         None,
-        alias="Patrol events bar chart",
-        description="Create the patrol events bar chart.",
+        alias="Patrol Event Location Filter",
+        description="Filter events based on their location.",
+    )
+    base_map_defs: Optional[BaseMapDefs] = Field(None, title="Map Base Layers")
+    Patrol_Events_Bar_Chart: Optional[PatrolEventsBarChart] = Field(
+        None,
+        alias="Patrol Events Bar Chart",
+        description="The bar chart shows how many events of different types occurred over time. Choose the time interval for the x-axis to control how event counts are summarized over time.",
     )
     Time_Density_Map: Optional[TimeDensityMap] = Field(
         None,
