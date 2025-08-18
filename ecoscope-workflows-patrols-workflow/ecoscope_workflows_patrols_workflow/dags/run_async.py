@@ -107,6 +107,7 @@ def main(params: Params):
         ],
         "traj_patrol_events_ecomap": [
             "base_map_defs",
+            "set_patrol_traj_color_column",
             "combined_traj_and_pe_map_layers",
         ],
         "traj_pe_ecomap_html_urls": ["traj_patrol_events_ecomap"],
@@ -767,7 +768,10 @@ def main(params: Params):
             partial={
                 "tile_layers": DependsOn("base_map_defs"),
                 "north_arrow_style": {"placement": "top-left"},
-                "legend_style": {"placement": "bottom-right"},
+                "legend_style": {
+                    "title": DependsOn("set_patrol_traj_color_column"),
+                    "placement": "bottom-right",
+                },
                 "static": False,
                 "title": None,
                 "max_zoom": 20,
@@ -1419,7 +1423,7 @@ def main(params: Params):
             .set_executor("lithops"),
             partial={
                 "meshgrid": DependsOn("ltd_meshgrid"),
-                "percentiles": [50.0, 60.0, 70.0, 80.0, 90.0, 95.0, 100.0],
+                "percentiles": [50.0, 60.0, 70.0, 80.0, 90.0, 100.0],
             }
             | (params_dict.get("ltd") or {}),
             method="mapvalues",
@@ -1559,6 +1563,7 @@ def main(params: Params):
                 },
                 "legend": {
                     "label_column": "Percentile",
+                    "label_suffix": " %",
                     "color_column": "percentile_colormap",
                 },
                 "tooltip_columns": ["Percentile"],
@@ -1584,7 +1589,7 @@ def main(params: Params):
             partial={
                 "tile_layers": DependsOn("base_map_defs"),
                 "north_arrow_style": {"placement": "top-left"},
-                "legend_style": {"placement": "bottom-right"},
+                "legend_style": {"title": "Time Spent", "placement": "bottom-right"},
                 "static": False,
                 "title": None,
                 "max_zoom": 20,

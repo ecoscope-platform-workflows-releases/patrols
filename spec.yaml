@@ -1,10 +1,10 @@
 id: patrols
 requirements:
   - name: ecoscope-workflows-core
-    version: 0.7.2
+    version: 0.7.3
     channel: https://repo.prefix.dev/ecoscope-workflows/
   - name: ecoscope-workflows-ext-ecoscope
-    version: 0.7.2
+    version: 0.7.3
     channel: https://repo.prefix.dev/ecoscope-workflows/
 rjsf-overrides:
   properties:
@@ -343,6 +343,7 @@ workflow:
           north_arrow_style:
             placement: top-left
           legend_style:
+            title: ${{ workflow.set_patrol_traj_color_column.return }}
             placement: bottom-right
           static: false
           title: null
@@ -660,7 +661,6 @@ workflow:
             - 70.000000
             - 80.000000
             - 90.000000
-            - 95.000000
             - 100.000000
         mapvalues:
           argnames: trajectory_gdf
@@ -728,6 +728,7 @@ workflow:
             get_line_width: 0
           legend:
             label_column: Percentile
+            label_suffix: ' %'
             color_column: percentile_colormap
           tooltip_columns:
             - Percentile
@@ -742,6 +743,7 @@ workflow:
           north_arrow_style:
             placement: top-left
           legend_style:
+            title: Time Spent
             placement: bottom-right
           static: false
           title: null

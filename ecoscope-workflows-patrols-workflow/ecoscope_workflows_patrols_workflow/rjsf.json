@@ -86,9 +86,9 @@
               "ecoscope:event_type": "properties.er_client_name.properties.data_source.properties.name"
             },
             "status": {
-              "default": null,
-              "description": "Choose to analyze patrols with a certain status. If left empty, patrols of all status will be analyzed",
-              "ecoscope:advanced": true,
+              "default": [
+                "done"
+              ],
               "items": {
                 "enum": [
                   "active",
@@ -98,8 +98,10 @@
                 ],
                 "type": "string"
               },
-              "title": "Status",
-              "type": "array"
+              "title": "Patrol Status",
+              "type": "array",
+              "description": "Choose to analyze patrols with a certain status. If left empty, patrols of all status will be analyzed",
+              "ecoscope:advanced": true
             },
             "include_null_geometry": {
               "default": true,
@@ -715,12 +717,12 @@
         },
         "grid_cell_size": {
           "default": 5000,
-          "description": "Define the resolution of the raster grid (in metres per pixel). A smaller grid cell size provides more details, while a larger size generalizes the data.",
+          "description": "Define the resolution of the raster grid (in the unit of measurement defined by the coordinate reference system set below). A smaller grid cell size provides more detail, while a larger size generalizes the data.",
           "exclusiveMaximum": 10000,
           "exclusiveMinimum": 0,
           "gt": 0,
           "lt": 10000,
-          "title": "Custom Grid Cell Size (Meters)",
+          "title": "Custom Grid Cell Size",
           "type": "number"
         }
       },
