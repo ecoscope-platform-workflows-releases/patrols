@@ -992,7 +992,10 @@ traj_patrol_events_ecomap = (
     .partial(
         tile_layers=base_map_defs,
         north_arrow_style={"placement": "top-left"},
-        legend_style={"placement": "bottom-right"},
+        legend_style={
+            "title": set_patrol_traj_color_column,
+            "placement": "bottom-right",
+        },
         static=False,
         title=None,
         max_zoom=20,
@@ -1893,7 +1896,7 @@ ltd = (
     )
     .partial(
         meshgrid=ltd_meshgrid,
-        percentiles=[50.0, 60.0, 70.0, 80.0, 90.0, 95.0, 100.0],
+        percentiles=[50.0, 60.0, 70.0, 80.0, 90.0, 100.0],
         **ltd_params,
     )
     .mapvalues(argnames=["trajectory_gdf"], argvalues=split_patrol_traj_groups)
@@ -2077,7 +2080,11 @@ td_map_layer = (
             "opacity": 0.7,
             "get_line_width": 0,
         },
-        legend={"label_column": "Percentile", "color_column": "percentile_colormap"},
+        legend={
+            "label_column": "Percentile",
+            "label_suffix": " %",
+            "color_column": "percentile_colormap",
+        },
         tooltip_columns=["Percentile"],
         **td_map_layer_params,
     )
@@ -2111,7 +2118,7 @@ td_ecomap = (
     .partial(
         tile_layers=base_map_defs,
         north_arrow_style={"placement": "top-left"},
-        legend_style={"placement": "bottom-right"},
+        legend_style={"title": "Time Spent", "placement": "bottom-right"},
         static=False,
         title=None,
         max_zoom=20,
