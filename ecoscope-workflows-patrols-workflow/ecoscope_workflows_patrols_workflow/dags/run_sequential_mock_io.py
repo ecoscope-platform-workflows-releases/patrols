@@ -440,6 +440,71 @@ def main(params: Params):
         .call()
     )
 
+    set_traj_pe_map_title = (
+        set_string_var.validate()
+        .handle_errors(task_instance_id="set_traj_pe_map_title")
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            var="Trajectories & Patrol Events Map",
+            **(params_dict.get("set_traj_pe_map_title") or {}),
+        )
+        .call()
+    )
+
+    set_ltd_map_title = (
+        set_string_var.validate()
+        .handle_errors(task_instance_id="set_ltd_map_title")
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(var="Time Density Map", **(params_dict.get("set_ltd_map_title") or {}))
+        .call()
+    )
+
+    set_bar_chart_title = (
+        set_string_var.validate()
+        .handle_errors(task_instance_id="set_bar_chart_title")
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            var="Patrol Events Bar Chart",
+            **(params_dict.get("set_bar_chart_title") or {}),
+        )
+        .call()
+    )
+
+    set_pie_chart_title = (
+        set_string_var.validate()
+        .handle_errors(task_instance_id="set_pie_chart_title")
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            var="Patrol Events Pie Chart",
+            **(params_dict.get("set_pie_chart_title") or {}),
+        )
+        .call()
+    )
+
     split_patrol_traj_groups = (
         split_groups.validate()
         .handle_errors(task_instance_id="split_patrol_traj_groups")
@@ -659,6 +724,7 @@ def main(params: Params):
             static=False,
             title=None,
             max_zoom=20,
+            widget_id=set_traj_pe_map_title,
             **(params_dict.get("traj_patrol_events_ecomap") or {}),
         )
         .mapvalues(argnames=["geo_layers"], argvalues=combined_traj_and_pe_map_layers)
@@ -676,6 +742,7 @@ def main(params: Params):
         )
         .partial(
             root_path=os.environ["ECOSCOPE_WORKFLOWS_RESULTS"],
+            filename_suffix="v2",
             **(params_dict.get("traj_pe_ecomap_html_urls") or {}),
         )
         .mapvalues(argnames=["text"], argvalues=traj_patrol_events_ecomap)
@@ -691,7 +758,7 @@ def main(params: Params):
             unpack_depth=1,
         )
         .partial(
-            title="Trajectories & Patrol Events Map",
+            title=set_traj_pe_map_title,
             **(params_dict.get("traj_pe_map_widgets_single_views") or {}),
         )
         .map(argnames=["view", "data"], argvalues=traj_pe_ecomap_html_urls)
@@ -1051,6 +1118,7 @@ def main(params: Params):
             color_column="event_type_colormap",
             plot_style={"xperiodalignment": "middle"},
             layout_style=None,
+            widget_id=set_bar_chart_title,
             **(params_dict.get("patrol_events_bar_chart") or {}),
         )
         .mapvalues(argnames=["dataframe"], argvalues=split_pe_groups)
@@ -1068,6 +1136,7 @@ def main(params: Params):
         )
         .partial(
             root_path=os.environ["ECOSCOPE_WORKFLOWS_RESULTS"],
+            filename_suffix="v2",
             **(params_dict.get("patrol_events_bar_chart_html_url") or {}),
         )
         .mapvalues(argnames=["text"], argvalues=patrol_events_bar_chart)
@@ -1083,7 +1152,7 @@ def main(params: Params):
             unpack_depth=1,
         )
         .partial(
-            title="Patrol Events Bar Chart",
+            title=set_bar_chart_title,
             **(params_dict.get("patrol_events_bar_chart_widget") or {}),
         )
         .map(argnames=["view", "data"], argvalues=patrol_events_bar_chart_html_url)
@@ -1122,6 +1191,7 @@ def main(params: Params):
             label_column=None,
             color_column="event_type_colormap",
             layout_style=None,
+            widget_id=set_pie_chart_title,
             **(params_dict.get("patrol_events_pie_chart") or {}),
         )
         .mapvalues(argnames=["dataframe"], argvalues=split_pe_groups)
@@ -1139,6 +1209,7 @@ def main(params: Params):
         )
         .partial(
             root_path=os.environ["ECOSCOPE_WORKFLOWS_RESULTS"],
+            filename_suffix="v2",
             **(params_dict.get("pe_pie_chart_html_urls") or {}),
         )
         .mapvalues(argnames=["text"], argvalues=patrol_events_pie_chart)
@@ -1154,7 +1225,7 @@ def main(params: Params):
             unpack_depth=1,
         )
         .partial(
-            title="Patrol Events Pie Chart",
+            title=set_pie_chart_title,
             **(params_dict.get("patrol_events_pie_chart_widgets") or {}),
         )
         .map(argnames=["view", "data"], argvalues=pe_pie_chart_html_urls)
@@ -1348,6 +1419,7 @@ def main(params: Params):
             static=False,
             title=None,
             max_zoom=20,
+            widget_id=set_ltd_map_title,
             **(params_dict.get("td_ecomap") or {}),
         )
         .mapvalues(argnames=["geo_layers"], argvalues=td_map_layer)
@@ -1365,6 +1437,7 @@ def main(params: Params):
         )
         .partial(
             root_path=os.environ["ECOSCOPE_WORKFLOWS_RESULTS"],
+            filename_suffix="v2",
             **(params_dict.get("td_ecomap_html_url") or {}),
         )
         .mapvalues(argnames=["text"], argvalues=td_ecomap)
@@ -1379,7 +1452,7 @@ def main(params: Params):
             ],
             unpack_depth=1,
         )
-        .partial(title="Time Density Map", **(params_dict.get("td_map_widget") or {}))
+        .partial(title=set_ltd_map_title, **(params_dict.get("td_map_widget") or {}))
         .map(argnames=["view", "data"], argvalues=td_ecomap_html_url)
     )
 

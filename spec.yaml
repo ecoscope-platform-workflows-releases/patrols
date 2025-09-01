@@ -1,10 +1,10 @@
 id: patrols
 requirements:
   - name: ecoscope-workflows-core
-    version: 0.7.3
+    version: 0.7.4
     channel: https://repo.prefix.dev/ecoscope-workflows/
   - name: ecoscope-workflows-ext-ecoscope
-    version: 0.7.3
+    version: 0.7.4
     channel: https://repo.prefix.dev/ecoscope-workflows/
 rjsf-overrides:
   properties:
@@ -214,6 +214,26 @@ workflow:
       columns:
         - patrol_serial_number
         - patrol_type
+  - name: Set Combined Trajectory & Event Map Title
+    id: set_traj_pe_map_title
+    task: set_string_var
+    partial:
+      var: Trajectories & Patrol Events Map
+  - name: Set Time Density Map Title
+    id: set_ltd_map_title
+    task: set_string_var
+    partial:
+      var: Time Density Map
+  - name: Set Bar Chart Title
+    id: set_bar_chart_title
+    task: set_string_var
+    partial:
+      var: Patrol Events Bar Chart
+  - name: Set Pie Chart Title
+    id: set_pie_chart_title
+    task: set_string_var
+    partial:
+      var: Patrol Events Pie Chart
   - name: Split Patrol Trajectories by Group
     id: split_patrol_traj_groups
     task: split_groups
@@ -348,6 +368,7 @@ workflow:
           static: false
           title: null
           max_zoom: 20
+          widget_id: ${{ workflow.set_traj_pe_map_title.return }}
         mapvalues:
           argnames: geo_layers
           argvalues: ${{ workflow.combined_traj_and_pe_map_layers.return }}
@@ -356,6 +377,7 @@ workflow:
         task: persist_text
         partial:
           root_path: ${{ env.ECOSCOPE_WORKFLOWS_RESULTS }}
+          filename_suffix: v2
         mapvalues:
           argnames: text
           argvalues: ${{ workflow.traj_patrol_events_ecomap.return }}
@@ -366,7 +388,7 @@ workflow:
           conditions:
             - never
         partial:
-          title: Trajectories & Patrol Events Map
+          title: ${{ workflow.set_traj_pe_map_title.return }}
         map:
           argnames:
             - view
@@ -568,6 +590,7 @@ workflow:
           plot_style:
             xperiodalignment: middle
           layout_style: null
+          widget_id: ${{ workflow.set_bar_chart_title.return }}
         mapvalues:
           argnames: dataframe
           argvalues: ${{ workflow.split_pe_groups.return }}
@@ -576,6 +599,7 @@ workflow:
         task: persist_text
         partial:
           root_path: ${{ env.ECOSCOPE_WORKFLOWS_RESULTS }}
+          filename_suffix: v2
         mapvalues:
           argnames: text
           argvalues: ${{ workflow.patrol_events_bar_chart.return }}
@@ -586,7 +610,7 @@ workflow:
           conditions:
             - never
         partial:
-          title: Patrol Events Bar Chart
+          title: ${{ workflow.set_bar_chart_title.return }}
         map:
           argnames:
             - view
@@ -611,6 +635,7 @@ workflow:
           label_column: null
           color_column: event_type_colormap
           layout_style: null
+          widget_id: ${{ workflow.set_pie_chart_title.return }}
         mapvalues:
           argnames: dataframe
           argvalues: ${{ workflow.split_pe_groups.return }}
@@ -619,6 +644,7 @@ workflow:
         task: persist_text
         partial:
           root_path: ${{ env.ECOSCOPE_WORKFLOWS_RESULTS }}
+          filename_suffix: v2
         mapvalues:
           argnames: text
           argvalues: ${{ workflow.patrol_events_pie_chart.return }}
@@ -629,7 +655,7 @@ workflow:
           conditions:
             - never
         partial:
-          title: Patrol Events Pie Chart
+          title: ${{ workflow.set_pie_chart_title.return }}
         map:
           argnames:
             - view
@@ -748,6 +774,7 @@ workflow:
           static: false
           title: null
           max_zoom: 20
+          widget_id: ${{ workflow.set_ltd_map_title.return }}
         mapvalues:
           argnames: geo_layers
           argvalues: ${{ workflow.td_map_layer.return }}
@@ -756,6 +783,7 @@ workflow:
         task: persist_text
         partial:
           root_path: ${{ env.ECOSCOPE_WORKFLOWS_RESULTS }}
+          filename_suffix: v2
         mapvalues:
           argnames: text
           argvalues: ${{ workflow.td_ecomap.return }}
@@ -766,7 +794,7 @@ workflow:
           conditions:
             - never
         partial:
-          title: Time Density Map
+          title: ${{ workflow.set_ltd_map_title.return }}
         map:
           argnames:
             - view
