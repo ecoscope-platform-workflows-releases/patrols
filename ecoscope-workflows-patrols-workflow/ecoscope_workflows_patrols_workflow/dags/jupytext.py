@@ -663,6 +663,110 @@ pe_cols_to_string = (
 
 
 # %% [markdown]
+# ## Set Combined Trajectory & Event Map Title
+
+# %%
+# parameters
+
+set_traj_pe_map_title_params = dict()
+
+# %%
+# call the task
+
+
+set_traj_pe_map_title = (
+    set_string_var.handle_errors(task_instance_id="set_traj_pe_map_title")
+    .skipif(
+        conditions=[
+            any_is_empty_df,
+            any_dependency_skipped,
+        ],
+        unpack_depth=1,
+    )
+    .partial(var="Trajectories & Patrol Events Map", **set_traj_pe_map_title_params)
+    .call()
+)
+
+
+# %% [markdown]
+# ## Set Time Density Map Title
+
+# %%
+# parameters
+
+set_ltd_map_title_params = dict()
+
+# %%
+# call the task
+
+
+set_ltd_map_title = (
+    set_string_var.handle_errors(task_instance_id="set_ltd_map_title")
+    .skipif(
+        conditions=[
+            any_is_empty_df,
+            any_dependency_skipped,
+        ],
+        unpack_depth=1,
+    )
+    .partial(var="Time Density Map", **set_ltd_map_title_params)
+    .call()
+)
+
+
+# %% [markdown]
+# ## Set Bar Chart Title
+
+# %%
+# parameters
+
+set_bar_chart_title_params = dict()
+
+# %%
+# call the task
+
+
+set_bar_chart_title = (
+    set_string_var.handle_errors(task_instance_id="set_bar_chart_title")
+    .skipif(
+        conditions=[
+            any_is_empty_df,
+            any_dependency_skipped,
+        ],
+        unpack_depth=1,
+    )
+    .partial(var="Patrol Events Bar Chart", **set_bar_chart_title_params)
+    .call()
+)
+
+
+# %% [markdown]
+# ## Set Pie Chart Title
+
+# %%
+# parameters
+
+set_pie_chart_title_params = dict()
+
+# %%
+# call the task
+
+
+set_pie_chart_title = (
+    set_string_var.handle_errors(task_instance_id="set_pie_chart_title")
+    .skipif(
+        conditions=[
+            any_is_empty_df,
+            any_dependency_skipped,
+        ],
+        unpack_depth=1,
+    )
+    .partial(var="Patrol Events Pie Chart", **set_pie_chart_title_params)
+    .call()
+)
+
+
+# %% [markdown]
 # ## Split Patrol Trajectories by Group
 
 # %%
@@ -999,6 +1103,7 @@ traj_patrol_events_ecomap = (
         static=False,
         title=None,
         max_zoom=20,
+        widget_id=set_traj_pe_map_title,
         **traj_patrol_events_ecomap_params,
     )
     .mapvalues(argnames=["geo_layers"], argvalues=combined_traj_and_pe_map_layers)
@@ -1030,6 +1135,7 @@ traj_pe_ecomap_html_urls = (
     )
     .partial(
         root_path=os.environ["ECOSCOPE_WORKFLOWS_RESULTS"],
+        filename_suffix="v2",
         **traj_pe_ecomap_html_urls_params,
     )
     .mapvalues(argnames=["text"], argvalues=traj_patrol_events_ecomap)
@@ -1058,10 +1164,7 @@ traj_pe_map_widgets_single_views = (
         ],
         unpack_depth=1,
     )
-    .partial(
-        title="Trajectories & Patrol Events Map",
-        **traj_pe_map_widgets_single_views_params,
-    )
+    .partial(title=set_traj_pe_map_title, **traj_pe_map_widgets_single_views_params)
     .map(argnames=["view", "data"], argvalues=traj_pe_ecomap_html_urls)
 )
 
@@ -1628,6 +1731,7 @@ patrol_events_bar_chart = (
         color_column="event_type_colormap",
         plot_style={"xperiodalignment": "middle"},
         layout_style=None,
+        widget_id=set_bar_chart_title,
         **patrol_events_bar_chart_params,
     )
     .mapvalues(argnames=["dataframe"], argvalues=split_pe_groups)
@@ -1659,6 +1763,7 @@ patrol_events_bar_chart_html_url = (
     )
     .partial(
         root_path=os.environ["ECOSCOPE_WORKFLOWS_RESULTS"],
+        filename_suffix="v2",
         **patrol_events_bar_chart_html_url_params,
     )
     .mapvalues(argnames=["text"], argvalues=patrol_events_bar_chart)
@@ -1687,7 +1792,7 @@ patrol_events_bar_chart_widget = (
         ],
         unpack_depth=1,
     )
-    .partial(title="Patrol Events Bar Chart", **patrol_events_bar_chart_widget_params)
+    .partial(title=set_bar_chart_title, **patrol_events_bar_chart_widget_params)
     .map(argnames=["view", "data"], argvalues=patrol_events_bar_chart_html_url)
 )
 
@@ -1747,6 +1852,7 @@ patrol_events_pie_chart = (
         label_column=None,
         color_column="event_type_colormap",
         layout_style=None,
+        widget_id=set_pie_chart_title,
         **patrol_events_pie_chart_params,
     )
     .mapvalues(argnames=["dataframe"], argvalues=split_pe_groups)
@@ -1778,6 +1884,7 @@ pe_pie_chart_html_urls = (
     )
     .partial(
         root_path=os.environ["ECOSCOPE_WORKFLOWS_RESULTS"],
+        filename_suffix="v2",
         **pe_pie_chart_html_urls_params,
     )
     .mapvalues(argnames=["text"], argvalues=patrol_events_pie_chart)
@@ -1806,7 +1913,7 @@ patrol_events_pie_chart_widgets = (
         ],
         unpack_depth=1,
     )
-    .partial(title="Patrol Events Pie Chart", **patrol_events_pie_chart_widgets_params)
+    .partial(title=set_pie_chart_title, **patrol_events_pie_chart_widgets_params)
     .map(argnames=["view", "data"], argvalues=pe_pie_chart_html_urls)
 )
 
@@ -2122,6 +2229,7 @@ td_ecomap = (
         static=False,
         title=None,
         max_zoom=20,
+        widget_id=set_ltd_map_title,
         **td_ecomap_params,
     )
     .mapvalues(argnames=["geo_layers"], argvalues=td_map_layer)
@@ -2152,7 +2260,9 @@ td_ecomap_html_url = (
         unpack_depth=1,
     )
     .partial(
-        root_path=os.environ["ECOSCOPE_WORKFLOWS_RESULTS"], **td_ecomap_html_url_params
+        root_path=os.environ["ECOSCOPE_WORKFLOWS_RESULTS"],
+        filename_suffix="v2",
+        **td_ecomap_html_url_params,
     )
     .mapvalues(argnames=["text"], argvalues=td_ecomap)
 )
@@ -2178,7 +2288,7 @@ td_map_widget = (
         ],
         unpack_depth=1,
     )
-    .partial(title="Time Density Map", **td_map_widget_params)
+    .partial(title=set_ltd_map_title, **td_map_widget_params)
     .map(argnames=["view", "data"], argvalues=td_ecomap_html_url)
 )
 
