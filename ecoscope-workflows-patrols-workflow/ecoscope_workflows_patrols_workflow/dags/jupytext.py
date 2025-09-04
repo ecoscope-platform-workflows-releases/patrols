@@ -190,6 +190,7 @@ er_patrol_and_events_params = (
         include_patrol_details=True,
         raise_on_empty=False,
         truncate_to_time_range=True,
+        sub_page_size=100,
         **er_patrol_and_events_params_params,
     )
     .call()
