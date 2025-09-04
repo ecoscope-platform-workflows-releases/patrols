@@ -262,6 +262,7 @@ def main(params: Params):
                 "include_patrol_details": True,
                 "raise_on_empty": False,
                 "truncate_to_time_range": True,
+                "sub_page_size": 100,
             }
             | (params_dict.get("er_patrol_and_events_params") or {}),
             method="call",

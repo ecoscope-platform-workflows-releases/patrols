@@ -1,10 +1,10 @@
 id: patrols
 requirements:
   - name: ecoscope-workflows-core
-    version: 0.7.5
+    version: 0.7.7
     channel: https://repo.prefix.dev/ecoscope-workflows/
   - name: ecoscope-workflows-ext-ecoscope
-    version: 0.7.5
+    version: 0.7.7
     channel: https://repo.prefix.dev/ecoscope-workflows/
 rjsf-overrides:
   properties:
@@ -72,6 +72,7 @@ workflow:
           include_patrol_details: true
           raise_on_empty: false
           truncate_to_time_range: true
+          sub_page_size: 100
       - id: patrol_obs
         task: get_patrol_observations_from_combined_params
         partial:
