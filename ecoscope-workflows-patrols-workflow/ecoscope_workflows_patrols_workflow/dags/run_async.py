@@ -3,64 +3,65 @@ import json
 import os
 
 from ecoscope_workflows_core.graph import DependsOn, DependsOnSequence, Graph, Node
-
-from ecoscope_workflows_core.tasks.config import set_workflow_details
-from ecoscope_workflows_core.tasks.skip import any_is_empty_df
-from ecoscope_workflows_core.tasks.skip import any_dependency_skipped
-from ecoscope_workflows_core.tasks.io import set_er_connection
-from ecoscope_workflows_core.tasks.filter import set_time_range
-from ecoscope_workflows_ext_ecoscope.tasks.io import (
-    set_patrols_and_patrol_events_params,
+from ecoscope_workflows_core.tasks.analysis import (
+    dataframe_column_max,
+    dataframe_column_mean,
+    dataframe_column_nunique,
+    dataframe_column_sum,
 )
-from ecoscope_workflows_ext_ecoscope.tasks.io import (
-    get_patrol_observations_from_combined_params,
+from ecoscope_workflows_core.tasks.config import set_string_var, set_workflow_details
+from ecoscope_workflows_core.tasks.filter import set_time_range
+from ecoscope_workflows_core.tasks.groupby import groupbykey, set_groupers, split_groups
+from ecoscope_workflows_core.tasks.io import persist_text, set_er_connection
+from ecoscope_workflows_core.tasks.results import (
+    create_map_widget_single_view,
+    create_plot_widget_single_view,
+    create_single_value_widget_single_view,
+    gather_dashboard,
+    merge_widget_views,
+)
+from ecoscope_workflows_core.tasks.skip import (
+    all_keyed_iterables_are_skips,
+    any_dependency_skipped,
+    any_is_empty_df,
+    never,
+)
+from ecoscope_workflows_core.tasks.transformation import (
+    add_temporal_index,
+    convert_column_values_to_string,
+    map_columns,
+    map_values_with_unit,
+    sort_values,
+    with_unit,
+)
+from ecoscope_workflows_ext_ecoscope.tasks.analysis import (
+    calculate_linear_time_density,
+    create_meshgrid,
 )
 from ecoscope_workflows_ext_ecoscope.tasks.io import (
     get_patrol_events_from_combined_params,
+    get_patrol_observations_from_combined_params,
+    set_patrols_and_patrol_events_params,
 )
-from ecoscope_workflows_core.tasks.groupby import set_groupers
-from ecoscope_workflows_core.tasks.config import set_string_var
-from ecoscope_workflows_ext_ecoscope.tasks.preprocessing import process_relocations
 from ecoscope_workflows_ext_ecoscope.tasks.preprocessing import (
+    process_relocations,
     relocations_to_trajectory,
 )
-from ecoscope_workflows_core.tasks.transformation import add_temporal_index
-from ecoscope_workflows_core.tasks.transformation import map_columns
-from ecoscope_workflows_ext_ecoscope.tasks.transformation import apply_color_map
-from ecoscope_workflows_ext_ecoscope.tasks.transformation import (
-    apply_reloc_coord_filter,
+from ecoscope_workflows_ext_ecoscope.tasks.results import (
+    create_point_layer,
+    create_polygon_layer,
+    create_polyline_layer,
+    draw_ecomap,
+    draw_pie_chart,
+    draw_time_series_bar_chart,
+    set_base_maps,
 )
-from ecoscope_workflows_core.tasks.transformation import convert_column_values_to_string
-from ecoscope_workflows_core.tasks.groupby import split_groups
-from ecoscope_workflows_ext_ecoscope.tasks.results import set_base_maps
-from ecoscope_workflows_ext_ecoscope.tasks.results import create_point_layer
 from ecoscope_workflows_ext_ecoscope.tasks.skip import all_geometry_are_none
-from ecoscope_workflows_core.tasks.transformation import map_values_with_unit
-from ecoscope_workflows_ext_ecoscope.tasks.results import create_polyline_layer
-from ecoscope_workflows_core.tasks.groupby import groupbykey
-from ecoscope_workflows_core.tasks.skip import all_keyed_iterables_are_skips
-from ecoscope_workflows_ext_ecoscope.tasks.results import draw_ecomap
-from ecoscope_workflows_core.tasks.io import persist_text
-from ecoscope_workflows_core.tasks.results import create_map_widget_single_view
-from ecoscope_workflows_core.tasks.skip import never
-from ecoscope_workflows_core.tasks.results import merge_widget_views
-from ecoscope_workflows_core.tasks.analysis import dataframe_column_nunique
-from ecoscope_workflows_core.tasks.results import create_single_value_widget_single_view
-from ecoscope_workflows_core.tasks.analysis import dataframe_column_sum
-from ecoscope_workflows_core.tasks.transformation import with_unit
-from ecoscope_workflows_core.tasks.analysis import dataframe_column_mean
-from ecoscope_workflows_core.tasks.analysis import dataframe_column_max
-from ecoscope_workflows_ext_ecoscope.tasks.results import draw_time_series_bar_chart
-from ecoscope_workflows_core.tasks.results import create_plot_widget_single_view
-from ecoscope_workflows_ext_ecoscope.tasks.results import draw_pie_chart
-from ecoscope_workflows_ext_ecoscope.tasks.analysis import create_meshgrid
-from ecoscope_workflows_ext_ecoscope.tasks.analysis import calculate_linear_time_density
 from ecoscope_workflows_ext_ecoscope.tasks.transformation import (
+    apply_color_map,
+    apply_reloc_coord_filter,
     drop_nan_values_by_column,
 )
-from ecoscope_workflows_core.tasks.transformation import sort_values
-from ecoscope_workflows_ext_ecoscope.tasks.results import create_polygon_layer
-from ecoscope_workflows_core.tasks.results import gather_dashboard
 
 from ..params import Params
 
