@@ -51,7 +51,7 @@ class ErPatrolAndEventsParams(BaseModel):
     )
     event_types: List[str] = Field(
         ...,
-        description="Specify the event type(s) to analyze (optional). Leave this section empty to analyze all event types. Only V1 Event Types can be analyzed at this time.",
+        description="Specify the event type(s) to analyze (optional). Leave this section empty to analyze all event types.",
         title="Event Types",
     )
     status: Optional[List[StatusEnum]] = Field(
