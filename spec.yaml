@@ -1,10 +1,10 @@
 id: patrols
 requirements:
   - name: ecoscope-workflows-core
-    version: 0.9.0
+    version: 0.10.0
     channel: https://repo.prefix.dev/ecoscope-workflows/
   - name: ecoscope-workflows-ext-ecoscope
-    version: 0.9.0
+    version: 0.10.0
     channel: https://repo.prefix.dev/ecoscope-workflows/
 rjsf-overrides:
   properties:
@@ -73,13 +73,19 @@ workflow:
           raise_on_empty: false
           truncate_to_time_range: true
           sub_page_size: 100
-      - id: patrol_obs
-        task: get_patrol_observations_from_combined_params
+      - id: prefetch_patrols
+        task: get_patrols_from_combined_params
         partial:
           combined_params: ${{ workflow.er_patrol_and_events_params.return }}
-      - id: patrol_events
-        task: get_patrol_events_from_combined_params
+      - id: patrol_obs
+        task: get_patrol_observations_from_patrols_df_and_combined_params
         partial:
+          patrols_df: ${{ workflow.prefetch_patrols.return }}
+          combined_params: ${{ workflow.er_patrol_and_events_params.return }}
+      - id: patrol_events
+        task: unpack_events_from_patrols_df_and_combined_params
+        partial:
+          patrols_df: ${{ workflow.prefetch_patrols.return }}
           combined_params: ${{ workflow.er_patrol_and_events_params.return }}
   - name: Group Data
     id: groupers

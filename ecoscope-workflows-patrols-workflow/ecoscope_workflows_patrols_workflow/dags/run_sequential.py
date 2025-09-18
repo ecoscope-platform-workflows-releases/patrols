@@ -38,9 +38,10 @@ from ecoscope_workflows_ext_ecoscope.tasks.analysis import (
     create_meshgrid,
 )
 from ecoscope_workflows_ext_ecoscope.tasks.io import (
-    get_patrol_events_from_combined_params,
-    get_patrol_observations_from_combined_params,
+    get_patrol_observations_from_patrols_df_and_combined_params,
+    get_patrols_from_combined_params,
     set_patrols_and_patrol_events_params,
+    unpack_events_from_patrols_df_and_combined_params,
 )
 from ecoscope_workflows_ext_ecoscope.tasks.preprocessing import (
     process_relocations,
@@ -134,9 +135,9 @@ def main(params: Params):
         .call()
     )
 
-    patrol_obs = (
-        get_patrol_observations_from_combined_params.validate()
-        .handle_errors(task_instance_id="patrol_obs")
+    prefetch_patrols = (
+        get_patrols_from_combined_params.validate()
+        .handle_errors(task_instance_id="prefetch_patrols")
         .skipif(
             conditions=[
                 any_is_empty_df,
@@ -146,13 +147,31 @@ def main(params: Params):
         )
         .partial(
             combined_params=er_patrol_and_events_params,
+            **(params_dict.get("prefetch_patrols") or {}),
+        )
+        .call()
+    )
+
+    patrol_obs = (
+        get_patrol_observations_from_patrols_df_and_combined_params.validate()
+        .handle_errors(task_instance_id="patrol_obs")
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            patrols_df=prefetch_patrols,
+            combined_params=er_patrol_and_events_params,
             **(params_dict.get("patrol_obs") or {}),
         )
         .call()
     )
 
     patrol_events = (
-        get_patrol_events_from_combined_params.validate()
+        unpack_events_from_patrols_df_and_combined_params.validate()
         .handle_errors(task_instance_id="patrol_events")
         .skipif(
             conditions=[
@@ -162,6 +181,7 @@ def main(params: Params):
             unpack_depth=1,
         )
         .partial(
+            patrols_df=prefetch_patrols,
             combined_params=er_patrol_and_events_params,
             **(params_dict.get("patrol_events") or {}),
         )
