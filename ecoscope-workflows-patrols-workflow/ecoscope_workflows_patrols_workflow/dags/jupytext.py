@@ -48,9 +48,10 @@ from ecoscope_workflows_ext_ecoscope.tasks.analysis import (
     create_meshgrid,
 )
 from ecoscope_workflows_ext_ecoscope.tasks.io import (
-    get_patrol_events_from_combined_params,
-    get_patrol_observations_from_combined_params,
+    get_patrol_observations_from_patrols_df_and_combined_params,
+    get_patrols_from_combined_params,
     set_patrols_and_patrol_events_params,
+    unpack_events_from_patrols_df_and_combined_params,
 )
 from ecoscope_workflows_ext_ecoscope.tasks.preprocessing import (
     process_relocations,
@@ -206,6 +207,32 @@ er_patrol_and_events_params = (
 # %%
 # parameters
 
+prefetch_patrols_params = dict()
+
+# %%
+# call the task
+
+
+prefetch_patrols = (
+    get_patrols_from_combined_params.handle_errors(task_instance_id="prefetch_patrols")
+    .skipif(
+        conditions=[
+            any_is_empty_df,
+            any_dependency_skipped,
+        ],
+        unpack_depth=1,
+    )
+    .partial(combined_params=er_patrol_and_events_params, **prefetch_patrols_params)
+    .call()
+)
+
+
+# %% [markdown]
+# ##
+
+# %%
+# parameters
+
 patrol_obs_params = dict()
 
 # %%
@@ -213,7 +240,7 @@ patrol_obs_params = dict()
 
 
 patrol_obs = (
-    get_patrol_observations_from_combined_params.handle_errors(
+    get_patrol_observations_from_patrols_df_and_combined_params.handle_errors(
         task_instance_id="patrol_obs"
     )
     .skipif(
@@ -223,7 +250,11 @@ patrol_obs = (
         ],
         unpack_depth=1,
     )
-    .partial(combined_params=er_patrol_and_events_params, **patrol_obs_params)
+    .partial(
+        patrols_df=prefetch_patrols,
+        combined_params=er_patrol_and_events_params,
+        **patrol_obs_params,
+    )
     .call()
 )
 
@@ -241,7 +272,7 @@ patrol_events_params = dict()
 
 
 patrol_events = (
-    get_patrol_events_from_combined_params.handle_errors(
+    unpack_events_from_patrols_df_and_combined_params.handle_errors(
         task_instance_id="patrol_events"
     )
     .skipif(
@@ -251,7 +282,11 @@ patrol_events = (
         ],
         unpack_depth=1,
     )
-    .partial(combined_params=er_patrol_and_events_params, **patrol_events_params)
+    .partial(
+        patrols_df=prefetch_patrols,
+        combined_params=er_patrol_and_events_params,
+        **patrol_events_params,
+    )
     .call()
 )
 
