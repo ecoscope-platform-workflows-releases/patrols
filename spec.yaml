@@ -1,10 +1,10 @@
 id: patrols
 requirements:
   - name: ecoscope-workflows-core
-    version: 0.10.0
+    version: 0.11.0
     channel: https://repo.prefix.dev/ecoscope-workflows/
   - name: ecoscope-workflows-ext-ecoscope
-    version: 0.10.0
+    version: 0.11.0
     channel: https://repo.prefix.dev/ecoscope-workflows/
 rjsf-overrides:
   properties:
@@ -27,6 +27,8 @@ rjsf-overrides:
         title: Patrol Serial Number
       - const: patrol_type
         title: Patrol Type
+      - const: patrol_subject
+        title: Patrol Subject
   uiSchema:
     Preprocess patrol events.filter_patrol_events.filter_point_coords.items.ui:options.label: false
     base_map_defs.base_maps.items.ui:options.label: false
