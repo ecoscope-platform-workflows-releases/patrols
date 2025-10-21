@@ -903,6 +903,7 @@ def main(params: Params):
                 "north_arrow_style": {"placement": "top-left"},
                 "legend_style": {
                     "title": DependsOn("set_patrol_traj_color_column"),
+                    "format_title": True,
                     "placement": "bottom-right",
                 },
                 "static": False,
@@ -1728,7 +1729,11 @@ def main(params: Params):
             partial={
                 "tile_layers": DependsOn("base_map_defs"),
                 "north_arrow_style": {"placement": "top-left"},
-                "legend_style": {"title": "Time Spent", "placement": "bottom-right"},
+                "legend_style": {
+                    "title": "Time Spent",
+                    "format_title": False,
+                    "placement": "bottom-right",
+                },
                 "static": False,
                 "title": None,
                 "max_zoom": 20,
