@@ -16,8 +16,13 @@ all-grouper:
     groupers:
       groupers: []
     time_range:
-      since: "2015-01-01T00:00:00Z"
-      until: "2015-02-28T23:59:59Z"
+      since: "2015-01-01T00:00:00"
+      until: "2015-12-31T23:59:59"
+      timezone:
+        label: "Africa/Nairobi (UTC+03:00)"
+        tzCode: "Africa/Nairobi"
+        name: "(UTC+03:00) Nairobi"
+        utc: "+03:00"
     patrol_traj:
       trajectory_segment_filter:
         min_length_meters: 0.001
@@ -69,8 +74,13 @@ month-grouper:
       groupers:
         - "%B"
     time_range:
-      since: "2015-01-01T00:00:00Z"
-      until: "2015-02-28T23:59:59Z"
+      since: "2015-01-01T00:00:00"
+      until: "2015-02-28T23:59:59"
+      timezone:
+        label: "UTC (UTC+00:00)"
+        tzCode: "UTC"
+        name: "(UTC+00:00) UTC"
+        utc: "+00:00"
     patrol_traj:
       trajectory_segment_filter:
         min_length_meters: 0.001
@@ -122,8 +132,13 @@ value-grouper:
         - "patrol_subject"
         - "patrol_serial_number"
     time_range:
-      since: "2015-01-01T00:00:00Z"
-      until: "2015-02-28T23:59:59Z"
+      since: "2015-01-01T00:00:00"
+      until: "2015-02-28T23:59:59"
+      timezone:
+        label: "UTC (UTC+00:00)"
+        tzCode: "UTC"
+        name: "(UTC+00:00) UTC"
+        utc: "+00:00"
     patrol_traj:
       trajectory_segment_filter:
         min_length_meters: 0.001
@@ -176,8 +191,13 @@ task-instance-error:
     groupers:
       groupers: []
     time_range:
-      since: "2015-01-01T00:00:00Z"
-      until: "2015-02-28T23:59:59Z"
+      since: "2015-01-01T00:00:00"
+      until: "2015-02-28T23:59:59"
+      timezone:
+        label: "UTC (UTC+00:00)"
+        tzCode: "UTC"
+        name: "(UTC+00:00) UTC"
+        utc: "+00:00"
     patrol_traj:
       trajectory_segment_filter:
         min_length_meters: 0.001

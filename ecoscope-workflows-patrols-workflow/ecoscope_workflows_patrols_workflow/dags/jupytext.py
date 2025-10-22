@@ -19,7 +19,10 @@ from ecoscope_workflows_core.tasks.analysis import (
     dataframe_column_sum,
 )
 from ecoscope_workflows_core.tasks.config import set_string_var, set_workflow_details
-from ecoscope_workflows_core.tasks.filter import set_time_range
+from ecoscope_workflows_core.tasks.filter import (
+    get_timezone_from_time_range,
+    set_time_range,
+)
 from ecoscope_workflows_core.tasks.groupby import groupbykey, set_groupers, split_groups
 from ecoscope_workflows_core.tasks.io import persist_text, set_er_connection
 from ecoscope_workflows_core.tasks.results import (
@@ -38,6 +41,7 @@ from ecoscope_workflows_core.tasks.skip import (
 from ecoscope_workflows_core.tasks.transformation import (
     add_temporal_index,
     convert_column_values_to_string,
+    convert_values_to_timezone,
     map_columns,
     map_values_with_unit,
     sort_values,
@@ -140,6 +144,7 @@ er_client_name = (
 time_range_params = dict(
     since=...,
     until=...,
+    timezone=...,
 )
 
 # %%
@@ -155,7 +160,33 @@ time_range = (
         ],
         unpack_depth=1,
     )
-    .partial(time_format="%d %b %Y %H:%M:%S %Z", **time_range_params)
+    .partial(time_format="%d %b %Y %H:%M:%S", **time_range_params)
+    .call()
+)
+
+
+# %% [markdown]
+# ## Extract Timezone Selection
+
+# %%
+# parameters
+
+get_timezone_params = dict()
+
+# %%
+# call the task
+
+
+get_timezone = (
+    get_timezone_from_time_range.handle_errors(task_instance_id="get_timezone")
+    .skipif(
+        conditions=[
+            any_is_empty_df,
+            any_dependency_skipped,
+        ],
+        unpack_depth=1,
+    )
+    .partial(time_range=time_range, **get_timezone_params)
     .call()
 )
 
@@ -292,6 +323,72 @@ patrol_events = (
 
 
 # %% [markdown]
+# ## Convert patrols to timezone
+
+# %%
+# parameters
+
+convert_patrols_to_user_timezone_params = dict()
+
+# %%
+# call the task
+
+
+convert_patrols_to_user_timezone = (
+    convert_values_to_timezone.handle_errors(
+        task_instance_id="convert_patrols_to_user_timezone"
+    )
+    .skipif(
+        conditions=[
+            any_is_empty_df,
+            any_dependency_skipped,
+        ],
+        unpack_depth=1,
+    )
+    .partial(
+        df=patrol_obs,
+        timezone=get_timezone,
+        columns=["patrol_start_time", "patrol_end_time", "fixtime"],
+        **convert_patrols_to_user_timezone_params,
+    )
+    .call()
+)
+
+
+# %% [markdown]
+# ## Convert events to timezone
+
+# %%
+# parameters
+
+convert_events_to_user_timezone_params = dict()
+
+# %%
+# call the task
+
+
+convert_events_to_user_timezone = (
+    convert_values_to_timezone.handle_errors(
+        task_instance_id="convert_events_to_user_timezone"
+    )
+    .skipif(
+        conditions=[
+            any_is_empty_df,
+            any_dependency_skipped,
+        ],
+        unpack_depth=1,
+    )
+    .partial(
+        df=patrol_events,
+        timezone=get_timezone,
+        columns=["time"],
+        **convert_events_to_user_timezone_params,
+    )
+    .call()
+)
+
+
+# %% [markdown]
 # ## Group Data
 
 # %%
@@ -369,7 +466,7 @@ patrol_reloc = (
         unpack_depth=1,
     )
     .partial(
-        observations=patrol_obs,
+        observations=convert_patrols_to_user_timezone,
         relocs_columns=[
             "patrol_id",
             "patrol_start_time",
@@ -568,7 +665,10 @@ filter_patrol_events = (
         unpack_depth=1,
     )
     .partial(
-        df=patrol_events, roi_gdf=None, roi_name=None, **filter_patrol_events_params
+        df=convert_events_to_user_timezone,
+        roi_gdf=None,
+        roi_name=None,
+        **filter_patrol_events_params,
     )
     .call()
 )

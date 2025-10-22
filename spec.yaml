@@ -1,10 +1,10 @@
 id: patrols
 requirements:
   - name: ecoscope-workflows-core
-    version: 0.13.0
+    version: 0.14.0
     channel: https://repo.prefix.dev/ecoscope-workflows/
   - name: ecoscope-workflows-ext-ecoscope
-    version: 0.13.0
+    version: 0.14.0
     channel: https://repo.prefix.dev/ecoscope-workflows/
 rjsf-overrides:
   properties:
@@ -61,7 +61,12 @@ workflow:
     id: time_range
     task: set_time_range
     partial:
-      time_format: '%d %b %Y %H:%M:%S %Z'
+      time_format: '%d %b %Y %H:%M:%S'
+  - name: Extract Timezone Selection
+    id: get_timezone
+    task: get_timezone_from_time_range
+    partial:
+      time_range: ${{ workflow.time_range.return }}
   - title: Patrol and Event Types
     type: task-group
     description: ' '
@@ -89,6 +94,24 @@ workflow:
         partial:
           patrols_df: ${{ workflow.prefetch_patrols.return }}
           combined_params: ${{ workflow.er_patrol_and_events_params.return }}
+  - name: Convert patrols to timezone
+    id: convert_patrols_to_user_timezone
+    task: convert_values_to_timezone
+    partial:
+      df: ${{ workflow.patrol_obs.return }}
+      timezone: ${{ workflow.get_timezone.return }}
+      columns:
+        - patrol_start_time
+        - patrol_end_time
+        - fixtime
+  - name: Convert events to timezone
+    id: convert_events_to_user_timezone
+    task: convert_values_to_timezone
+    partial:
+      df: ${{ workflow.patrol_events.return }}
+      timezone: ${{ workflow.get_timezone.return }}
+      columns:
+        - time
   - name: Group Data
     id: groupers
     task: set_groupers
@@ -103,7 +126,7 @@ workflow:
     id: patrol_reloc
     task: process_relocations
     partial:
-      observations: ${{ workflow.patrol_obs.return }}
+      observations: ${{ workflow.convert_patrols_to_user_timezone.return }}
       relocs_columns:
         - patrol_id
         - patrol_start_time
@@ -187,7 +210,7 @@ workflow:
         id: filter_patrol_events
         task: apply_reloc_coord_filter
         partial:
-          df: ${{ workflow.patrol_events.return }}
+          df: ${{ workflow.convert_events_to_user_timezone.return }}
           roi_gdf: null
           roi_name: null
       - name: Add temporal index to Patrol Events
