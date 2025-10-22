@@ -13,7 +13,10 @@ import warnings  # 🧪
 
 from ecoscope_workflows_core.graph import DependsOn, DependsOnSequence, Graph, Node
 from ecoscope_workflows_core.tasks.config import set_workflow_details
-from ecoscope_workflows_core.tasks.filter import set_time_range
+from ecoscope_workflows_core.tasks.filter import (
+    get_timezone_from_time_range,
+    set_time_range,
+)
 from ecoscope_workflows_core.tasks.io import set_er_connection
 from ecoscope_workflows_core.tasks.skip import any_dependency_skipped, any_is_empty_df
 from ecoscope_workflows_core.testing import create_task_magicmock  # 🧪
@@ -58,6 +61,7 @@ from ecoscope_workflows_core.tasks.skip import (
 from ecoscope_workflows_core.tasks.transformation import (
     add_temporal_index,
     convert_column_values_to_string,
+    convert_values_to_timezone,
     map_columns,
     map_values_with_unit,
     sort_values,
@@ -102,13 +106,16 @@ def main(params: Params):
         "workflow_details": [],
         "er_client_name": [],
         "time_range": [],
+        "get_timezone": ["time_range"],
         "er_patrol_and_events_params": ["er_client_name", "time_range"],
         "prefetch_patrols": ["er_patrol_and_events_params"],
         "patrol_obs": ["prefetch_patrols", "er_patrol_and_events_params"],
         "patrol_events": ["prefetch_patrols", "er_patrol_and_events_params"],
+        "convert_patrols_to_user_timezone": ["patrol_obs", "get_timezone"],
+        "convert_events_to_user_timezone": ["patrol_events", "get_timezone"],
         "groupers": [],
         "set_patrol_traj_color_column": [],
-        "patrol_reloc": ["patrol_obs"],
+        "patrol_reloc": ["convert_patrols_to_user_timezone"],
         "patrol_traj": ["patrol_reloc"],
         "traj_add_temporal_index": ["patrol_traj", "groupers"],
         "traj_rename_grouper_columns": ["traj_add_temporal_index"],
@@ -116,7 +123,7 @@ def main(params: Params):
             "traj_rename_grouper_columns",
             "set_patrol_traj_color_column",
         ],
-        "filter_patrol_events": ["patrol_events"],
+        "filter_patrol_events": ["convert_events_to_user_timezone"],
         "pe_add_temporal_index": ["filter_patrol_events", "groupers"],
         "pe_colormap": ["pe_add_temporal_index"],
         "patrol_traj_cols_to_string": ["traj_colormap"],
@@ -254,9 +261,26 @@ def main(params: Params):
             )
             .set_executor("lithops"),
             partial={
-                "time_format": "%d %b %Y %H:%M:%S %Z",
+                "time_format": "%d %b %Y %H:%M:%S",
             }
             | (params_dict.get("time_range") or {}),
+            method="call",
+        ),
+        "get_timezone": Node(
+            async_task=get_timezone_from_time_range.validate()
+            .handle_errors(task_instance_id="get_timezone")
+            .skipif(
+                conditions=[
+                    any_is_empty_df,
+                    any_dependency_skipped,
+                ],
+                unpack_depth=1,
+            )
+            .set_executor("lithops"),
+            partial={
+                "time_range": DependsOn("time_range"),
+            }
+            | (params_dict.get("get_timezone") or {}),
             method="call",
         ),
         "er_patrol_and_events_params": Node(
@@ -334,6 +358,44 @@ def main(params: Params):
             | (params_dict.get("patrol_events") or {}),
             method="call",
         ),
+        "convert_patrols_to_user_timezone": Node(
+            async_task=convert_values_to_timezone.validate()
+            .handle_errors(task_instance_id="convert_patrols_to_user_timezone")
+            .skipif(
+                conditions=[
+                    any_is_empty_df,
+                    any_dependency_skipped,
+                ],
+                unpack_depth=1,
+            )
+            .set_executor("lithops"),
+            partial={
+                "df": DependsOn("patrol_obs"),
+                "timezone": DependsOn("get_timezone"),
+                "columns": ["patrol_start_time", "patrol_end_time", "fixtime"],
+            }
+            | (params_dict.get("convert_patrols_to_user_timezone") or {}),
+            method="call",
+        ),
+        "convert_events_to_user_timezone": Node(
+            async_task=convert_values_to_timezone.validate()
+            .handle_errors(task_instance_id="convert_events_to_user_timezone")
+            .skipif(
+                conditions=[
+                    any_is_empty_df,
+                    any_dependency_skipped,
+                ],
+                unpack_depth=1,
+            )
+            .set_executor("lithops"),
+            partial={
+                "df": DependsOn("patrol_events"),
+                "timezone": DependsOn("get_timezone"),
+                "columns": ["time"],
+            }
+            | (params_dict.get("convert_events_to_user_timezone") or {}),
+            method="call",
+        ),
         "groupers": Node(
             async_task=set_groupers.validate()
             .handle_errors(task_instance_id="groupers")
@@ -374,7 +436,7 @@ def main(params: Params):
             )
             .set_executor("lithops"),
             partial={
-                "observations": DependsOn("patrol_obs"),
+                "observations": DependsOn("convert_patrols_to_user_timezone"),
                 "relocs_columns": [
                     "patrol_id",
                     "patrol_start_time",
@@ -511,7 +573,7 @@ def main(params: Params):
             )
             .set_executor("lithops"),
             partial={
-                "df": DependsOn("patrol_events"),
+                "df": DependsOn("convert_events_to_user_timezone"),
                 "roi_gdf": None,
                 "roi_name": None,
             }

@@ -49,6 +49,15 @@
           "title": "Until",
           "type": "string",
           "description": "The end time"
+        },
+        "timezone": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/TimezoneInfo"
+            }
+          ],
+          "default": null,
+          "title": "Timezone"
         }
       },
       "required": [
@@ -537,6 +546,34 @@
       "title": "EarthRangerConnection",
       "type": "object"
     },
+    "TimezoneInfo": {
+      "properties": {
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "tzCode": {
+          "title": "Tzcode",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "utc": {
+          "title": "Utc",
+          "type": "string"
+        }
+      },
+      "required": [
+        "label",
+        "tzCode",
+        "name",
+        "utc"
+      ],
+      "title": "TimezoneInfo",
+      "type": "object"
+    },
     "TemporalGrouper": {
       "oneOf": [
         {
@@ -744,7 +781,8 @@
     "time_range": {
       "ui:order": [
         "since",
-        "until"
+        "until",
+        "timezone"
       ]
     },
     "Patrol and Event Types": {

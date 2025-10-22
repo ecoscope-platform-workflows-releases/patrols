@@ -9,7 +9,10 @@ from ecoscope_workflows_core.tasks.analysis import (
     dataframe_column_sum,
 )
 from ecoscope_workflows_core.tasks.config import set_string_var, set_workflow_details
-from ecoscope_workflows_core.tasks.filter import set_time_range
+from ecoscope_workflows_core.tasks.filter import (
+    get_timezone_from_time_range,
+    set_time_range,
+)
 from ecoscope_workflows_core.tasks.groupby import groupbykey, set_groupers, split_groups
 from ecoscope_workflows_core.tasks.io import persist_text, set_er_connection
 from ecoscope_workflows_core.tasks.results import (
@@ -28,6 +31,7 @@ from ecoscope_workflows_core.tasks.skip import (
 from ecoscope_workflows_core.tasks.transformation import (
     add_temporal_index,
     convert_column_values_to_string,
+    convert_values_to_timezone,
     map_columns,
     map_values_with_unit,
     sort_values,
@@ -108,8 +112,22 @@ def main(params: Params):
             unpack_depth=1,
         )
         .partial(
-            time_format="%d %b %Y %H:%M:%S %Z", **(params_dict.get("time_range") or {})
+            time_format="%d %b %Y %H:%M:%S", **(params_dict.get("time_range") or {})
         )
+        .call()
+    )
+
+    get_timezone = (
+        get_timezone_from_time_range.validate()
+        .handle_errors(task_instance_id="get_timezone")
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(time_range=time_range, **(params_dict.get("get_timezone") or {}))
         .call()
     )
 
@@ -188,6 +206,44 @@ def main(params: Params):
         .call()
     )
 
+    convert_patrols_to_user_timezone = (
+        convert_values_to_timezone.validate()
+        .handle_errors(task_instance_id="convert_patrols_to_user_timezone")
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            df=patrol_obs,
+            timezone=get_timezone,
+            columns=["patrol_start_time", "patrol_end_time", "fixtime"],
+            **(params_dict.get("convert_patrols_to_user_timezone") or {}),
+        )
+        .call()
+    )
+
+    convert_events_to_user_timezone = (
+        convert_values_to_timezone.validate()
+        .handle_errors(task_instance_id="convert_events_to_user_timezone")
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            df=patrol_events,
+            timezone=get_timezone,
+            columns=["time"],
+            **(params_dict.get("convert_events_to_user_timezone") or {}),
+        )
+        .call()
+    )
+
     groupers = (
         set_groupers.validate()
         .handle_errors(task_instance_id="groupers")
@@ -227,7 +283,7 @@ def main(params: Params):
             unpack_depth=1,
         )
         .partial(
-            observations=patrol_obs,
+            observations=convert_patrols_to_user_timezone,
             relocs_columns=[
                 "patrol_id",
                 "patrol_start_time",
@@ -361,7 +417,7 @@ def main(params: Params):
             unpack_depth=1,
         )
         .partial(
-            df=patrol_events,
+            df=convert_events_to_user_timezone,
             roi_gdf=None,
             roi_name=None,
             **(params_dict.get("filter_patrol_events") or {}),
