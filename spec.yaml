@@ -1,10 +1,10 @@
 id: patrols
 requirements:
   - name: ecoscope-workflows-core
-    version: 0.15.0
+    version: 0.16.0
     channel: https://repo.prefix.dev/ecoscope-workflows/
   - name: ecoscope-workflows-ext-ecoscope
-    version: 0.15.0
+    version: 0.16.0
     channel: https://repo.prefix.dev/ecoscope-workflows/
 rjsf-overrides:
   properties:
@@ -94,6 +94,12 @@ workflow:
         partial:
           patrols_df: ${{ workflow.prefetch_patrols.return }}
           combined_params: ${{ workflow.er_patrol_and_events_params.return }}
+      - id: event_type_display_names
+        task: get_event_type_display_names_from_events
+        partial:
+          client: ${{ workflow.er_client_name.return }}
+          events_gdf: ${{ workflow.patrol_events.return }}
+          append_category_names: duplicates
   - name: Convert patrols to timezone
     id: convert_patrols_to_user_timezone
     task: convert_values_to_timezone
@@ -108,10 +114,11 @@ workflow:
     id: convert_events_to_user_timezone
     task: convert_values_to_timezone
     partial:
-      df: ${{ workflow.patrol_events.return }}
+      df: ${{ workflow.event_type_display_names.return }}
       timezone: ${{ workflow.get_timezone.return }}
       columns:
         - time
+        - patrol_start_time
   - name: Group Data
     id: groupers
     task: set_groupers
@@ -294,7 +301,7 @@ workflow:
           rename_columns:
             patrol_serial_number: Patrol Serial
             serial_number: Event Serial
-            event_type: Event Type
+            event_type_display: Event Type
             time: Event Time
         mapvalues:
           argnames: df
@@ -616,8 +623,8 @@ workflow:
         task: draw_time_series_bar_chart
         partial:
           x_axis: time
-          y_axis: event_type
-          category: event_type
+          y_axis: event_type_display
+          category: event_type_display
           agg_function: count
           color_column: event_type_colormap
           plot_style:
@@ -662,7 +669,7 @@ workflow:
         id: patrol_events_pie_chart
         task: draw_pie_chart
         partial:
-          value_column: event_type
+          value_column: event_type_display
           plot_style:
             textinfo: value
           label_column: null

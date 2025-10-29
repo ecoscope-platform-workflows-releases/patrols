@@ -163,7 +163,7 @@ value-grouper:
         - url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
           opacity: 0.5
     patrol_events_bar_chart:
-      time_interval: "week"
+      time_interval: "month"
     ltd_meshgrid:
       auto_scale_or_custom_cell_size:
         auto_scale_or_custom: "Auto-scale"

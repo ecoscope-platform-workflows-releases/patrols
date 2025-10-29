@@ -52,6 +52,7 @@ from ecoscope_workflows_ext_ecoscope.tasks.analysis import (
     create_meshgrid,
 )
 from ecoscope_workflows_ext_ecoscope.tasks.io import (
+    get_event_type_display_names_from_events,
     get_patrol_observations_from_patrols_df_and_combined_params,
     get_patrols_from_combined_params,
     set_patrols_and_patrol_events_params,
@@ -339,6 +340,41 @@ patrol_events = (
 
 
 # %% [markdown]
+# ##
+
+# %%
+# parameters
+
+event_type_display_names_params = dict()
+
+# %%
+# call the task
+
+
+event_type_display_names = (
+    get_event_type_display_names_from_events.set_task_instance_id(
+        "event_type_display_names"
+    )
+    .handle_errors()
+    .with_tracing()
+    .skipif(
+        conditions=[
+            any_is_empty_df,
+            any_dependency_skipped,
+        ],
+        unpack_depth=1,
+    )
+    .partial(
+        client=er_client_name,
+        events_gdf=patrol_events,
+        append_category_names="duplicates",
+        **event_type_display_names_params,
+    )
+    .call()
+)
+
+
+# %% [markdown]
 # ## Convert patrols to timezone
 
 # %%
@@ -395,9 +431,9 @@ convert_events_to_user_timezone = (
         unpack_depth=1,
     )
     .partial(
-        df=patrol_events,
+        df=event_type_display_names,
         timezone=get_timezone,
-        columns=["time"],
+        columns=["time", "patrol_start_time"],
         **convert_events_to_user_timezone_params,
     )
     .call()
@@ -1070,7 +1106,7 @@ pe_rename_display_columns = (
         rename_columns={
             "patrol_serial_number": "Patrol Serial",
             "serial_number": "Event Serial",
-            "event_type": "Event Type",
+            "event_type_display": "Event Type",
             "time": "Event Time",
         },
         **pe_rename_display_columns_params,
@@ -1973,8 +2009,8 @@ patrol_events_bar_chart = (
     )
     .partial(
         x_axis="time",
-        y_axis="event_type",
-        category="event_type",
+        y_axis="event_type_display",
+        category="event_type_display",
         agg_function="count",
         color_column="event_type_colormap",
         plot_style={"xperiodalignment": "middle"},
@@ -2103,7 +2139,7 @@ patrol_events_pie_chart = (
         unpack_depth=1,
     )
     .partial(
-        value_column="event_type",
+        value_column="event_type_display",
         plot_style={"textinfo": "value"},
         label_column=None,
         color_column="event_type_colormap",

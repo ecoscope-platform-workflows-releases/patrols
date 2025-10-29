@@ -43,6 +43,7 @@ from ecoscope_workflows_ext_ecoscope.tasks.analysis import (
     create_meshgrid,
 )
 from ecoscope_workflows_ext_ecoscope.tasks.io import (
+    get_event_type_display_names_from_events,
     get_patrol_observations_from_patrols_df_and_combined_params,
     get_patrols_from_combined_params,
     set_patrols_and_patrol_events_params,
@@ -83,8 +84,9 @@ def main(params: Params):
         "prefetch_patrols": ["er_patrol_and_events_params"],
         "patrol_obs": ["prefetch_patrols", "er_patrol_and_events_params"],
         "patrol_events": ["prefetch_patrols", "er_patrol_and_events_params"],
+        "event_type_display_names": ["er_client_name", "patrol_events"],
         "convert_patrols_to_user_timezone": ["patrol_obs", "get_timezone"],
-        "convert_events_to_user_timezone": ["patrol_events", "get_timezone"],
+        "convert_events_to_user_timezone": ["event_type_display_names", "get_timezone"],
         "groupers": [],
         "set_patrol_traj_color_column": [],
         "patrol_reloc": ["convert_patrols_to_user_timezone"],
@@ -346,6 +348,27 @@ def main(params: Params):
             | (params_dict.get("patrol_events") or {}),
             method="call",
         ),
+        "event_type_display_names": Node(
+            async_task=get_event_type_display_names_from_events.validate()
+            .set_task_instance_id("event_type_display_names")
+            .handle_errors()
+            .with_tracing()
+            .skipif(
+                conditions=[
+                    any_is_empty_df,
+                    any_dependency_skipped,
+                ],
+                unpack_depth=1,
+            )
+            .set_executor("lithops"),
+            partial={
+                "client": DependsOn("er_client_name"),
+                "events_gdf": DependsOn("patrol_events"),
+                "append_category_names": "duplicates",
+            }
+            | (params_dict.get("event_type_display_names") or {}),
+            method="call",
+        ),
         "convert_patrols_to_user_timezone": Node(
             async_task=convert_values_to_timezone.validate()
             .set_task_instance_id("convert_patrols_to_user_timezone")
@@ -381,9 +404,9 @@ def main(params: Params):
             )
             .set_executor("lithops"),
             partial={
-                "df": DependsOn("patrol_events"),
+                "df": DependsOn("event_type_display_names"),
                 "timezone": DependsOn("get_timezone"),
-                "columns": ["time"],
+                "columns": ["time", "patrol_start_time"],
             }
             | (params_dict.get("convert_events_to_user_timezone") or {}),
             method="call",
@@ -824,7 +847,7 @@ def main(params: Params):
                 "rename_columns": {
                     "patrol_serial_number": "Patrol Serial",
                     "serial_number": "Event Serial",
-                    "event_type": "Event Type",
+                    "event_type_display": "Event Type",
                     "time": "Event Time",
                 },
             }
@@ -1525,8 +1548,8 @@ def main(params: Params):
             .set_executor("lithops"),
             partial={
                 "x_axis": "time",
-                "y_axis": "event_type",
-                "category": "event_type",
+                "y_axis": "event_type_display",
+                "category": "event_type_display",
                 "agg_function": "count",
                 "color_column": "event_type_colormap",
                 "plot_style": {"xperiodalignment": "middle"},
@@ -1619,7 +1642,7 @@ def main(params: Params):
             )
             .set_executor("lithops"),
             partial={
-                "value_column": "event_type",
+                "value_column": "event_type_display",
                 "plot_style": {"textinfo": "value"},
                 "label_column": None,
                 "color_column": "event_type_colormap",

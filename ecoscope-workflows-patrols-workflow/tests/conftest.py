@@ -41,6 +41,7 @@ MATCHSPEC_OVERRIDE = "ecoscope-workflows-patrols-workflow"
 IO_TASKS_IMPORTABLE_REFERENCES = [
     "ecoscope_workflows_ext_ecoscope.tasks.io.get_patrols_from_combined_params",
     "ecoscope_workflows_ext_ecoscope.tasks.io.get_patrol_observations_from_patrols_df_and_combined_params",
+    "ecoscope_workflows_ext_ecoscope.tasks.io.get_event_type_display_names_from_events",
 ]
 
 yaml = ruamel.yaml.YAML(typ="safe")
