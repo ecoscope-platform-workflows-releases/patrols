@@ -2647,7 +2647,9 @@ td_grouped_map_widget = (
 # %%
 # parameters
 
-patrol_dashboard_params = dict()
+patrol_dashboard_params = dict(
+    warning=...,
+)
 
 # %%
 # call the task
