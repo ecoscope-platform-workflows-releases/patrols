@@ -103,7 +103,7 @@
           "title": "Patrol Status",
           "type": "array",
           "description": "Choose to analyze patrols with a certain status. If left empty, patrols of all status will be analyzed",
-          "ecoscope:multiselect": true,
+          "uniqueItems": true,
           "ecoscope:advanced": true
         },
         "include_null_geometry": {

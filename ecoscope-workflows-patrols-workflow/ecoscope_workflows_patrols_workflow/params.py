@@ -248,8 +248,15 @@ class TimezoneInfo(BaseModel):
     utc: str = Field(..., title="Utc")
 
 
-class TemporalGrouper(RootModel[str]):
-    root: str = Field(..., title="Time")
+class TemporalGrouper(str, Enum):
+    field_Y = "%Y"
+    field_B = "%B"
+    field_Y__m = "%Y-%m"
+    field_j = "%j"
+    field_d = "%d"
+    field_A = "%A"
+    field_H = "%H"
+    field_Y__m__d = "%Y-%m-%d"
 
 
 class ValueGrouper(RootModel[str]):
@@ -387,7 +394,12 @@ class LtdMeshgrid(BaseModel):
     )
     auto_scale_or_custom_cell_size: Optional[
         Union[AutoScaleGridCellSize, CustomGridCellSize]
-    ] = Field({"auto_scale_or_custom": "Auto-scale"}, title="Grid Cell Size")
+    ] = Field(
+        default_factory=lambda: AutoScaleGridCellSize.model_validate(
+            {"auto_scale_or_custom": "Auto-scale"}
+        ),
+        title="Grid Cell Size",
+    )
     crs: Optional[str] = Field(
         "EPSG:3857",
         description="The coordinate reference system in which to perform the density calculation, must be a valid CRS authority code, for example ESRI:53042",
