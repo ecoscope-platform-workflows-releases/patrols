@@ -7,7 +7,7 @@ from datetime import datetime
 from enum import Enum
 from typing import List, Literal, Optional, Union
 
-from pydantic import BaseModel, ConfigDict, Field, RootModel, confloat, constr
+from pydantic import BaseModel, ConfigDict, Field, confloat, constr
 
 
 class WorkflowDetails(BaseModel):
@@ -55,11 +55,18 @@ class PatrolAndEventTypes(BaseModel):
     )
 
 
+class Var(str, Enum):
+    patrol_type = "patrol_type"
+    patrol_status = "patrol_status"
+    patrol_subject = "patrol_subject"
+    patrol_serial_number = "patrol_serial_number"
+
+
 class SetPatrolTrajColorColumn(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    var: str = Field(..., title="Category")
+    var: Var = Field(..., title="Category")
 
 
 class TrajectoryCategory(BaseModel):
@@ -264,12 +271,21 @@ class TimezoneInfo(BaseModel):
     utc: str = Field(..., title="Utc")
 
 
-class TemporalGrouper(RootModel[str]):
-    root: str = Field(..., title="Time")
+class TemporalGrouper(str, Enum):
+    field_Y = "%Y"
+    field_B = "%B"
+    field_Y__m = "%Y-%m"
+    field_j = "%j"
+    field_d = "%d"
+    field_A = "%A"
+    field_H = "%H"
+    field_Y__m__d = "%Y-%m-%d"
 
 
-class ValueGrouper(RootModel[str]):
-    root: str = Field(..., title="Category")
+class ValueGrouper(str, Enum):
+    patrol_serial_number = "patrol_serial_number"
+    patrol_type = "patrol_type"
+    patrol_subject = "patrol_subject"
 
 
 class TrajectorySegmentFilter(BaseModel):
@@ -411,7 +427,12 @@ class LtdMeshgrid(BaseModel):
     )
     auto_scale_or_custom_cell_size: Optional[
         Union[AutoScaleGridCellSize, CustomGridCellSize]
-    ] = Field({"auto_scale_or_custom": "Auto-scale"}, title="Grid Cell Size")
+    ] = Field(
+        default_factory=lambda: AutoScaleGridCellSize.model_validate(
+            {"auto_scale_or_custom": "Auto-scale"}
+        ),
+        title="Grid Cell Size",
+    )
     crs: Optional[str] = Field(
         "EPSG:3857",
         description="The coordinate reference system in which to perform the density calculation, must be a valid CRS authority code, for example ESRI:53042",
