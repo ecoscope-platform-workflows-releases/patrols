@@ -2,7 +2,7 @@
 import json
 import os
 
-from ecoscope_workflows_core.graph import DependsOn, DependsOnSequence, Graph, Node
+from ecoscope_workflows_core.graph import DependsOn, Graph, Node
 from ecoscope_workflows_core.tasks.analysis import (
     dataframe_column_max as dataframe_column_max,
 )
@@ -437,7 +437,11 @@ def main(params: Params):
             partial={
                 "df": DependsOn("patrol_obs"),
                 "timezone": DependsOn("get_timezone"),
-                "columns": ["patrol_start_time", "patrol_end_time", "fixtime"],
+                "columns": [
+                    "patrol_start_time",
+                    "patrol_end_time",
+                    "fixtime",
+                ],
             }
             | (params_dict.get("convert_patrols_to_user_timezone") or {}),
             method="call",
@@ -458,7 +462,10 @@ def main(params: Params):
             partial={
                 "df": DependsOn("event_type_display_names"),
                 "timezone": DependsOn("get_timezone"),
-                "columns": ["time", "patrol_start_time"],
+                "columns": [
+                    "time",
+                    "patrol_start_time",
+                ],
             }
             | (params_dict.get("convert_events_to_user_timezone") or {}),
             method="call",
@@ -526,9 +533,18 @@ def main(params: Params):
                     "geometry",
                 ],
                 "filter_point_coords": [
-                    {"x": 180.0, "y": 90.0},
-                    {"x": 0.0, "y": 0.0},
-                    {"x": 1.0, "y": 1.0},
+                    {
+                        "x": 180.0,
+                        "y": 90.0,
+                    },
+                    {
+                        "x": 0.0,
+                        "y": 0.0,
+                    },
+                    {
+                        "x": 1.0,
+                        "y": 1.0,
+                    },
                 ],
             }
             | (params_dict.get("patrol_reloc") or {}),
@@ -591,8 +607,6 @@ def main(params: Params):
             .set_executor("lithops"),
             partial={
                 "df": DependsOn("traj_add_temporal_index"),
-                "drop_columns": [],
-                "retain_columns": [],
                 "rename_columns": {
                     "extra__patrol_type__value": "patrol_type",
                     "extra__patrol_serial_number": "patrol_serial_number",
@@ -723,7 +737,10 @@ def main(params: Params):
             .set_executor("lithops"),
             partial={
                 "df": DependsOn("traj_colormap"),
-                "columns": ["patrol_serial_number", "patrol_type"],
+                "columns": [
+                    "patrol_serial_number",
+                    "patrol_type",
+                ],
             }
             | (params_dict.get("patrol_traj_cols_to_string") or {}),
             method="call",
@@ -743,7 +760,10 @@ def main(params: Params):
             .set_executor("lithops"),
             partial={
                 "df": DependsOn("pe_colormap"),
-                "columns": ["patrol_serial_number", "patrol_type"],
+                "columns": [
+                    "patrol_serial_number",
+                    "patrol_type",
+                ],
             }
             | (params_dict.get("pe_cols_to_string") or {}),
             method="call",
@@ -894,8 +914,6 @@ def main(params: Params):
             )
             .set_executor("lithops"),
             partial={
-                "drop_columns": [],
-                "retain_columns": [],
                 "rename_columns": {
                     "patrol_serial_number": "Patrol Serial",
                     "serial_number": "Event Serial",
@@ -925,7 +943,9 @@ def main(params: Params):
             )
             .set_executor("lithops"),
             partial={
-                "layer_style": {"fill_color_column": "event_type_colormap"},
+                "layer_style": {
+                    "fill_color_column": "event_type_colormap",
+                },
                 "legend": None,
                 "tooltip_columns": [
                     "Patrol Serial",
@@ -982,8 +1002,6 @@ def main(params: Params):
             )
             .set_executor("lithops"),
             partial={
-                "drop_columns": [],
-                "retain_columns": [],
                 "rename_columns": {
                     "patrol_serial_number": "Patrol Serial",
                     "extra__patrol_type__display": "Patrol Type",
@@ -1056,12 +1074,10 @@ def main(params: Params):
             )
             .set_executor("lithops"),
             partial={
-                "iterables": DependsOnSequence(
-                    [
-                        DependsOn("patrol_traj_map_layers"),
-                        DependsOn("patrol_events_map_layers"),
-                    ],
-                ),
+                "iterables": [
+                    DependsOn("patrol_traj_map_layers"),
+                    DependsOn("patrol_events_map_layers"),
+                ],
             }
             | (params_dict.get("combined_traj_and_pe_map_layers") or {}),
             method="call",
@@ -1081,7 +1097,9 @@ def main(params: Params):
             .set_executor("lithops"),
             partial={
                 "tile_layers": DependsOn("base_map_defs"),
-                "north_arrow_style": {"placement": "top-left"},
+                "north_arrow_style": {
+                    "placement": "top-left",
+                },
                 "legend_style": {
                     "title": DependsOn("set_patrol_traj_color_column"),
                     "format_title": True,
@@ -1604,7 +1622,9 @@ def main(params: Params):
                 "category": "event_type_display",
                 "agg_function": "count",
                 "color_column": "event_type_colormap",
-                "plot_style": {"xperiodalignment": "middle"},
+                "plot_style": {
+                    "xperiodalignment": "middle",
+                },
                 "layout_style": None,
                 "widget_id": DependsOn("set_bar_chart_title"),
             }
@@ -1695,7 +1715,9 @@ def main(params: Params):
             .set_executor("lithops"),
             partial={
                 "value_column": "event_type_display",
-                "plot_style": {"textinfo": "value"},
+                "plot_style": {
+                    "textinfo": "value",
+                },
                 "label_column": None,
                 "color_column": "event_type_colormap",
                 "layout_style": None,
@@ -1808,7 +1830,14 @@ def main(params: Params):
             .set_executor("lithops"),
             partial={
                 "meshgrid": DependsOn("ltd_meshgrid"),
-                "percentiles": [50.0, 60.0, 70.0, 80.0, 90.0, 100.0],
+                "percentiles": [
+                    50.0,
+                    60.0,
+                    70.0,
+                    80.0,
+                    90.0,
+                    100.0,
+                ],
             }
             | (params_dict.get("ltd") or {}),
             method="mapvalues",
@@ -1879,7 +1908,9 @@ def main(params: Params):
             )
             .set_executor("lithops"),
             partial={
-                "columns": ["percentile"],
+                "columns": [
+                    "percentile",
+                ],
             }
             | (params_dict.get("percentile_col_to_string") or {}),
             method="mapvalues",
@@ -1927,9 +1958,9 @@ def main(params: Params):
             )
             .set_executor("lithops"),
             partial={
-                "drop_columns": [],
-                "retain_columns": [],
-                "rename_columns": {"percentile": "Percentile"},
+                "rename_columns": {
+                    "percentile": "Percentile",
+                },
             }
             | (params_dict.get("patrol_td_rename_columns") or {}),
             method="mapvalues",
@@ -1963,7 +1994,9 @@ def main(params: Params):
                     "label_suffix": " %",
                     "color_column": "percentile_colormap",
                 },
-                "tooltip_columns": ["Percentile"],
+                "tooltip_columns": [
+                    "Percentile",
+                ],
             }
             | (params_dict.get("td_map_layer") or {}),
             method="mapvalues",
@@ -1987,7 +2020,9 @@ def main(params: Params):
             .set_executor("lithops"),
             partial={
                 "tile_layers": DependsOn("base_map_defs"),
-                "north_arrow_style": {"placement": "top-left"},
+                "north_arrow_style": {
+                    "placement": "top-left",
+                },
                 "legend_style": {
                     "title": "Time Spent",
                     "format_title": False,
@@ -2085,19 +2120,17 @@ def main(params: Params):
             .set_executor("lithops"),
             partial={
                 "details": DependsOn("workflow_details"),
-                "widgets": DependsOnSequence(
-                    [
-                        DependsOn("traj_pe_grouped_map_widget"),
-                        DependsOn("td_grouped_map_widget"),
-                        DependsOn("grouped_bar_plot_widget_merge"),
-                        DependsOn("patrol_events_pie_widget_grouped"),
-                        DependsOn("total_patrols_grouped_sv_widget"),
-                        DependsOn("patrol_time_grouped_widget"),
-                        DependsOn("patrol_dist_grouped_widget"),
-                        DependsOn("avg_speed_grouped_widget"),
-                        DependsOn("max_speed_grouped_widget"),
-                    ],
-                ),
+                "widgets": [
+                    DependsOn("traj_pe_grouped_map_widget"),
+                    DependsOn("td_grouped_map_widget"),
+                    DependsOn("grouped_bar_plot_widget_merge"),
+                    DependsOn("patrol_events_pie_widget_grouped"),
+                    DependsOn("total_patrols_grouped_sv_widget"),
+                    DependsOn("patrol_time_grouped_widget"),
+                    DependsOn("patrol_dist_grouped_widget"),
+                    DependsOn("avg_speed_grouped_widget"),
+                    DependsOn("max_speed_grouped_widget"),
+                ],
                 "groupers": DependsOn("groupers"),
                 "time_range": DependsOn("time_range"),
             }

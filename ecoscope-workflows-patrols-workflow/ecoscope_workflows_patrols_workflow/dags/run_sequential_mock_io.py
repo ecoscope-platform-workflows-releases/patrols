@@ -32,10 +32,6 @@ get_patrols_from_combined_params = create_task_magicmock(  # 🧪
     anchor="ecoscope_workflows_ext_ecoscope.tasks.io",  # 🧪
     func_name="get_patrols_from_combined_params",  # 🧪
 )  # 🧪
-from ecoscope_workflows_core.tasks.skip import (
-    any_dependency_skipped as any_dependency_skipped,
-)
-from ecoscope_workflows_core.tasks.skip import any_is_empty_df as any_is_empty_df
 
 get_patrol_observations_from_patrols_df_and_combined_params = (
     create_task_magicmock(  # 🧪
@@ -43,10 +39,6 @@ get_patrol_observations_from_patrols_df_and_combined_params = (
         func_name="get_patrol_observations_from_patrols_df_and_combined_params",  # 🧪
     )
 )  # 🧪
-from ecoscope_workflows_core.tasks.skip import (
-    any_dependency_skipped as any_dependency_skipped,
-)
-from ecoscope_workflows_core.tasks.skip import any_is_empty_df as any_is_empty_df
 from ecoscope_workflows_ext_ecoscope.tasks.io import (
     unpack_events_from_patrols_df_and_combined_params as unpack_events_from_patrols_df_and_combined_params,
 )
@@ -88,10 +80,6 @@ from ecoscope_workflows_core.tasks.results import (
 from ecoscope_workflows_core.tasks.skip import (
     all_keyed_iterables_are_skips as all_keyed_iterables_are_skips,
 )
-from ecoscope_workflows_core.tasks.skip import (
-    any_dependency_skipped as any_dependency_skipped,
-)
-from ecoscope_workflows_core.tasks.skip import any_is_empty_df as any_is_empty_df
 from ecoscope_workflows_core.tasks.skip import never as never
 from ecoscope_workflows_core.tasks.transformation import (
     add_temporal_index as add_temporal_index,
