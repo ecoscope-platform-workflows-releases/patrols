@@ -788,6 +788,7 @@ filter_patrol_events = (
         df=convert_events_to_user_timezone,
         roi_gdf=None,
         roi_name=None,
+        reset_index=True,
         **filter_patrol_events_params,
     )
     .call()
