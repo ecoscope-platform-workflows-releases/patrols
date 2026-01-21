@@ -550,6 +550,7 @@ def main(params: Params):
             df=convert_events_to_user_timezone,
             roi_gdf=None,
             roi_name=None,
+            reset_index=True,
             **(params_dict.get("filter_patrol_events") or {}),
         )
         .call()
