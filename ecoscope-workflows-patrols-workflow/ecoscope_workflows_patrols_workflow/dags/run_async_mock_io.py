@@ -97,11 +97,17 @@ from ecoscope_workflows_core.tasks.transformation import (
 )
 from ecoscope_workflows_core.tasks.transformation import sort_values as sort_values
 from ecoscope_workflows_core.tasks.transformation import with_unit as with_unit
-from ecoscope_workflows_ext_ecoscope.tasks.analysis import (
-    calculate_linear_time_density as calculate_linear_time_density,
+from ecoscope_workflows_ext_ecoscope.tasks.config import (
+    call_ltd_from_combined_params as call_ltd_from_combined_params,
 )
-from ecoscope_workflows_ext_ecoscope.tasks.analysis import (
-    create_meshgrid as create_meshgrid,
+from ecoscope_workflows_ext_ecoscope.tasks.config import (
+    call_meshgrid_from_combined_params as call_meshgrid_from_combined_params,
+)
+from ecoscope_workflows_ext_ecoscope.tasks.config import (
+    get_opacity_from_combined_params as get_opacity_from_combined_params,
+)
+from ecoscope_workflows_ext_ecoscope.tasks.config import (
+    set_ltd_args_with_opacity as set_ltd_args_with_opacity,
 )
 from ecoscope_workflows_ext_ecoscope.tasks.preprocessing import (
     process_relocations as process_relocations,
@@ -238,14 +244,16 @@ def main(params: Params):
             "pe_pie_chart_html_urls",
         ],
         "patrol_events_pie_widget_grouped": ["patrol_events_pie_chart_widgets"],
-        "ltd_meshgrid": ["patrol_traj_cols_to_string"],
-        "ltd": ["ltd_meshgrid", "split_patrol_traj_groups"],
+        "set_ltd_args": [],
+        "ltd_meshgrid": ["patrol_traj_cols_to_string", "set_ltd_args"],
+        "ltd_opacity": ["set_ltd_args"],
+        "ltd": ["ltd_meshgrid", "set_ltd_args", "split_patrol_traj_groups"],
         "drop_nan_percentiles": ["ltd"],
         "sort_percentile_values": ["drop_nan_percentiles"],
         "percentile_col_to_string": ["sort_percentile_values"],
         "td_colormap": ["percentile_col_to_string"],
         "patrol_td_rename_columns": ["td_colormap"],
-        "td_map_layer": ["patrol_td_rename_columns"],
+        "td_map_layer": ["ltd_opacity", "patrol_td_rename_columns"],
         "td_ecomap": ["base_map_defs", "set_ltd_map_title", "td_map_layer"],
         "td_ecomap_html_url": ["td_ecomap"],
         "td_map_widget": ["set_ltd_map_title", "td_ecomap_html_url"],
@@ -1816,8 +1824,27 @@ def main(params: Params):
             | (params_dict.get("patrol_events_pie_widget_grouped") or {}),
             method="call",
         ),
+        "set_ltd_args": Node(
+            async_task=set_ltd_args_with_opacity.validate()
+            .set_task_instance_id("set_ltd_args")
+            .handle_errors()
+            .with_tracing()
+            .skipif(
+                conditions=[
+                    any_is_empty_df,
+                    any_dependency_skipped,
+                ],
+                unpack_depth=1,
+            )
+            .set_executor("lithops"),
+            partial={
+                "intersecting_only": False,
+            }
+            | (params_dict.get("set_ltd_args") or {}),
+            method="call",
+        ),
         "ltd_meshgrid": Node(
-            async_task=create_meshgrid.validate()
+            async_task=call_meshgrid_from_combined_params.validate()
             .set_task_instance_id("ltd_meshgrid")
             .handle_errors()
             .with_tracing()
@@ -1831,13 +1858,32 @@ def main(params: Params):
             .set_executor("lithops"),
             partial={
                 "aoi": DependsOn("patrol_traj_cols_to_string"),
-                "intersecting_only": False,
+                "combined_params": DependsOn("set_ltd_args"),
             }
             | (params_dict.get("ltd_meshgrid") or {}),
             method="call",
         ),
+        "ltd_opacity": Node(
+            async_task=get_opacity_from_combined_params.validate()
+            .set_task_instance_id("ltd_opacity")
+            .handle_errors()
+            .with_tracing()
+            .skipif(
+                conditions=[
+                    any_is_empty_df,
+                    any_dependency_skipped,
+                ],
+                unpack_depth=1,
+            )
+            .set_executor("lithops"),
+            partial={
+                "combined_params": DependsOn("set_ltd_args"),
+            }
+            | (params_dict.get("ltd_opacity") or {}),
+            method="call",
+        ),
         "ltd": Node(
-            async_task=calculate_linear_time_density.validate()
+            async_task=call_ltd_from_combined_params.validate()
             .set_task_instance_id("ltd")
             .handle_errors()
             .with_tracing()
@@ -1851,14 +1897,7 @@ def main(params: Params):
             .set_executor("lithops"),
             partial={
                 "meshgrid": DependsOn("ltd_meshgrid"),
-                "percentiles": [
-                    50.0,
-                    60.0,
-                    70.0,
-                    80.0,
-                    90.0,
-                    100.0,
-                ],
+                "combined_params": DependsOn("set_ltd_args"),
             }
             | (params_dict.get("ltd") or {}),
             method="mapvalues",
@@ -2007,7 +2046,7 @@ def main(params: Params):
             partial={
                 "layer_style": {
                     "fill_color_column": "percentile_colormap",
-                    "opacity": 0.7,
+                    "opacity": DependsOn("ltd_opacity"),
                     "get_line_width": 0,
                 },
                 "legend": {

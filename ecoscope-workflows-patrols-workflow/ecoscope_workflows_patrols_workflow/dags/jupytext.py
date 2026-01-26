@@ -73,11 +73,17 @@ from ecoscope_workflows_core.tasks.transformation import (
 )
 from ecoscope_workflows_core.tasks.transformation import sort_values as sort_values
 from ecoscope_workflows_core.tasks.transformation import with_unit as with_unit
-from ecoscope_workflows_ext_ecoscope.tasks.analysis import (
-    calculate_linear_time_density as calculate_linear_time_density,
+from ecoscope_workflows_ext_ecoscope.tasks.config import (
+    call_ltd_from_combined_params as call_ltd_from_combined_params,
 )
-from ecoscope_workflows_ext_ecoscope.tasks.analysis import (
-    create_meshgrid as create_meshgrid,
+from ecoscope_workflows_ext_ecoscope.tasks.config import (
+    call_meshgrid_from_combined_params as call_meshgrid_from_combined_params,
+)
+from ecoscope_workflows_ext_ecoscope.tasks.config import (
+    get_opacity_from_combined_params as get_opacity_from_combined_params,
+)
+from ecoscope_workflows_ext_ecoscope.tasks.config import (
+    set_ltd_args_with_opacity as set_ltd_args_with_opacity,
 )
 from ecoscope_workflows_ext_ecoscope.tasks.io import (
     get_event_type_display_names_from_events as get_event_type_display_names_from_events,
@@ -2304,17 +2310,47 @@ patrol_events_pie_widget_grouped = (
 # %%
 # parameters
 
-ltd_meshgrid_params = dict(
+set_ltd_args_params = dict(
+    opacity=...,
     auto_scale_or_custom_cell_size=...,
     crs=...,
+    percentiles=...,
 )
 
 # %%
 # call the task
 
 
+set_ltd_args = (
+    set_ltd_args_with_opacity.set_task_instance_id("set_ltd_args")
+    .handle_errors()
+    .with_tracing()
+    .skipif(
+        conditions=[
+            any_is_empty_df,
+            any_dependency_skipped,
+        ],
+        unpack_depth=1,
+    )
+    .partial(intersecting_only=False, **set_ltd_args_params)
+    .call()
+)
+
+
+# %% [markdown]
+# ##
+
+# %%
+# parameters
+
+ltd_meshgrid_params = dict()
+
+# %%
+# call the task
+
+
 ltd_meshgrid = (
-    create_meshgrid.set_task_instance_id("ltd_meshgrid")
+    call_meshgrid_from_combined_params.set_task_instance_id("ltd_meshgrid")
     .handle_errors()
     .with_tracing()
     .skipif(
@@ -2325,14 +2361,44 @@ ltd_meshgrid = (
         unpack_depth=1,
     )
     .partial(
-        aoi=patrol_traj_cols_to_string, intersecting_only=False, **ltd_meshgrid_params
+        aoi=patrol_traj_cols_to_string,
+        combined_params=set_ltd_args,
+        **ltd_meshgrid_params,
     )
     .call()
 )
 
 
 # %% [markdown]
-# ## Crate Linear Time Density from Trajectory
+# ##
+
+# %%
+# parameters
+
+ltd_opacity_params = dict()
+
+# %%
+# call the task
+
+
+ltd_opacity = (
+    get_opacity_from_combined_params.set_task_instance_id("ltd_opacity")
+    .handle_errors()
+    .with_tracing()
+    .skipif(
+        conditions=[
+            any_is_empty_df,
+            any_dependency_skipped,
+        ],
+        unpack_depth=1,
+    )
+    .partial(combined_params=set_ltd_args, **ltd_opacity_params)
+    .call()
+)
+
+
+# %% [markdown]
+# ##
 
 # %%
 # parameters
@@ -2344,7 +2410,7 @@ ltd_params = dict()
 
 
 ltd = (
-    calculate_linear_time_density.set_task_instance_id("ltd")
+    call_ltd_from_combined_params.set_task_instance_id("ltd")
     .handle_errors()
     .with_tracing()
     .skipif(
@@ -2354,11 +2420,7 @@ ltd = (
         ],
         unpack_depth=1,
     )
-    .partial(
-        meshgrid=ltd_meshgrid,
-        percentiles=[50.0, 60.0, 70.0, 80.0, 90.0, 100.0],
-        **ltd_params,
-    )
+    .partial(meshgrid=ltd_meshgrid, combined_params=set_ltd_args, **ltd_params)
     .mapvalues(argnames=["trajectory_gdf"], argvalues=split_patrol_traj_groups)
 )
 
@@ -2547,7 +2609,7 @@ td_map_layer = (
     .partial(
         layer_style={
             "fill_color_column": "percentile_colormap",
-            "opacity": 0.7,
+            "opacity": ltd_opacity,
             "get_line_width": 0,
         },
         legend={
