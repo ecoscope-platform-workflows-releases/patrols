@@ -1,10 +1,10 @@
 id: patrols
 requirements:
   - name: ecoscope-workflows-core
-    version: 0.21.1
+    version: 0.21.2
     channel: https://repo.prefix.dev/ecoscope-workflows/
   - name: ecoscope-workflows-ext-ecoscope
-    version: 0.21.1
+    version: 0.21.2
     channel: https://repo.prefix.dev/ecoscope-workflows/
 rjsf-overrides:
   properties:
@@ -21,6 +21,7 @@ rjsf-overrides:
     Trajectory Category.properties.set_patrol_traj_color_column.properties.var.default: patrol_subject
     Patrol and Event Types.properties.er_patrol_and_events_params.properties.patrol_types.ecoscope:patrol_type: properties.er_client_name.properties.data_source.properties.name
     Patrol and Event Types.properties.er_patrol_and_events_params.properties.event_types.ecoscope:event_type: properties.er_client_name.properties.data_source.properties.name
+    Time Density Map.properties.set_ltd_args.properties.opacity.default: 0.700000
   $defs:
     ValueGrouper.oneOf:
       - const: patrol_serial_number
@@ -711,24 +712,25 @@ workflow:
     type: task-group
     description: These settings show a grid-based heatmap showing where subjects spent the most time.
     tasks:
+      - id: set_ltd_args
+        task: set_ltd_args_with_opacity
+        partial:
+          intersecting_only: false
       - name: null
         id: ltd_meshgrid
-        task: create_meshgrid
+        task: call_meshgrid_from_combined_params
         partial:
           aoi: ${{ workflow.patrol_traj_cols_to_string.return }}
-          intersecting_only: false
-      - name: Crate Linear Time Density from Trajectory
-        id: ltd
-        task: calculate_linear_time_density
+          combined_params: ${{ workflow.set_ltd_args.return }}
+      - id: ltd_opacity
+        task: get_opacity_from_combined_params
+        partial:
+          combined_params: ${{ workflow.set_ltd_args.return }}
+      - id: ltd
+        task: call_ltd_from_combined_params
         partial:
           meshgrid: ${{ workflow.ltd_meshgrid.return }}
-          percentiles:
-            - 50.000000
-            - 60.000000
-            - 70.000000
-            - 80.000000
-            - 90.000000
-            - 100.000000
+          combined_params: ${{ workflow.set_ltd_args.return }}
         mapvalues:
           argnames: trajectory_gdf
           argvalues: ${{ workflow.split_patrol_traj_groups.return }}
@@ -791,7 +793,7 @@ workflow:
         partial:
           layer_style:
             fill_color_column: percentile_colormap
-            opacity: 0.700000
+            opacity: ${{ workflow.ltd_opacity.return }}
             get_line_width: 0
           legend:
             label_column: Percentile

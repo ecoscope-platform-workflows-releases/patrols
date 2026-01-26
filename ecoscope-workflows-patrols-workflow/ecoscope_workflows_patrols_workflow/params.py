@@ -236,6 +236,18 @@ class PatrolEventsBarChart(BaseModel):
     time_interval: TimeInterval = Field(..., title="Time Interval")
 
 
+class Percentile(str, Enum):
+    field_50 = "50"
+    field_60 = "60"
+    field_70 = "70"
+    field_80 = "80"
+    field_90 = "90"
+    field_95 = "95"
+    field_99 = "99"
+    field_99_999 = "99.999"
+    field_100 = "100"
+
+
 class EarthRangerConnection(BaseModel):
     name: str = Field(..., title="Data Source")
 
@@ -387,9 +399,14 @@ class FilterPatrolEvents(BaseModel):
     )
 
 
-class LtdMeshgrid(BaseModel):
+class SetLtdArgs(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
+    )
+    opacity: confloat(ge=0.0, le=1.0) | None = Field(
+        1,
+        description="Set layer transparency from 1 (fully visible) to 0 (hidden).",
+        title="Layer Opacity",
     )
     auto_scale_or_custom_cell_size: (
         AutoScaleGridCellSize | CustomGridCellSize | None
@@ -403,6 +420,11 @@ class LtdMeshgrid(BaseModel):
         "EPSG:3857",
         description="The coordinate reference system in which to perform the density calculation, must be a valid CRS authority code, for example ESRI:53042",
         title="Coordinate Reference System",
+    )
+    percentiles: list[Percentile] | None = Field(
+        ["50", "60", "70", "80", "90", "100"],
+        description="Choose the time density percentile bins to display.",
+        title="Percentile Levels",
     )
 
 
@@ -428,4 +450,4 @@ class Params(BaseModel):
     filter_patrol_events: FilterPatrolEvents | None = Field(None, title="")
     base_map_defs: BaseMapDefs | None = Field(None, title="Map Base Layers")
     patrol_events_bar_chart: PatrolEventsBarChart | None = Field(None, title="")
-    ltd_meshgrid: LtdMeshgrid | None = Field(None, title="")
+    set_ltd_args: SetLtdArgs | None = Field(None, title="")

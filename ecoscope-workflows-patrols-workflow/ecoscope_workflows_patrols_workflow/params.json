@@ -249,6 +249,7 @@
                   "opacity": {
                     "default": 1,
                     "description": "Set layer transparency from 1 (fully visible) to 0 (hidden).",
+                    "ecoscope:advanced": true,
                     "maximum": 1.0,
                     "minimum": 0.0,
                     "title": "Layer Opacity",
@@ -272,6 +273,7 @@
                   "opacity": {
                     "default": 1,
                     "description": "Set layer transparency from 1 (fully visible) to 0 (hidden).",
+                    "ecoscope:advanced": true,
                     "maximum": 1.0,
                     "minimum": 0.0,
                     "title": "Layer Opacity",
@@ -295,6 +297,7 @@
                   "opacity": {
                     "default": 1,
                     "description": "Set layer transparency from 1 (fully visible) to 0 (hidden).",
+                    "ecoscope:advanced": true,
                     "maximum": 1.0,
                     "minimum": 0.0,
                     "title": "Layer Opacity",
@@ -318,6 +321,7 @@
                   "opacity": {
                     "default": 1,
                     "description": "Set layer transparency from 1 (fully visible) to 0 (hidden).",
+                    "ecoscope:advanced": true,
                     "maximum": 1.0,
                     "minimum": 0.0,
                     "title": "Layer Opacity",
@@ -341,6 +345,7 @@
                   "opacity": {
                     "default": 1,
                     "description": "Set layer transparency from 1 (fully visible) to 0 (hidden).",
+                    "ecoscope:advanced": true,
                     "maximum": 1.0,
                     "minimum": 0.0,
                     "title": "Layer Opacity",
@@ -364,6 +369,7 @@
                   "opacity": {
                     "default": 1,
                     "description": "Set layer transparency from 1 (fully visible) to 0 (hidden).",
+                    "ecoscope:advanced": true,
                     "maximum": 1.0,
                     "minimum": 0.0,
                     "title": "Layer Opacity",
@@ -385,6 +391,7 @@
                   "opacity": {
                     "default": 1,
                     "description": "Set layer transparency from 1 (fully visible) to 0 (hidden).",
+                    "ecoscope:advanced": true,
                     "maximum": 1.0,
                     "minimum": 0.0,
                     "title": "Custom Layer Opacity",
@@ -439,9 +446,18 @@
       "type": "object",
       "title": ""
     },
-    "ltd_meshgrid": {
+    "set_ltd_args": {
       "additionalProperties": false,
       "properties": {
+        "opacity": {
+          "default": 1,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Layer Opacity",
+          "type": "number",
+          "description": "Set layer transparency from 1 (fully visible) to 0 (hidden).",
+          "ecoscope:advanced": true
+        },
         "auto_scale_or_custom_cell_size": {
           "anyOf": [
             {
@@ -463,10 +479,39 @@
           "type": "string",
           "description": "The coordinate reference system in which to perform the density calculation, must be a valid CRS authority code, for example ESRI:53042",
           "ecoscope:advanced": true
+        },
+        "percentiles": {
+          "default": [
+            "50",
+            "60",
+            "70",
+            "80",
+            "90",
+            "100"
+          ],
+          "items": {
+            "enum": [
+              "50",
+              "60",
+              "70",
+              "80",
+              "90",
+              "95",
+              "99",
+              "99.999",
+              "100"
+            ],
+            "type": "string"
+          },
+          "title": "Percentile Levels",
+          "type": "array",
+          "description": "Choose the time density percentile bins to display.",
+          "uniqueItems": true,
+          "ecoscope:advanced": true
         }
       },
-      "required": [],
       "type": "object",
+      "required": [],
       "title": ""
     }
   },
@@ -724,10 +769,12 @@
         "filter_point_coords"
       ]
     },
-    "ltd_meshgrid": {
+    "set_ltd_args": {
       "ui:order": [
+        "opacity",
         "auto_scale_or_custom_cell_size",
-        "crs"
+        "crs",
+        "percentiles"
       ]
     },
     "ui:order": [
@@ -741,7 +788,7 @@
       "filter_patrol_events",
       "base_map_defs",
       "patrol_events_bar_chart",
-      "ltd_meshgrid"
+      "set_ltd_args"
     ]
   },
   "additionalProperties": false
