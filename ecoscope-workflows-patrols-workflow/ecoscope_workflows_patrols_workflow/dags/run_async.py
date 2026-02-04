@@ -86,6 +86,9 @@ from ecoscope_workflows_ext_ecoscope.tasks.io import (
     get_patrols_from_combined_params as get_patrols_from_combined_params,
 )
 from ecoscope_workflows_ext_ecoscope.tasks.io import (
+    get_spatial_features_group as get_spatial_features_group,
+)
+from ecoscope_workflows_ext_ecoscope.tasks.io import (
     set_patrols_and_patrol_events_params as set_patrols_and_patrol_events_params,
 )
 from ecoscope_workflows_ext_ecoscope.tasks.io import (
@@ -118,6 +121,9 @@ from ecoscope_workflows_ext_ecoscope.tasks.skip import (
     all_geometry_are_none as all_geometry_are_none,
 )
 from ecoscope_workflows_ext_ecoscope.tasks.transformation import (
+    add_spatial_index as add_spatial_index,
+)
+from ecoscope_workflows_ext_ecoscope.tasks.transformation import (
     apply_color_map as apply_color_map,
 )
 from ecoscope_workflows_ext_ecoscope.tasks.transformation import (
@@ -125,6 +131,12 @@ from ecoscope_workflows_ext_ecoscope.tasks.transformation import (
 )
 from ecoscope_workflows_ext_ecoscope.tasks.transformation import (
     drop_nan_values_by_column as drop_nan_values_by_column,
+)
+from ecoscope_workflows_ext_ecoscope.tasks.transformation import (
+    extract_spatial_grouper_feature_group_ids as extract_spatial_grouper_feature_group_ids,
+)
+from ecoscope_workflows_ext_ecoscope.tasks.transformation import (
+    resolve_spatial_feature_groups_for_spatial_groupers as resolve_spatial_feature_groups_for_spatial_groupers,
 )
 
 from ..params import Params
@@ -146,26 +158,31 @@ def main(params: Params):
         "convert_patrols_to_user_timezone": ["patrol_obs", "get_timezone"],
         "convert_events_to_user_timezone": ["event_type_display_names", "get_timezone"],
         "groupers": [],
+        "spatial_group_ids": ["groupers"],
+        "fetch_all_spatial_feature_groups": ["er_client_name", "spatial_group_ids"],
+        "resolved_groupers": ["groupers", "fetch_all_spatial_feature_groups"],
         "set_patrol_traj_color_column": [],
         "patrol_reloc": ["convert_patrols_to_user_timezone"],
         "patrol_traj": ["patrol_reloc"],
-        "traj_add_temporal_index": ["patrol_traj", "groupers"],
-        "traj_rename_grouper_columns": ["traj_add_temporal_index"],
+        "traj_add_temporal_index": ["patrol_traj", "resolved_groupers"],
+        "traj_add_spatial_index": ["traj_add_temporal_index", "resolved_groupers"],
+        "traj_rename_grouper_columns": ["traj_add_spatial_index"],
         "traj_colormap": [
             "traj_rename_grouper_columns",
             "set_patrol_traj_color_column",
         ],
         "filter_patrol_events": ["convert_events_to_user_timezone"],
-        "pe_add_temporal_index": ["filter_patrol_events", "groupers"],
-        "pe_colormap": ["pe_add_temporal_index"],
+        "pe_add_temporal_index": ["filter_patrol_events", "resolved_groupers"],
+        "pe_add_spatial_index": ["pe_add_temporal_index", "resolved_groupers"],
+        "pe_colormap": ["pe_add_spatial_index"],
         "patrol_traj_cols_to_string": ["traj_colormap"],
         "pe_cols_to_string": ["pe_colormap"],
         "set_traj_pe_map_title": [],
         "set_ltd_map_title": [],
         "set_bar_chart_title": [],
         "set_pie_chart_title": [],
-        "split_patrol_traj_groups": ["patrol_traj_cols_to_string", "groupers"],
-        "split_pe_groups": ["pe_cols_to_string", "groupers"],
+        "split_patrol_traj_groups": ["patrol_traj_cols_to_string", "resolved_groupers"],
+        "split_pe_groups": ["pe_cols_to_string", "resolved_groupers"],
         "base_map_defs": [],
         "pe_rename_display_columns": ["split_pe_groups"],
         "patrol_events_map_layers": ["pe_rename_display_columns"],
@@ -249,7 +266,7 @@ def main(params: Params):
             "patrol_dist_grouped_widget",
             "avg_speed_grouped_widget",
             "max_speed_grouped_widget",
-            "groupers",
+            "resolved_groupers",
             "time_range",
         ],
     }
@@ -494,6 +511,67 @@ def main(params: Params):
             partial=(params_dict.get("groupers") or {}),
             method="call",
         ),
+        "spatial_group_ids": Node(
+            async_task=extract_spatial_grouper_feature_group_ids.validate()
+            .set_task_instance_id("spatial_group_ids")
+            .handle_errors()
+            .with_tracing()
+            .skipif(
+                conditions=[
+                    any_is_empty_df,
+                    any_dependency_skipped,
+                ],
+                unpack_depth=1,
+            )
+            .set_executor("lithops"),
+            partial={
+                "groupers": DependsOn("groupers"),
+            }
+            | (params_dict.get("spatial_group_ids") or {}),
+            method="call",
+        ),
+        "fetch_all_spatial_feature_groups": Node(
+            async_task=get_spatial_features_group.validate()
+            .set_task_instance_id("fetch_all_spatial_feature_groups")
+            .handle_errors()
+            .with_tracing()
+            .skipif(
+                conditions=[
+                    any_is_empty_df,
+                    any_dependency_skipped,
+                ],
+                unpack_depth=1,
+            )
+            .set_executor("lithops"),
+            partial={
+                "client": DependsOn("er_client_name"),
+            }
+            | (params_dict.get("fetch_all_spatial_feature_groups") or {}),
+            method="map",
+            kwargs={
+                "argnames": ["spatial_features_group_id"],
+                "argvalues": DependsOn("spatial_group_ids"),
+            },
+        ),
+        "resolved_groupers": Node(
+            async_task=resolve_spatial_feature_groups_for_spatial_groupers.validate()
+            .set_task_instance_id("resolved_groupers")
+            .handle_errors()
+            .with_tracing()
+            .skipif(
+                conditions=[
+                    never,
+                ],
+                unpack_depth=1,
+            )
+            .set_executor("lithops"),
+            partial={
+                "groupers": DependsOn("groupers"),
+                "spatial_feature_groups": DependsOn("fetch_all_spatial_feature_groups"),
+            }
+            | (params_dict.get("resolved_groupers") or {}),
+            method="call",
+        ),
         "set_patrol_traj_color_column": Node(
             async_task=set_string_var.validate()
             .set_task_instance_id("set_patrol_traj_color_column")
@@ -593,11 +671,31 @@ def main(params: Params):
             partial={
                 "df": DependsOn("patrol_traj"),
                 "time_col": "extra__patrol_start_time",
-                "groupers": DependsOn("groupers"),
+                "groupers": DependsOn("resolved_groupers"),
                 "cast_to_datetime": True,
                 "format": "mixed",
             }
             | (params_dict.get("traj_add_temporal_index") or {}),
+            method="call",
+        ),
+        "traj_add_spatial_index": Node(
+            async_task=add_spatial_index.validate()
+            .set_task_instance_id("traj_add_spatial_index")
+            .handle_errors()
+            .with_tracing()
+            .skipif(
+                conditions=[
+                    any_is_empty_df,
+                    any_dependency_skipped,
+                ],
+                unpack_depth=1,
+            )
+            .set_executor("lithops"),
+            partial={
+                "gdf": DependsOn("traj_add_temporal_index"),
+                "groupers": DependsOn("resolved_groupers"),
+            }
+            | (params_dict.get("traj_add_spatial_index") or {}),
             method="call",
         ),
         "traj_rename_grouper_columns": Node(
@@ -614,7 +712,7 @@ def main(params: Params):
             )
             .set_executor("lithops"),
             partial={
-                "df": DependsOn("traj_add_temporal_index"),
+                "df": DependsOn("traj_add_spatial_index"),
                 "rename_columns": {
                     "extra__patrol_type__value": "patrol_type",
                     "extra__patrol_serial_number": "patrol_serial_number",
@@ -702,11 +800,31 @@ def main(params: Params):
             partial={
                 "df": DependsOn("filter_patrol_events"),
                 "time_col": "patrol_start_time",
-                "groupers": DependsOn("groupers"),
+                "groupers": DependsOn("resolved_groupers"),
                 "cast_to_datetime": True,
                 "format": "mixed",
             }
             | (params_dict.get("pe_add_temporal_index") or {}),
+            method="call",
+        ),
+        "pe_add_spatial_index": Node(
+            async_task=add_spatial_index.validate()
+            .set_task_instance_id("pe_add_spatial_index")
+            .handle_errors()
+            .with_tracing()
+            .skipif(
+                conditions=[
+                    any_is_empty_df,
+                    any_dependency_skipped,
+                ],
+                unpack_depth=1,
+            )
+            .set_executor("lithops"),
+            partial={
+                "gdf": DependsOn("pe_add_temporal_index"),
+                "groupers": DependsOn("resolved_groupers"),
+            }
+            | (params_dict.get("pe_add_spatial_index") or {}),
             method="call",
         ),
         "pe_colormap": Node(
@@ -723,7 +841,7 @@ def main(params: Params):
             )
             .set_executor("lithops"),
             partial={
-                "df": DependsOn("pe_add_temporal_index"),
+                "df": DependsOn("pe_add_spatial_index"),
                 "input_column_name": "event_type",
                 "colormap": "tab20b",
                 "output_column_name": "event_type_colormap",
@@ -868,7 +986,7 @@ def main(params: Params):
             .set_executor("lithops"),
             partial={
                 "df": DependsOn("patrol_traj_cols_to_string"),
-                "groupers": DependsOn("groupers"),
+                "groupers": DependsOn("resolved_groupers"),
             }
             | (params_dict.get("split_patrol_traj_groups") or {}),
             method="call",
@@ -888,7 +1006,7 @@ def main(params: Params):
             .set_executor("lithops"),
             partial={
                 "df": DependsOn("pe_cols_to_string"),
-                "groupers": DependsOn("groupers"),
+                "groupers": DependsOn("resolved_groupers"),
             }
             | (params_dict.get("split_pe_groups") or {}),
             method="call",
@@ -2171,7 +2289,7 @@ def main(params: Params):
                     DependsOn("avg_speed_grouped_widget"),
                     DependsOn("max_speed_grouped_widget"),
                 ],
-                "groupers": DependsOn("groupers"),
+                "groupers": DependsOn("resolved_groupers"),
                 "time_range": DependsOn("time_range"),
             }
             | (params_dict.get("patrol_dashboard") or {}),
