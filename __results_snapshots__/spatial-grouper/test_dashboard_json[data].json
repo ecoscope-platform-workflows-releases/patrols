@@ -1,0 +1,104 @@
+{
+  "error": null,
+  "result": {
+    "filters": {
+      "schema": {
+        "properties": {
+          "SpatialGrouper_efddee80-8072-4bb1-8078-b391c1b39dac": {
+            "default": "West",
+            "oneOf": [
+              {
+                "const": "West",
+                "title": "West"
+              }
+            ],
+            "title": "SpatialGrouperTest",
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "uiSchema": {
+          "SpatialGrouper_efddee80-8072-4bb1-8078-b391c1b39dac": {
+            "ui:title": "SpatialGrouperTest",
+            "ui:widget": "select"
+          }
+        }
+      }
+    },
+    "layout": [],
+    "metadata": {
+      "description": "A dashboard for visualizing patrol trajectories, patrols events, and time density.",
+      "time_range": "From 01 Jan 2015 00:00:00 to 31 Dec 2015 23:59:59",
+      "time_zone": "Africa/Nairobi (UTC+03:00)",
+      "title": "Patrols Dashboard"
+    },
+    "views": {
+      "{\"SpatialGrouper_efddee80-8072-4bb1-8078-b391c1b39dac\": \"West\"}": [
+        {
+          "data": "str",
+          "id": 0,
+          "is_filtered": true,
+          "title": "Trajectories & Patrol Events Map",
+          "widget_type": "map"
+        },
+        {
+          "data": "str",
+          "id": 1,
+          "is_filtered": true,
+          "title": "Time Density Map",
+          "widget_type": "map"
+        },
+        {
+          "data": "str",
+          "id": 2,
+          "is_filtered": true,
+          "title": "Patrol Events Bar Chart",
+          "widget_type": "graph"
+        },
+        {
+          "data": "str",
+          "id": 3,
+          "is_filtered": true,
+          "title": "Patrol Events Pie Chart",
+          "widget_type": "graph"
+        },
+        {
+          "data": "str",
+          "id": 4,
+          "is_filtered": true,
+          "title": "Total Patrols",
+          "widget_type": "stat"
+        },
+        {
+          "data": "str",
+          "id": 5,
+          "is_filtered": true,
+          "title": "Total Time",
+          "widget_type": "stat"
+        },
+        {
+          "data": "str",
+          "id": 6,
+          "is_filtered": true,
+          "title": "Total Distance",
+          "widget_type": "stat"
+        },
+        {
+          "data": "str",
+          "id": 7,
+          "is_filtered": true,
+          "title": "Average Speed",
+          "widget_type": "stat"
+        },
+        {
+          "data": "str",
+          "id": 8,
+          "is_filtered": true,
+          "title": "Max Speed",
+          "widget_type": "stat"
+        }
+      ]
+    }
+  },
+  "trace": null
+}

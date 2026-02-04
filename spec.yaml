@@ -1,10 +1,10 @@
 id: patrols
 requirements:
   - name: ecoscope-workflows-core
-    version: 0.21.4
+    version: 0.22.0
     channel: https://repo.prefix.dev/ecoscope-workflows/
   - name: ecoscope-workflows-ext-ecoscope
-    version: 0.21.4
+    version: 0.22.0
     channel: https://repo.prefix.dev/ecoscope-workflows/
 rjsf-overrides:
   properties:
@@ -21,6 +21,7 @@ rjsf-overrides:
     Trajectory Category.properties.set_patrol_traj_color_column.properties.var.default: patrol_subject
     Patrol and Event Types.properties.er_patrol_and_events_params.properties.patrol_types.ecoscope:patrol_type: properties.er_client_name.properties.data_source.properties.name
     Patrol and Event Types.properties.er_patrol_and_events_params.properties.event_types.ecoscope:event_type: properties.er_client_name.properties.data_source.properties.name
+    groupers.properties.groupers.ecoscope:spatial_feature_group: properties.er_client_name.properties.data_source.properties.name
     Time Density Map.properties.set_ltd_args.properties.opacity.default: 0.700000
   $defs:
     ValueGrouper.oneOf:
@@ -123,6 +124,25 @@ workflow:
   - name: Group Data
     id: groupers
     task: set_groupers
+  - task: extract_spatial_grouper_feature_group_ids
+    id: spatial_group_ids
+    partial:
+      groupers: ${{ workflow.groupers.return }}
+  - task: get_spatial_features_group
+    id: fetch_all_spatial_feature_groups
+    partial:
+      client: ${{ workflow.er_client_name.return }}
+    map:
+      argnames: spatial_features_group_id
+      argvalues: ${{ workflow.spatial_group_ids.return }}
+  - task: resolve_spatial_feature_groups_for_spatial_groupers
+    id: resolved_groupers
+    skipif:
+      conditions:
+        - never
+    partial:
+      groupers: ${{ workflow.groupers.return }}
+      spatial_feature_groups: ${{ workflow.fetch_all_spatial_feature_groups.return }}
   - title: Trajectory Category
     type: task-group
     description: Differentiate tracks by color using the selected category.
@@ -171,14 +191,20 @@ workflow:
         partial:
           df: ${{ workflow.patrol_traj.return }}
           time_col: extra__patrol_start_time
-          groupers: ${{ workflow.groupers.return }}
+          groupers: ${{ workflow.resolved_groupers.return }}
           cast_to_datetime: true
           format: mixed
+      - name: Add spatial index to Patrol Trajectories
+        id: traj_add_spatial_index
+        task: add_spatial_index
+        partial:
+          gdf: ${{ workflow.traj_add_temporal_index.return }}
+          groupers: ${{ workflow.resolved_groupers.return }}
       - name: Rename value grouper columns for Trajectories
         id: traj_rename_grouper_columns
         task: map_columns
         partial:
-          df: ${{ workflow.traj_add_temporal_index.return }}
+          df: ${{ workflow.traj_add_spatial_index.return }}
           drop_columns: []
           retain_columns: []
           rename_columns:
@@ -228,14 +254,20 @@ workflow:
         partial:
           df: ${{ workflow.filter_patrol_events.return }}
           time_col: patrol_start_time
-          groupers: ${{ workflow.groupers.return }}
+          groupers: ${{ workflow.resolved_groupers.return }}
           cast_to_datetime: true
           format: mixed
+      - name: Add spatial index to Patrol Events
+        id: pe_add_spatial_index
+        task: add_spatial_index
+        partial:
+          gdf: ${{ workflow.pe_add_temporal_index.return }}
+          groupers: ${{ workflow.resolved_groupers.return }}
       - name: Patrol Events Colormap
         id: pe_colormap
         task: apply_color_map
         partial:
-          df: ${{ workflow.pe_add_temporal_index.return }}
+          df: ${{ workflow.pe_add_spatial_index.return }}
           input_column_name: event_type
           colormap: tab20b
           output_column_name: event_type_colormap
@@ -280,13 +312,13 @@ workflow:
     task: split_groups
     partial:
       df: ${{ workflow.patrol_traj_cols_to_string.return }}
-      groupers: ${{ workflow.groupers.return }}
+      groupers: ${{ workflow.resolved_groupers.return }}
   - name: Split Patrol Events by Group
     id: split_pe_groups
     task: split_groups
     partial:
       df: ${{ workflow.pe_cols_to_string.return }}
-      groupers: ${{ workflow.groupers.return }}
+      groupers: ${{ workflow.resolved_groupers.return }}
   - name: Map Base Layers
     id: base_map_defs
     task: set_base_maps
@@ -864,5 +896,5 @@ workflow:
         - ${{ workflow.patrol_dist_grouped_widget.return }}
         - ${{ workflow.avg_speed_grouped_widget.return }}
         - ${{ workflow.max_speed_grouped_widget.return }}
-      groupers: ${{ workflow.groupers.return }}
+      groupers: ${{ workflow.resolved_groupers.return }}
       time_range: ${{ workflow.time_range.return}}

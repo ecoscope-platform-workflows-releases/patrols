@@ -259,6 +259,10 @@ class TimezoneInfo(BaseModel):
     utc: str = Field(..., title="Utc")
 
 
+class SpatialGrouper(RootModel[str]):
+    root: str = Field(..., title="Spatial Regions")
+
+
 class TemporalGrouper(str, Enum):
     field_Y = "%Y"
     field_B = "%B"
@@ -354,7 +358,7 @@ class Groupers(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    groupers: list[ValueGrouper | TemporalGrouper] | None = Field(
+    groupers: list[ValueGrouper | TemporalGrouper | SpatialGrouper] | None = Field(
         None,
         description="            Specify how the data should be grouped to create the views for your dashboard.\n            This field is optional; if left blank, all the data will appear in a single view.\n            ",
         title=" ",

@@ -85,6 +85,9 @@ from ecoscope_workflows_ext_ecoscope.tasks.io import (
     get_patrols_from_combined_params as get_patrols_from_combined_params,
 )
 from ecoscope_workflows_ext_ecoscope.tasks.io import (
+    get_spatial_features_group as get_spatial_features_group,
+)
+from ecoscope_workflows_ext_ecoscope.tasks.io import (
     set_patrols_and_patrol_events_params as set_patrols_and_patrol_events_params,
 )
 from ecoscope_workflows_ext_ecoscope.tasks.io import (
@@ -117,6 +120,9 @@ from ecoscope_workflows_ext_ecoscope.tasks.skip import (
     all_geometry_are_none as all_geometry_are_none,
 )
 from ecoscope_workflows_ext_ecoscope.tasks.transformation import (
+    add_spatial_index as add_spatial_index,
+)
+from ecoscope_workflows_ext_ecoscope.tasks.transformation import (
     apply_color_map as apply_color_map,
 )
 from ecoscope_workflows_ext_ecoscope.tasks.transformation import (
@@ -124,6 +130,12 @@ from ecoscope_workflows_ext_ecoscope.tasks.transformation import (
 )
 from ecoscope_workflows_ext_ecoscope.tasks.transformation import (
     drop_nan_values_by_column as drop_nan_values_by_column,
+)
+from ecoscope_workflows_ext_ecoscope.tasks.transformation import (
+    extract_spatial_grouper_feature_group_ids as extract_spatial_grouper_feature_group_ids,
+)
+from ecoscope_workflows_ext_ecoscope.tasks.transformation import (
+    resolve_spatial_feature_groups_for_spatial_groupers as resolve_spatial_feature_groups_for_spatial_groupers,
 )
 
 from ..params import Params
@@ -360,6 +372,60 @@ def main(params: Params):
         .call()
     )
 
+    spatial_group_ids = (
+        extract_spatial_grouper_feature_group_ids.validate()
+        .set_task_instance_id("spatial_group_ids")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(groupers=groupers, **(params_dict.get("spatial_group_ids") or {}))
+        .call()
+    )
+
+    fetch_all_spatial_feature_groups = (
+        get_spatial_features_group.validate()
+        .set_task_instance_id("fetch_all_spatial_feature_groups")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            client=er_client_name,
+            **(params_dict.get("fetch_all_spatial_feature_groups") or {}),
+        )
+        .map(argnames=["spatial_features_group_id"], argvalues=spatial_group_ids)
+    )
+
+    resolved_groupers = (
+        resolve_spatial_feature_groups_for_spatial_groupers.validate()
+        .set_task_instance_id("resolved_groupers")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                never,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            groupers=groupers,
+            spatial_feature_groups=fetch_all_spatial_feature_groups,
+            **(params_dict.get("resolved_groupers") or {}),
+        )
+        .call()
+    )
+
     set_patrol_traj_color_column = (
         set_string_var.validate()
         .set_task_instance_id("set_patrol_traj_color_column")
@@ -446,10 +512,30 @@ def main(params: Params):
         .partial(
             df=patrol_traj,
             time_col="extra__patrol_start_time",
-            groupers=groupers,
+            groupers=resolved_groupers,
             cast_to_datetime=True,
             format="mixed",
             **(params_dict.get("traj_add_temporal_index") or {}),
+        )
+        .call()
+    )
+
+    traj_add_spatial_index = (
+        add_spatial_index.validate()
+        .set_task_instance_id("traj_add_spatial_index")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            gdf=traj_add_temporal_index,
+            groupers=resolved_groupers,
+            **(params_dict.get("traj_add_spatial_index") or {}),
         )
         .call()
     )
@@ -467,7 +553,7 @@ def main(params: Params):
             unpack_depth=1,
         )
         .partial(
-            df=traj_add_temporal_index,
+            df=traj_add_spatial_index,
             drop_columns=[],
             retain_columns=[],
             rename_columns={
@@ -557,10 +643,30 @@ def main(params: Params):
         .partial(
             df=filter_patrol_events,
             time_col="patrol_start_time",
-            groupers=groupers,
+            groupers=resolved_groupers,
             cast_to_datetime=True,
             format="mixed",
             **(params_dict.get("pe_add_temporal_index") or {}),
+        )
+        .call()
+    )
+
+    pe_add_spatial_index = (
+        add_spatial_index.validate()
+        .set_task_instance_id("pe_add_spatial_index")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            gdf=pe_add_temporal_index,
+            groupers=resolved_groupers,
+            **(params_dict.get("pe_add_spatial_index") or {}),
         )
         .call()
     )
@@ -578,7 +684,7 @@ def main(params: Params):
             unpack_depth=1,
         )
         .partial(
-            df=pe_add_temporal_index,
+            df=pe_add_spatial_index,
             input_column_name="event_type",
             colormap="tab20b",
             output_column_name="event_type_colormap",
@@ -714,7 +820,7 @@ def main(params: Params):
         )
         .partial(
             df=patrol_traj_cols_to_string,
-            groupers=groupers,
+            groupers=resolved_groupers,
             **(params_dict.get("split_patrol_traj_groups") or {}),
         )
         .call()
@@ -734,7 +840,7 @@ def main(params: Params):
         )
         .partial(
             df=pe_cols_to_string,
-            groupers=groupers,
+            groupers=resolved_groupers,
             **(params_dict.get("split_pe_groups") or {}),
         )
         .call()
@@ -1833,7 +1939,7 @@ def main(params: Params):
                 avg_speed_grouped_widget,
                 max_speed_grouped_widget,
             ],
-            groupers=groupers,
+            groupers=resolved_groupers,
             time_range=time_range,
             **(params_dict.get("patrol_dashboard") or {}),
         )

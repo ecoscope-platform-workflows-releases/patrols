@@ -175,6 +175,66 @@ value-grouper:
         auto_scale_or_custom: "Auto-scale"
       crs: "EPSG:3857"
 
+spatial-grouper:
+  name: Spatial Grouper
+  description: A demonstration of the patrols workflow with spatial grouping.
+  params:
+    workflow_details:
+      name: "Patrols Dashboard"
+      description: "A dashboard for visualizing patrol trajectories, patrols events, and time density."
+    er_client_name:
+      data_source:
+        name: "mep_dev"
+    er_patrol_and_events_params:
+      patrol_types: ["ecoscope_patrol"]
+      status: ["done"]
+      event_types: []
+      include_null_geometry: false
+    groupers:
+      groupers:
+        - "efddee80-8072-4bb1-8078-b391c1b39dac"
+    time_range:
+      since: "2015-01-01T00:00:00"
+      until: "2015-12-31T23:59:59"
+      timezone:
+        label: "Africa/Nairobi (UTC+03:00)"
+        tzCode: "Africa/Nairobi"
+        name: "(UTC+03:00) Nairobi"
+        utc: "+03:00"
+    patrol_traj:
+      trajectory_segment_filter:
+        min_length_meters: 0.001
+        max_length_meters: 10000.0
+        max_time_secs: 3600.0
+        min_time_secs: 1.0
+        max_speed_kmhr: 120.0
+        min_speed_kmhr: 0.01
+    set_patrol_traj_color_column:
+      var: "patrol_subject"
+    filter_patrol_events:
+      bounding_box:
+        min_x: -180.0
+        max_x: 180.0
+        min_y: -90.0
+        max_y: 90.0
+      filter_point_coords: []
+    base_map_defs:
+      base_maps:
+        - url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
+          opacity: 1.0
+        - url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+          opacity: 0.5
+          max_zoom: 17
+          min_zoom: null
+    patrol_events_bar_chart:
+      time_interval: "month"
+    set_ltd_args:
+      opacity: 0.7
+      percentiles: ["50", "60", "70", "80", "90", "100"]
+      auto_scale_or_custom_cell_size:
+        auto_scale_or_custom: "Auto-scale"
+      crs: "EPSG:3857"
+
 task-instance-error:
   name: Task Instance Error
   description: |
