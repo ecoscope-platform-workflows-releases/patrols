@@ -562,6 +562,7 @@ def main(params: Params):
                 "extra__patrol_status": "patrol_status",
                 "extra__patrol_subject": "patrol_subject",
             },
+            raise_if_not_found=True,
             **(params_dict.get("traj_rename_grouper_columns") or {}),
         )
         .call()
@@ -883,6 +884,7 @@ def main(params: Params):
                 "event_type_display": "Event Type",
                 "time": "Event Time",
             },
+            raise_if_not_found=True,
             **(params_dict.get("pe_rename_display_columns") or {}),
         )
         .mapvalues(argnames=["df"], argvalues=split_pe_groups)
@@ -960,6 +962,7 @@ def main(params: Params):
                 "timespan_seconds": "Duration (s)",
                 "speed_kmhr": "Speed (kph)",
             },
+            raise_if_not_found=True,
             **(params_dict.get("patrol_traj_rename_columns") or {}),
         )
         .mapvalues(argnames=["df"], argvalues=speed_val_with_unit)
@@ -1797,6 +1800,7 @@ def main(params: Params):
             drop_columns=[],
             retain_columns=[],
             rename_columns={"percentile": "Percentile"},
+            raise_if_not_found=True,
             **(params_dict.get("patrol_td_rename_columns") or {}),
         )
         .mapvalues(argnames=["df"], argvalues=td_colormap)

@@ -840,6 +840,7 @@ traj_rename_grouper_columns = (
             "extra__patrol_status": "patrol_status",
             "extra__patrol_subject": "patrol_subject",
         },
+        raise_if_not_found=True,
         **traj_rename_grouper_columns_params,
     )
     .call()
@@ -1333,6 +1334,7 @@ pe_rename_display_columns = (
             "event_type_display": "Event Type",
             "time": "Event Time",
         },
+        raise_if_not_found=True,
         **pe_rename_display_columns_params,
     )
     .mapvalues(argnames=["df"], argvalues=split_pe_groups)
@@ -1443,6 +1445,7 @@ patrol_traj_rename_columns = (
             "timespan_seconds": "Duration (s)",
             "speed_kmhr": "Speed (kph)",
         },
+        raise_if_not_found=True,
         **patrol_traj_rename_columns_params,
     )
     .mapvalues(argnames=["df"], argvalues=speed_val_with_unit)
@@ -2739,6 +2742,7 @@ patrol_td_rename_columns = (
         drop_columns=[],
         retain_columns=[],
         rename_columns={"percentile": "Percentile"},
+        raise_if_not_found=True,
         **patrol_td_rename_columns_params,
     )
     .mapvalues(argnames=["df"], argvalues=td_colormap)

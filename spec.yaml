@@ -1,10 +1,10 @@
 id: patrols
 requirements:
   - name: ecoscope-workflows-core
-    version: 0.22.1
+    version: 0.22.3
     channel: https://repo.prefix.dev/ecoscope-workflows/
   - name: ecoscope-workflows-ext-ecoscope
-    version: 0.22.1
+    version: 0.22.3
     channel: https://repo.prefix.dev/ecoscope-workflows/
 rjsf-overrides:
   properties:
@@ -212,6 +212,7 @@ workflow:
             extra__patrol_serial_number: patrol_serial_number
             extra__patrol_status: patrol_status
             extra__patrol_subject: patrol_subject
+          raise_if_not_found: true
       - name: Patrol Traj Colormap
         id: traj_colormap
         task: apply_color_map
@@ -337,6 +338,7 @@ workflow:
             serial_number: Event Serial
             event_type_display: Event Type
             time: Event Time
+          raise_if_not_found: true
         mapvalues:
           argnames: df
           argvalues: ${{ workflow.split_pe_groups.return }}
@@ -384,6 +386,7 @@ workflow:
             segment_start: Start
             timespan_seconds: Duration (s)
             speed_kmhr: Speed (kph)
+          raise_if_not_found: true
         mapvalues:
           argnames: df
           argvalues: ${{ workflow.speed_val_with_unit.return }}
@@ -811,6 +814,7 @@ workflow:
           retain_columns: []
           rename_columns:
             percentile: Percentile
+          raise_if_not_found: true
         mapvalues:
           argnames: df
           argvalues: ${{ workflow.td_colormap.return }}
