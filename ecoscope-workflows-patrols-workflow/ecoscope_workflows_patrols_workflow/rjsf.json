@@ -542,7 +542,7 @@
               "default": "EPSG:3857",
               "title": "Coordinate Reference System",
               "type": "string",
-              "description": "The coordinate reference system in which to perform the density calculation, must be a valid CRS authority code, for example ESRI:53042",
+              "description": "The coordinate reference system in which to perform the calculation, must be a valid CRS authority code, for example ESRI:53042",
               "ecoscope:advanced": true
             },
             "percentiles": {
@@ -572,6 +572,7 @@
               "type": "array",
               "description": "Choose the time density percentile bins to display.",
               "uniqueItems": true,
+              "minItems": 1,
               "ecoscope:advanced": true
             }
           },
