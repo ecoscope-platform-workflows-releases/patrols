@@ -74,7 +74,7 @@ month-grouper:
       include_null_geometry: false
     groupers:
       groupers:
-        - "%B"
+        - temporal_index: "%B"
     time_range:
       since: "2015-01-01T00:00:00"
       until: "2015-02-28T23:59:59"
@@ -132,9 +132,9 @@ value-grouper:
       include_null_geometry: false
     groupers:
       groupers:
-        - "patrol_type"
-        - "patrol_subject"
-        - "patrol_serial_number"
+        - index_name: "patrol_type"
+        - index_name: "patrol_subject"
+        - index_name: "patrol_serial_number"
     time_range:
       since: "2015-01-01T00:00:00"
       until: "2015-02-28T23:59:59"
@@ -192,7 +192,7 @@ spatial-grouper:
       include_null_geometry: false
     groupers:
       groupers:
-        - "efddee80-8072-4bb1-8078-b391c1b39dac"
+        - spatial_index_name: "SpatialGrouperTest"
     time_range:
       since: "2015-01-01T00:00:00"
       until: "2015-12-31T23:59:59"
