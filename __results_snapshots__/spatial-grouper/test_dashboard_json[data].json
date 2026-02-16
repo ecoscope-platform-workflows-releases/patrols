@@ -4,7 +4,7 @@
     "filters": {
       "schema": {
         "properties": {
-          "SpatialGrouper_efddee80-8072-4bb1-8078-b391c1b39dac": {
+          "SpatialGrouper_SpatialGrouperTest": {
             "default": "West",
             "oneOf": [
               {
@@ -18,7 +18,7 @@
         },
         "type": "object",
         "uiSchema": {
-          "SpatialGrouper_efddee80-8072-4bb1-8078-b391c1b39dac": {
+          "SpatialGrouper_SpatialGrouperTest": {
             "ui:title": "SpatialGrouperTest",
             "ui:widget": "select"
           }
@@ -33,7 +33,7 @@
       "title": "Patrols Dashboard"
     },
     "views": {
-      "{\"SpatialGrouper_efddee80-8072-4bb1-8078-b391c1b39dac\": \"West\"}": [
+      "{\"SpatialGrouper_SpatialGrouperTest\": \"West\"}": [
         {
           "data": "str",
           "id": 0,

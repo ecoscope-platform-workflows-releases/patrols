@@ -53,7 +53,7 @@ from ecoscope_workflows_core.tasks.transformation import (
     convert_values_to_timezone as convert_values_to_timezone,
 )
 from ecoscope_workflows_ext_ecoscope.tasks.transformation import (
-    extract_spatial_grouper_feature_group_ids as extract_spatial_grouper_feature_group_ids,
+    extract_spatial_grouper_feature_group_names as extract_spatial_grouper_feature_group_names,
 )
 
 get_spatial_features_group = create_task_magicmock(  # 🧪
@@ -534,7 +534,7 @@ def main(params: Params):
             method="call",
         ),
         "spatial_group_ids": Node(
-            async_task=extract_spatial_grouper_feature_group_ids.validate()
+            async_task=extract_spatial_grouper_feature_group_names.validate()
             .set_task_instance_id("spatial_group_ids")
             .handle_errors()
             .with_tracing()
@@ -571,7 +571,7 @@ def main(params: Params):
             | (params_dict.get("fetch_all_spatial_feature_groups") or {}),
             method="map",
             kwargs={
-                "argnames": ["spatial_features_group_id"],
+                "argnames": ["spatial_features_group_name"],
                 "argvalues": DependsOn("spatial_group_ids"),
             },
         ),
