@@ -110,7 +110,8 @@ month-grouper:
       time_interval: "week"
     set_ltd_args:
       opacity: 0.7
-      percentiles: ["50", "60", "70", "80", "90", "100"]
+      # an example of unsorted percentile input
+      percentiles: ["100", "60", "50", "70", "80", "90"]
       auto_scale_or_custom_cell_size:
         auto_scale_or_custom: "Auto-scale"
       crs: "EPSG:3857"
