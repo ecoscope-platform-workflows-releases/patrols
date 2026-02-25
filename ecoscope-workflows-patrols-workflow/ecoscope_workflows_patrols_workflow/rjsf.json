@@ -83,7 +83,15 @@
               "title": "Patrol Types",
               "type": "array",
               "description": "Specify the patrol type(s) to analyze (optional). Leave empty to analyze all patrol types.",
-              "ecoscope:patrol_type": "properties.er_client_name.properties.data_source.properties.name"
+              "ecoscope:transform": [
+                {
+                  "transformer": "EarthRangerEnumResolver",
+                  "transformer_kws": {
+                    "type": "patrol_type",
+                    "depends_on": "properties.er_client_name.properties.data_source.properties.name"
+                  }
+                }
+              ]
             },
             "event_types": {
               "items": {
@@ -92,7 +100,15 @@
               "title": "Event Types",
               "type": "array",
               "description": "Specify the event type(s) to analyze (optional). Leave this section empty to analyze all event types.",
-              "ecoscope:event_type": "properties.er_client_name.properties.data_source.properties.name"
+              "ecoscope:transform": [
+                {
+                  "transformer": "EarthRangerEnumResolver",
+                  "transformer_kws": {
+                    "type": "event_type",
+                    "depends_on": "properties.er_client_name.properties.data_source.properties.name"
+                  }
+                }
+              ]
             },
             "status": {
               "default": [
@@ -150,7 +166,15 @@
           "title": " ",
           "type": "array",
           "description": "            Specify how the data should be grouped to create the views for your dashboard.\n            This field is optional; if left blank, all the data will appear in a single view.\n            ",
-          "ecoscope:spatial_feature_group": "properties.er_client_name.properties.data_source.properties.name"
+          "ecoscope:transform": [
+            {
+              "transformer": "EarthRangerEnumResolver",
+              "transformer_kws": {
+                "type": "spatial_feature_group",
+                "depends_on": "properties.er_client_name.properties.data_source.properties.name"
+              }
+            }
+          ]
         }
       },
       "type": "object",

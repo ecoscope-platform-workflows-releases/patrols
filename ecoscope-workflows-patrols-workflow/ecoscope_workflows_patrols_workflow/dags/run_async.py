@@ -19,6 +19,7 @@ from ecoscope_workflows_core.tasks.config import set_string_var as set_string_va
 from ecoscope_workflows_core.tasks.config import (
     set_workflow_details as set_workflow_details,
 )
+from ecoscope_workflows_core.tasks.config import title_case_var as title_case_var
 from ecoscope_workflows_core.tasks.filter import (
     get_timezone_from_time_range as get_timezone_from_time_range,
 )
@@ -59,6 +60,7 @@ from ecoscope_workflows_core.tasks.transformation import (
     convert_values_to_timezone as convert_values_to_timezone,
 )
 from ecoscope_workflows_core.tasks.transformation import map_columns as map_columns
+from ecoscope_workflows_core.tasks.transformation import map_values as map_values
 from ecoscope_workflows_core.tasks.transformation import (
     map_values_with_unit as map_values_with_unit,
 )
@@ -162,6 +164,7 @@ def main(params: Params):
         "fetch_all_spatial_feature_groups": ["er_client_name", "spatial_group_ids"],
         "resolved_groupers": ["groupers", "fetch_all_spatial_feature_groups"],
         "set_patrol_traj_color_column": [],
+        "patrol_traj_color_column_display": ["set_patrol_traj_color_column"],
         "patrol_reloc": ["convert_patrols_to_user_timezone"],
         "patrol_traj": ["patrol_reloc"],
         "traj_add_temporal_index": ["patrol_traj", "resolved_groupers"],
@@ -188,9 +191,10 @@ def main(params: Params):
         "patrol_events_map_layers": ["pe_rename_display_columns"],
         "speed_val_with_unit": ["split_patrol_traj_groups"],
         "patrol_traj_rename_columns": ["speed_val_with_unit"],
+        "patrol_traj_rename_status": ["patrol_traj_rename_columns"],
         "patrol_traj_map_layers": [
-            "set_patrol_traj_color_column",
-            "patrol_traj_rename_columns",
+            "patrol_traj_color_column_display",
+            "patrol_traj_rename_status",
         ],
         "combined_traj_and_pe_map_layers": [
             "patrol_traj_map_layers",
@@ -198,7 +202,7 @@ def main(params: Params):
         ],
         "traj_patrol_events_ecomap": [
             "base_map_defs",
-            "set_patrol_traj_color_column",
+            "patrol_traj_color_column_display",
             "set_traj_pe_map_title",
             "combined_traj_and_pe_map_layers",
         ],
@@ -242,9 +246,10 @@ def main(params: Params):
         ],
         "patrol_events_pie_widget_grouped": ["patrol_events_pie_chart_widgets"],
         "set_ltd_args": [],
-        "ltd_meshgrid": ["patrol_traj_cols_to_string", "set_ltd_args"],
+        "ltd_meshgrid": ["set_ltd_args", "split_patrol_traj_groups"],
         "ltd_opacity": ["set_ltd_args"],
-        "ltd": ["ltd_meshgrid", "set_ltd_args", "split_patrol_traj_groups"],
+        "group_meshgrid_and_traj": ["split_patrol_traj_groups", "ltd_meshgrid"],
+        "ltd": ["set_ltd_args", "group_meshgrid_and_traj"],
         "drop_nan_percentiles": ["ltd"],
         "sort_percentile_values": ["drop_nan_percentiles"],
         "percentile_col_to_string": ["sort_percentile_values"],
@@ -586,6 +591,25 @@ def main(params: Params):
             )
             .set_executor("lithops"),
             partial=(params_dict.get("set_patrol_traj_color_column") or {}),
+            method="call",
+        ),
+        "patrol_traj_color_column_display": Node(
+            async_task=title_case_var.validate()
+            .set_task_instance_id("patrol_traj_color_column_display")
+            .handle_errors()
+            .with_tracing()
+            .skipif(
+                conditions=[
+                    any_is_empty_df,
+                    any_dependency_skipped,
+                ],
+                unpack_depth=1,
+            )
+            .set_executor("lithops"),
+            partial={
+                "var": DependsOn("set_patrol_traj_color_column"),
+            }
+            | (params_dict.get("patrol_traj_color_column_display") or {}),
             method="call",
         ),
         "patrol_reloc": Node(
@@ -1043,8 +1067,8 @@ def main(params: Params):
             .set_executor("lithops"),
             partial={
                 "rename_columns": {
-                    "patrol_serial_number": "Patrol Serial",
-                    "serial_number": "Event Serial",
+                    "patrol_serial_number": "Patrol Serial Number",
+                    "serial_number": "Event Serial Number",
                     "event_type_display": "Event Type",
                     "time": "Event Time",
                 },
@@ -1077,8 +1101,8 @@ def main(params: Params):
                 },
                 "legend": None,
                 "tooltip_columns": [
-                    "Patrol Serial",
-                    "Event Serial",
+                    "Patrol Serial Number",
+                    "Event Serial Number",
                     "Event Type",
                     "Event Time",
                 ],
@@ -1132,7 +1156,9 @@ def main(params: Params):
             .set_executor("lithops"),
             partial={
                 "rename_columns": {
-                    "patrol_serial_number": "Patrol Serial",
+                    "patrol_serial_number": "Patrol Serial Number",
+                    "patrol_status": "Patrol Status",
+                    "patrol_subject": "Patrol Subject",
                     "extra__patrol_type__display": "Patrol Type",
                     "segment_start": "Start",
                     "timespan_seconds": "Duration (s)",
@@ -1145,6 +1171,37 @@ def main(params: Params):
             kwargs={
                 "argnames": ["df"],
                 "argvalues": DependsOn("speed_val_with_unit"),
+            },
+        ),
+        "patrol_traj_rename_status": Node(
+            async_task=map_values.validate()
+            .set_task_instance_id("patrol_traj_rename_status")
+            .handle_errors()
+            .with_tracing()
+            .skipif(
+                conditions=[
+                    any_is_empty_df,
+                    any_dependency_skipped,
+                ],
+                unpack_depth=1,
+            )
+            .set_executor("lithops"),
+            partial={
+                "column_name": "Patrol Status",
+                "value_map": {
+                    "active": "Active",
+                    "overdue": "Overdue",
+                    "done": "Done",
+                    "cancelled": "Cancelled",
+                },
+                "missing_values": "remove",
+                "replacement": None,
+            }
+            | (params_dict.get("patrol_traj_rename_status") or {}),
+            method="mapvalues",
+            kwargs={
+                "argnames": ["df"],
+                "argvalues": DependsOn("patrol_traj_rename_columns"),
             },
         ),
         "patrol_traj_map_layers": Node(
@@ -1173,11 +1230,11 @@ def main(params: Params):
                     "cap_rounded": True,
                 },
                 "legend": {
-                    "label_column": DependsOn("set_patrol_traj_color_column"),
+                    "label_column": DependsOn("patrol_traj_color_column_display"),
                     "color_column": "patrol_traj_colormap",
                 },
                 "tooltip_columns": [
-                    "Patrol Serial",
+                    "Patrol Serial Number",
                     "Patrol Type",
                     "Start",
                     "Duration (s)",
@@ -1188,7 +1245,7 @@ def main(params: Params):
             method="mapvalues",
             kwargs={
                 "argnames": ["geodataframe"],
-                "argvalues": DependsOn("patrol_traj_rename_columns"),
+                "argvalues": DependsOn("patrol_traj_rename_status"),
             },
         ),
         "combined_traj_and_pe_map_layers": Node(
@@ -1231,7 +1288,7 @@ def main(params: Params):
                     "placement": "top-left",
                 },
                 "legend_style": {
-                    "title": DependsOn("set_patrol_traj_color_column"),
+                    "title": DependsOn("patrol_traj_color_column_display"),
                     "format_title": True,
                     "placement": "bottom-right",
                 },
@@ -1958,11 +2015,14 @@ def main(params: Params):
             )
             .set_executor("lithops"),
             partial={
-                "aoi": DependsOn("patrol_traj_cols_to_string"),
                 "combined_params": DependsOn("set_ltd_args"),
             }
             | (params_dict.get("ltd_meshgrid") or {}),
-            method="call",
+            method="mapvalues",
+            kwargs={
+                "argnames": ["aoi"],
+                "argvalues": DependsOn("split_patrol_traj_groups"),
+            },
         ),
         "ltd_opacity": Node(
             async_task=get_opacity_from_combined_params.validate()
@@ -1983,6 +2043,28 @@ def main(params: Params):
             | (params_dict.get("ltd_opacity") or {}),
             method="call",
         ),
+        "group_meshgrid_and_traj": Node(
+            async_task=groupbykey.validate()
+            .set_task_instance_id("group_meshgrid_and_traj")
+            .handle_errors()
+            .with_tracing()
+            .skipif(
+                conditions=[
+                    any_is_empty_df,
+                    any_dependency_skipped,
+                ],
+                unpack_depth=1,
+            )
+            .set_executor("lithops"),
+            partial={
+                "iterables": [
+                    DependsOn("split_patrol_traj_groups"),
+                    DependsOn("ltd_meshgrid"),
+                ],
+            }
+            | (params_dict.get("group_meshgrid_and_traj") or {}),
+            method="call",
+        ),
         "ltd": Node(
             async_task=call_ltd_from_combined_params.validate()
             .set_task_instance_id("ltd")
@@ -1997,14 +2079,13 @@ def main(params: Params):
             )
             .set_executor("lithops"),
             partial={
-                "meshgrid": DependsOn("ltd_meshgrid"),
                 "combined_params": DependsOn("set_ltd_args"),
             }
             | (params_dict.get("ltd") or {}),
             method="mapvalues",
             kwargs={
-                "argnames": ["trajectory_gdf"],
-                "argvalues": DependsOn("split_patrol_traj_groups"),
+                "argnames": ["trajectory_gdf", "meshgrid"],
+                "argvalues": DependsOn("group_meshgrid_and_traj"),
             },
         ),
         "drop_nan_percentiles": Node(

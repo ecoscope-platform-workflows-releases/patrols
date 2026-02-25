@@ -1,10 +1,10 @@
 id: patrols
 requirements:
   - name: ecoscope-workflows-core
-    version: 0.22.11
+    version: 0.22.13
     channel: https://repo.prefix.dev/ecoscope-workflows/
   - name: ecoscope-workflows-ext-ecoscope
-    version: 0.22.11
+    version: 0.22.13
     channel: https://repo.prefix.dev/ecoscope-workflows/
 rjsf-overrides:
   properties:
@@ -19,9 +19,21 @@ rjsf-overrides:
         title: Patrol Serial Number
     Trajectory Category.properties.set_patrol_traj_color_column.properties.var.title: Category
     Trajectory Category.properties.set_patrol_traj_color_column.properties.var.default: patrol_subject
-    Patrol and Event Types.properties.er_patrol_and_events_params.properties.patrol_types.ecoscope:patrol_type: properties.er_client_name.properties.data_source.properties.name
-    Patrol and Event Types.properties.er_patrol_and_events_params.properties.event_types.ecoscope:event_type: properties.er_client_name.properties.data_source.properties.name
-    groupers.properties.groupers.ecoscope:spatial_feature_group: properties.er_client_name.properties.data_source.properties.name
+    Patrol and Event Types.properties.er_patrol_and_events_params.properties.patrol_types.ecoscope:transform:
+      - transformer: EarthRangerEnumResolver
+        transformer_kws:
+          type: patrol_type
+          depends_on: properties.er_client_name.properties.data_source.properties.name
+    Patrol and Event Types.properties.er_patrol_and_events_params.properties.event_types.ecoscope:transform:
+      - transformer: EarthRangerEnumResolver
+        transformer_kws:
+          type: event_type
+          depends_on: properties.er_client_name.properties.data_source.properties.name
+    groupers.properties.groupers.ecoscope:transform:
+      - transformer: EarthRangerEnumResolver
+        transformer_kws:
+          type: spatial_feature_group
+          depends_on: properties.er_client_name.properties.data_source.properties.name
     Time Density Map.properties.set_ltd_args.properties.opacity.default: 0.700000
   $defs:
     ValueGrouper.properties.index_name.oneOf:
@@ -157,6 +169,10 @@ workflow:
       - name: null
         id: set_patrol_traj_color_column
         task: set_string_var
+      - id: patrol_traj_color_column_display
+        task: title_case_var
+        partial:
+          var: ${{ workflow.set_patrol_traj_color_column.return }}
   - name: Transform Observations to Relocations
     id: patrol_reloc
     task: process_relocations
@@ -341,8 +357,8 @@ workflow:
           drop_columns: []
           retain_columns: []
           rename_columns:
-            patrol_serial_number: Patrol Serial
-            serial_number: Event Serial
+            patrol_serial_number: Patrol Serial Number
+            serial_number: Event Serial Number
             event_type_display: Event Type
             time: Event Time
           raise_if_not_found: true
@@ -362,8 +378,8 @@ workflow:
             fill_color_column: event_type_colormap
           legend: null
           tooltip_columns:
-            - Patrol Serial
-            - Event Serial
+            - Patrol Serial Number
+            - Event Serial Number
             - Event Type
             - Event Time
         mapvalues:
@@ -388,7 +404,9 @@ workflow:
           drop_columns: []
           retain_columns: []
           rename_columns:
-            patrol_serial_number: Patrol Serial
+            patrol_serial_number: Patrol Serial Number
+            patrol_status: Patrol Status
+            patrol_subject: Patrol Subject
             extra__patrol_type__display: Patrol Type
             segment_start: Start
             timespan_seconds: Duration (s)
@@ -397,6 +415,21 @@ workflow:
         mapvalues:
           argnames: df
           argvalues: ${{ workflow.speed_val_with_unit.return }}
+      - name: Rename patrol status values for display
+        id: patrol_traj_rename_status
+        task: map_values
+        partial:
+          column_name: Patrol Status
+          value_map:
+            active: Active
+            overdue: Overdue
+            done: Done
+            cancelled: Cancelled
+          missing_values: remove
+          replacement: null
+        mapvalues:
+          argnames: df
+          argvalues: ${{ workflow.patrol_traj_rename_columns.return }}
       - name: Create map layer for each Patrol Trajectories group
         id: patrol_traj_map_layers
         task: create_polyline_layer
@@ -416,17 +449,17 @@ workflow:
             width_units: pixels
             cap_rounded: true
           legend:
-            label_column: ${{ workflow.set_patrol_traj_color_column.return }}
+            label_column: ${{ workflow.patrol_traj_color_column_display.return }}
             color_column: patrol_traj_colormap
           tooltip_columns:
-            - Patrol Serial
+            - Patrol Serial Number
             - Patrol Type
             - Start
             - Duration (s)
             - Speed (kph)
         mapvalues:
           argnames: geodataframe
-          argvalues: ${{ workflow.patrol_traj_rename_columns.return }}
+          argvalues: ${{ workflow.patrol_traj_rename_status.return }}
       - name: Combine Trajectories and Patrol Events layers
         id: combined_traj_and_pe_map_layers
         skipif:
@@ -446,7 +479,7 @@ workflow:
           north_arrow_style:
             placement: top-left
           legend_style:
-            title: ${{ workflow.set_patrol_traj_color_column.return }}
+            title: ${{ workflow.patrol_traj_color_column_display.return }}
             format_title: true
             placement: bottom-right
           static: false
@@ -762,20 +795,29 @@ workflow:
         id: ltd_meshgrid
         task: call_meshgrid_from_combined_params
         partial:
-          aoi: ${{ workflow.patrol_traj_cols_to_string.return }}
           combined_params: ${{ workflow.set_ltd_args.return }}
+        mapvalues:
+          argnames: aoi
+          argvalues: ${{ workflow.split_patrol_traj_groups.return }}
       - id: ltd_opacity
         task: get_opacity_from_combined_params
         partial:
           combined_params: ${{ workflow.set_ltd_args.return }}
+      - id: group_meshgrid_and_traj
+        task: groupbykey
+        partial:
+          iterables:
+            - ${{ workflow.split_patrol_traj_groups.return }}
+            - ${{ workflow.ltd_meshgrid.return }}
       - id: ltd
         task: call_ltd_from_combined_params
         partial:
-          meshgrid: ${{ workflow.ltd_meshgrid.return }}
           combined_params: ${{ workflow.set_ltd_args.return }}
         mapvalues:
-          argnames: trajectory_gdf
-          argvalues: ${{ workflow.split_patrol_traj_groups.return }}
+          argnames:
+            - trajectory_gdf
+            - meshgrid
+          argvalues: ${{ workflow.group_meshgrid_and_traj.return }}
       - name: Drop nan percentiles for map display
         id: drop_nan_percentiles
         task: drop_nan_values_by_column

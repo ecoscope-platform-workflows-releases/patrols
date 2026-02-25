@@ -28,6 +28,7 @@ from ecoscope_workflows_core.tasks.config import set_string_var as set_string_va
 from ecoscope_workflows_core.tasks.config import (
     set_workflow_details as set_workflow_details,
 )
+from ecoscope_workflows_core.tasks.config import title_case_var as title_case_var
 from ecoscope_workflows_core.tasks.filter import (
     get_timezone_from_time_range as get_timezone_from_time_range,
 )
@@ -68,6 +69,7 @@ from ecoscope_workflows_core.tasks.transformation import (
     convert_values_to_timezone as convert_values_to_timezone,
 )
 from ecoscope_workflows_core.tasks.transformation import map_columns as map_columns
+from ecoscope_workflows_core.tasks.transformation import map_values as map_values
 from ecoscope_workflows_core.tasks.transformation import (
     map_values_with_unit as map_values_with_unit,
 )
@@ -657,6 +659,36 @@ set_patrol_traj_color_column = (
         unpack_depth=1,
     )
     .partial(**set_patrol_traj_color_column_params)
+    .call()
+)
+
+
+# %% [markdown]
+# ##
+
+# %%
+# parameters
+
+patrol_traj_color_column_display_params = dict()
+
+# %%
+# call the task
+
+
+patrol_traj_color_column_display = (
+    title_case_var.set_task_instance_id("patrol_traj_color_column_display")
+    .handle_errors()
+    .with_tracing()
+    .skipif(
+        conditions=[
+            any_is_empty_df,
+            any_dependency_skipped,
+        ],
+        unpack_depth=1,
+    )
+    .partial(
+        var=set_patrol_traj_color_column, **patrol_traj_color_column_display_params
+    )
     .call()
 )
 
@@ -1331,8 +1363,8 @@ pe_rename_display_columns = (
         drop_columns=[],
         retain_columns=[],
         rename_columns={
-            "patrol_serial_number": "Patrol Serial",
-            "serial_number": "Event Serial",
+            "patrol_serial_number": "Patrol Serial Number",
+            "serial_number": "Event Serial Number",
             "event_type_display": "Event Type",
             "time": "Event Time",
         },
@@ -1372,7 +1404,12 @@ patrol_events_map_layers = (
     .partial(
         layer_style={"fill_color_column": "event_type_colormap"},
         legend=None,
-        tooltip_columns=["Patrol Serial", "Event Serial", "Event Type", "Event Time"],
+        tooltip_columns=[
+            "Patrol Serial Number",
+            "Event Serial Number",
+            "Event Type",
+            "Event Time",
+        ],
         **patrol_events_map_layers_params,
     )
     .mapvalues(argnames=["geodataframe"], argvalues=pe_rename_display_columns)
@@ -1441,7 +1478,9 @@ patrol_traj_rename_columns = (
         drop_columns=[],
         retain_columns=[],
         rename_columns={
-            "patrol_serial_number": "Patrol Serial",
+            "patrol_serial_number": "Patrol Serial Number",
+            "patrol_status": "Patrol Status",
+            "patrol_subject": "Patrol Subject",
             "extra__patrol_type__display": "Patrol Type",
             "segment_start": "Start",
             "timespan_seconds": "Duration (s)",
@@ -1451,6 +1490,45 @@ patrol_traj_rename_columns = (
         **patrol_traj_rename_columns_params,
     )
     .mapvalues(argnames=["df"], argvalues=speed_val_with_unit)
+)
+
+
+# %% [markdown]
+# ## Rename patrol status values for display
+
+# %%
+# parameters
+
+patrol_traj_rename_status_params = dict()
+
+# %%
+# call the task
+
+
+patrol_traj_rename_status = (
+    map_values.set_task_instance_id("patrol_traj_rename_status")
+    .handle_errors()
+    .with_tracing()
+    .skipif(
+        conditions=[
+            any_is_empty_df,
+            any_dependency_skipped,
+        ],
+        unpack_depth=1,
+    )
+    .partial(
+        column_name="Patrol Status",
+        value_map={
+            "active": "Active",
+            "overdue": "Overdue",
+            "done": "Done",
+            "cancelled": "Cancelled",
+        },
+        missing_values="remove",
+        replacement=None,
+        **patrol_traj_rename_status_params,
+    )
+    .mapvalues(argnames=["df"], argvalues=patrol_traj_rename_columns)
 )
 
 
@@ -1492,11 +1570,11 @@ patrol_traj_map_layers = (
             "cap_rounded": True,
         },
         legend={
-            "label_column": set_patrol_traj_color_column,
+            "label_column": patrol_traj_color_column_display,
             "color_column": "patrol_traj_colormap",
         },
         tooltip_columns=[
-            "Patrol Serial",
+            "Patrol Serial Number",
             "Patrol Type",
             "Start",
             "Duration (s)",
@@ -1504,7 +1582,7 @@ patrol_traj_map_layers = (
         ],
         **patrol_traj_map_layers_params,
     )
-    .mapvalues(argnames=["geodataframe"], argvalues=patrol_traj_rename_columns)
+    .mapvalues(argnames=["geodataframe"], argvalues=patrol_traj_rename_status)
 )
 
 
@@ -1567,7 +1645,7 @@ traj_patrol_events_ecomap = (
         tile_layers=base_map_defs,
         north_arrow_style={"placement": "top-left"},
         legend_style={
-            "title": set_patrol_traj_color_column,
+            "title": patrol_traj_color_column_display,
             "format_title": True,
             "placement": "bottom-right",
         },
@@ -2530,12 +2608,8 @@ ltd_meshgrid = (
         ],
         unpack_depth=1,
     )
-    .partial(
-        aoi=patrol_traj_cols_to_string,
-        combined_params=set_ltd_args,
-        **ltd_meshgrid_params,
-    )
-    .call()
+    .partial(combined_params=set_ltd_args, **ltd_meshgrid_params)
+    .mapvalues(argnames=["aoi"], argvalues=split_patrol_traj_groups)
 )
 
 
@@ -2573,6 +2647,37 @@ ltd_opacity = (
 # %%
 # parameters
 
+group_meshgrid_and_traj_params = dict()
+
+# %%
+# call the task
+
+
+group_meshgrid_and_traj = (
+    groupbykey.set_task_instance_id("group_meshgrid_and_traj")
+    .handle_errors()
+    .with_tracing()
+    .skipif(
+        conditions=[
+            any_is_empty_df,
+            any_dependency_skipped,
+        ],
+        unpack_depth=1,
+    )
+    .partial(
+        iterables=[split_patrol_traj_groups, ltd_meshgrid],
+        **group_meshgrid_and_traj_params,
+    )
+    .call()
+)
+
+
+# %% [markdown]
+# ##
+
+# %%
+# parameters
+
 ltd_params = dict()
 
 # %%
@@ -2590,8 +2695,10 @@ ltd = (
         ],
         unpack_depth=1,
     )
-    .partial(meshgrid=ltd_meshgrid, combined_params=set_ltd_args, **ltd_params)
-    .mapvalues(argnames=["trajectory_gdf"], argvalues=split_patrol_traj_groups)
+    .partial(combined_params=set_ltd_args, **ltd_params)
+    .mapvalues(
+        argnames=["trajectory_gdf", "meshgrid"], argvalues=group_meshgrid_and_traj
+    )
 )
 
 

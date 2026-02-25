@@ -92,7 +92,7 @@ month-grouper:
         max_speed_kmhr: 120.0
         min_speed_kmhr: 0.01
     set_patrol_traj_color_column:
-      var: "patrol_subject"
+      var: "patrol_type"
     filter_patrol_events:
       bounding_box:
         min_x: -180.0
@@ -153,7 +153,7 @@ value-grouper:
         max_speed_kmhr: 120.0
         min_speed_kmhr: 0.01
     set_patrol_traj_color_column:
-      var: "patrol_subject"
+      var: "patrol_status"
     filter_patrol_events:
       bounding_box:
         min_x: -180.0
@@ -211,7 +211,7 @@ spatial-grouper:
         max_speed_kmhr: 120.0
         min_speed_kmhr: 0.01
     set_patrol_traj_color_column:
-      var: "patrol_subject"
+      var: "patrol_serial_number"
     filter_patrol_events:
       bounding_box:
         min_x: -180.0
