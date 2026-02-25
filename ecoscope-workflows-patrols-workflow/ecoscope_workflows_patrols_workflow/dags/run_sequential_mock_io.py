@@ -72,6 +72,7 @@ from ecoscope_workflows_core.tasks.analysis import (
     dataframe_column_sum as dataframe_column_sum,
 )
 from ecoscope_workflows_core.tasks.config import set_string_var as set_string_var
+from ecoscope_workflows_core.tasks.config import title_case_var as title_case_var
 from ecoscope_workflows_core.tasks.groupby import groupbykey as groupbykey
 from ecoscope_workflows_core.tasks.groupby import split_groups as split_groups
 from ecoscope_workflows_core.tasks.io import persist_text as persist_text
@@ -99,6 +100,7 @@ from ecoscope_workflows_core.tasks.transformation import (
     convert_column_values_to_string as convert_column_values_to_string,
 )
 from ecoscope_workflows_core.tasks.transformation import map_columns as map_columns
+from ecoscope_workflows_core.tasks.transformation import map_values as map_values
 from ecoscope_workflows_core.tasks.transformation import (
     map_values_with_unit as map_values_with_unit,
 )
@@ -461,6 +463,25 @@ def main(params: Params):
             unpack_depth=1,
         )
         .partial(**(params_dict.get("set_patrol_traj_color_column") or {}))
+        .call()
+    )
+
+    patrol_traj_color_column_display = (
+        title_case_var.validate()
+        .set_task_instance_id("patrol_traj_color_column_display")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            var=set_patrol_traj_color_column,
+            **(params_dict.get("patrol_traj_color_column_display") or {}),
+        )
         .call()
     )
 
@@ -901,8 +922,8 @@ def main(params: Params):
             drop_columns=[],
             retain_columns=[],
             rename_columns={
-                "patrol_serial_number": "Patrol Serial",
-                "serial_number": "Event Serial",
+                "patrol_serial_number": "Patrol Serial Number",
+                "serial_number": "Event Serial Number",
                 "event_type_display": "Event Type",
                 "time": "Event Time",
             },
@@ -929,8 +950,8 @@ def main(params: Params):
             layer_style={"fill_color_column": "event_type_colormap"},
             legend=None,
             tooltip_columns=[
-                "Patrol Serial",
-                "Event Serial",
+                "Patrol Serial Number",
+                "Event Serial Number",
                 "Event Type",
                 "Event Time",
             ],
@@ -978,7 +999,9 @@ def main(params: Params):
             drop_columns=[],
             retain_columns=[],
             rename_columns={
-                "patrol_serial_number": "Patrol Serial",
+                "patrol_serial_number": "Patrol Serial Number",
+                "patrol_status": "Patrol Status",
+                "patrol_subject": "Patrol Subject",
                 "extra__patrol_type__display": "Patrol Type",
                 "segment_start": "Start",
                 "timespan_seconds": "Duration (s)",
@@ -988,6 +1011,33 @@ def main(params: Params):
             **(params_dict.get("patrol_traj_rename_columns") or {}),
         )
         .mapvalues(argnames=["df"], argvalues=speed_val_with_unit)
+    )
+
+    patrol_traj_rename_status = (
+        map_values.validate()
+        .set_task_instance_id("patrol_traj_rename_status")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            column_name="Patrol Status",
+            value_map={
+                "active": "Active",
+                "overdue": "Overdue",
+                "done": "Done",
+                "cancelled": "Cancelled",
+            },
+            missing_values="remove",
+            replacement=None,
+            **(params_dict.get("patrol_traj_rename_status") or {}),
+        )
+        .mapvalues(argnames=["df"], argvalues=patrol_traj_rename_columns)
     )
 
     patrol_traj_map_layers = (
@@ -1015,11 +1065,11 @@ def main(params: Params):
                 "cap_rounded": True,
             },
             legend={
-                "label_column": set_patrol_traj_color_column,
+                "label_column": patrol_traj_color_column_display,
                 "color_column": "patrol_traj_colormap",
             },
             tooltip_columns=[
-                "Patrol Serial",
+                "Patrol Serial Number",
                 "Patrol Type",
                 "Start",
                 "Duration (s)",
@@ -1027,7 +1077,7 @@ def main(params: Params):
             ],
             **(params_dict.get("patrol_traj_map_layers") or {}),
         )
-        .mapvalues(argnames=["geodataframe"], argvalues=patrol_traj_rename_columns)
+        .mapvalues(argnames=["geodataframe"], argvalues=patrol_traj_rename_status)
     )
 
     combined_traj_and_pe_map_layers = (
@@ -1064,7 +1114,7 @@ def main(params: Params):
             tile_layers=base_map_defs,
             north_arrow_style={"placement": "top-left"},
             legend_style={
-                "title": set_patrol_traj_color_column,
+                "title": patrol_traj_color_column_display,
                 "format_title": True,
                 "placement": "bottom-right",
             },
@@ -1684,11 +1734,9 @@ def main(params: Params):
             unpack_depth=1,
         )
         .partial(
-            aoi=patrol_traj_cols_to_string,
-            combined_params=set_ltd_args,
-            **(params_dict.get("ltd_meshgrid") or {}),
+            combined_params=set_ltd_args, **(params_dict.get("ltd_meshgrid") or {})
         )
-        .call()
+        .mapvalues(argnames=["aoi"], argvalues=split_patrol_traj_groups)
     )
 
     ltd_opacity = (
@@ -1707,6 +1755,25 @@ def main(params: Params):
         .call()
     )
 
+    group_meshgrid_and_traj = (
+        groupbykey.validate()
+        .set_task_instance_id("group_meshgrid_and_traj")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            iterables=[split_patrol_traj_groups, ltd_meshgrid],
+            **(params_dict.get("group_meshgrid_and_traj") or {}),
+        )
+        .call()
+    )
+
     ltd = (
         call_ltd_from_combined_params.validate()
         .set_task_instance_id("ltd")
@@ -1719,12 +1786,10 @@ def main(params: Params):
             ],
             unpack_depth=1,
         )
-        .partial(
-            meshgrid=ltd_meshgrid,
-            combined_params=set_ltd_args,
-            **(params_dict.get("ltd") or {}),
+        .partial(combined_params=set_ltd_args, **(params_dict.get("ltd") or {}))
+        .mapvalues(
+            argnames=["trajectory_gdf", "meshgrid"], argvalues=group_meshgrid_and_traj
         )
-        .mapvalues(argnames=["trajectory_gdf"], argvalues=split_patrol_traj_groups)
     )
 
     drop_nan_percentiles = (
