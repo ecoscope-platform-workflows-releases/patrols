@@ -253,6 +253,7 @@ def main(params: Params):
             raise_on_empty=False,
             truncate_to_time_range=True,
             sub_page_size=100,
+            patrols_overlap_daterange=True,
             **(params_dict.get("er_patrol_and_events_params") or {}),
         )
         .call()
