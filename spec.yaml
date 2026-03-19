@@ -98,6 +98,7 @@ workflow:
           raise_on_empty: false
           truncate_to_time_range: true
           sub_page_size: 100
+          patrols_overlap_daterange: true
       - id: prefetch_patrols
         task: get_patrols_from_combined_params
         partial:
