@@ -3,7 +3,7 @@
 
 FROM bitnami/minideb:bullseye AS fetch
 RUN apt-get update && apt-get install -y curl ca-certificates
-RUN curl -fsSL https://pixi.sh/install.sh | PIXI_VERSION=v0.63.2 bash
+RUN curl -fsSL https://pixi.sh/install.sh | PIXI_VERSION=latest bash
 
 FROM bitnami/minideb:bullseye AS install
 COPY --from=fetch /root/.pixi /root/.pixi
@@ -18,6 +18,7 @@ FROM install AS app
 ENV PORT 8080
 ENV CONCURRENCY 1
 ENV UVICORN_TIMEOUT 600
-CMD ECOSCOPE_WORKFLOWS_MATCHSPEC_OVERRIDE=ecoscope-workflows-patrols-workflow \
+CMD WT_INVOKERS__RESULTS_ENV_VAR=ECOSCOPE_WORKFLOWS_RESULTS \
+    ECOSCOPE_WORKFLOWS_MATCHSPEC_OVERRIDE=ecoscope-workflows-patrols-workflow \
     pixi run -e runner \
-    uvicorn --host 0.0.0.0 --port $PORT --workers $CONCURRENCY --timeout-graceful-shutdown $UVICORN_TIMEOUT ecoscope_workflows_runner.app:app
+    uvicorn --host 0.0.0.0 --port $PORT --workers $CONCURRENCY --timeout-graceful-shutdown $UVICORN_TIMEOUT wt_runner.app:app

@@ -385,11 +385,11 @@ class PatrolTraj(BaseModel):
         default_factory=lambda: TrajectorySegmentFilter.model_validate(
             {
                 "min_length_meters": 0.001,
-                "max_length_meters": 100000,
-                "min_time_secs": 1,
-                "max_time_secs": 172800,
+                "max_length_meters": 100000.0,
+                "min_time_secs": 1.0,
+                "max_time_secs": 172800.0,
                 "min_speed_kmhr": 0.01,
-                "max_speed_kmhr": 500,
+                "max_speed_kmhr": 500.0,
             }
         ),
         description="Filter track data by setting limits on track segment length, duration, and speed. Segments outside these bounds are removed, reducing noise and to focus on meaningful movement patterns.",

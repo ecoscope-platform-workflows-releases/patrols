@@ -11,154 +11,141 @@ import json
 import os
 import warnings  # 🧪
 
-from ecoscope_workflows_core.tasks.config import (
-    set_workflow_details as set_workflow_details,
-)
-from ecoscope_workflows_core.tasks.filter import (
+from ecoscope.platform.tasks.config import set_workflow_details as set_workflow_details
+from ecoscope.platform.tasks.filter import (
     get_timezone_from_time_range as get_timezone_from_time_range,
 )
-from ecoscope_workflows_core.tasks.filter import set_time_range as set_time_range
-from ecoscope_workflows_core.tasks.io import set_er_connection as set_er_connection
-from ecoscope_workflows_core.tasks.skip import (
-    any_dependency_skipped as any_dependency_skipped,
-)
-from ecoscope_workflows_core.tasks.skip import any_is_empty_df as any_is_empty_df
-from ecoscope_workflows_core.testing import create_task_magicmock  # 🧪
-from ecoscope_workflows_ext_ecoscope.tasks.io import (
+from ecoscope.platform.tasks.filter import set_time_range as set_time_range
+from ecoscope.platform.tasks.io import set_er_connection as set_er_connection
+from ecoscope.platform.tasks.io import (
     set_patrols_and_patrol_events_params as set_patrols_and_patrol_events_params,
 )
+from ecoscope.platform.tasks.skip import (
+    any_dependency_skipped as any_dependency_skipped,
+)
+from ecoscope.platform.tasks.skip import any_is_empty_df as any_is_empty_df
+from wt_task import task
+from wt_task.testing import create_func_magicmock  # 🧪
 
-get_patrols_from_combined_params = create_task_magicmock(  # 🧪
-    anchor="ecoscope_workflows_ext_ecoscope.tasks.io",  # 🧪
+get_patrols_from_combined_params = create_func_magicmock(  # 🧪
+    anchor="ecoscope.platform.tasks.io",  # 🧪
     func_name="get_patrols_from_combined_params",  # 🧪
 )  # 🧪
 
 get_patrol_observations_from_patrols_df_and_combined_params = (
-    create_task_magicmock(  # 🧪
-        anchor="ecoscope_workflows_ext_ecoscope.tasks.io",  # 🧪
+    create_func_magicmock(  # 🧪
+        anchor="ecoscope.platform.tasks.io",  # 🧪
         func_name="get_patrol_observations_from_patrols_df_and_combined_params",  # 🧪
     )
 )  # 🧪
-from ecoscope_workflows_ext_ecoscope.tasks.io import (
+from ecoscope.platform.tasks.io import (
     unpack_events_from_patrols_df_and_combined_params as unpack_events_from_patrols_df_and_combined_params,
 )
 
-get_event_type_display_names_from_events = create_task_magicmock(  # 🧪
-    anchor="ecoscope_workflows_ext_ecoscope.tasks.io",  # 🧪
+get_event_type_display_names_from_events = create_func_magicmock(  # 🧪
+    anchor="ecoscope.platform.tasks.io",  # 🧪
     func_name="get_event_type_display_names_from_events",  # 🧪
 )  # 🧪
-from ecoscope_workflows_core.tasks.groupby import set_groupers as set_groupers
-from ecoscope_workflows_core.tasks.transformation import (
+from ecoscope.platform.tasks.groupby import set_groupers as set_groupers
+from ecoscope.platform.tasks.transformation import (
     convert_values_to_timezone as convert_values_to_timezone,
 )
-from ecoscope_workflows_ext_ecoscope.tasks.transformation import (
+from ecoscope.platform.tasks.transformation import (
     extract_spatial_grouper_feature_group_names as extract_spatial_grouper_feature_group_names,
 )
 
-get_spatial_features_group = create_task_magicmock(  # 🧪
-    anchor="ecoscope_workflows_ext_ecoscope.tasks.io",  # 🧪
+get_spatial_features_group = create_func_magicmock(  # 🧪
+    anchor="ecoscope.platform.tasks.io",  # 🧪
     func_name="get_spatial_features_group",  # 🧪
 )  # 🧪
-from ecoscope_workflows_core.tasks.analysis import (
+from ecoscope.platform.tasks.analysis import (
     dataframe_column_max as dataframe_column_max,
 )
-from ecoscope_workflows_core.tasks.analysis import (
+from ecoscope.platform.tasks.analysis import (
     dataframe_column_mean as dataframe_column_mean,
 )
-from ecoscope_workflows_core.tasks.analysis import (
+from ecoscope.platform.tasks.analysis import (
     dataframe_column_nunique as dataframe_column_nunique,
 )
-from ecoscope_workflows_core.tasks.analysis import (
+from ecoscope.platform.tasks.analysis import (
     dataframe_column_sum as dataframe_column_sum,
 )
-from ecoscope_workflows_core.tasks.config import set_string_var as set_string_var
-from ecoscope_workflows_core.tasks.config import title_case_var as title_case_var
-from ecoscope_workflows_core.tasks.groupby import groupbykey as groupbykey
-from ecoscope_workflows_core.tasks.groupby import split_groups as split_groups
-from ecoscope_workflows_core.tasks.io import persist_text as persist_text
-from ecoscope_workflows_core.tasks.results import (
-    create_map_widget_single_view as create_map_widget_single_view,
-)
-from ecoscope_workflows_core.tasks.results import (
-    create_plot_widget_single_view as create_plot_widget_single_view,
-)
-from ecoscope_workflows_core.tasks.results import (
-    create_single_value_widget_single_view as create_single_value_widget_single_view,
-)
-from ecoscope_workflows_core.tasks.results import gather_dashboard as gather_dashboard
-from ecoscope_workflows_core.tasks.results import (
-    merge_widget_views as merge_widget_views,
-)
-from ecoscope_workflows_core.tasks.skip import (
-    all_keyed_iterables_are_skips as all_keyed_iterables_are_skips,
-)
-from ecoscope_workflows_core.tasks.skip import never as never
-from ecoscope_workflows_core.tasks.transformation import (
-    add_temporal_index as add_temporal_index,
-)
-from ecoscope_workflows_core.tasks.transformation import (
-    convert_column_values_to_string as convert_column_values_to_string,
-)
-from ecoscope_workflows_core.tasks.transformation import map_columns as map_columns
-from ecoscope_workflows_core.tasks.transformation import map_values as map_values
-from ecoscope_workflows_core.tasks.transformation import (
-    map_values_with_unit as map_values_with_unit,
-)
-from ecoscope_workflows_core.tasks.transformation import sort_values as sort_values
-from ecoscope_workflows_core.tasks.transformation import with_unit as with_unit
-from ecoscope_workflows_ext_ecoscope.tasks.config import (
+from ecoscope.platform.tasks.config import (
     call_ltd_from_combined_params as call_ltd_from_combined_params,
 )
-from ecoscope_workflows_ext_ecoscope.tasks.config import (
+from ecoscope.platform.tasks.config import (
     call_meshgrid_from_combined_params as call_meshgrid_from_combined_params,
 )
-from ecoscope_workflows_ext_ecoscope.tasks.config import (
+from ecoscope.platform.tasks.config import (
     get_opacity_from_combined_params as get_opacity_from_combined_params,
 )
-from ecoscope_workflows_ext_ecoscope.tasks.config import (
+from ecoscope.platform.tasks.config import (
     set_ltd_args_with_opacity as set_ltd_args_with_opacity,
 )
-from ecoscope_workflows_ext_ecoscope.tasks.preprocessing import (
+from ecoscope.platform.tasks.config import set_string_var as set_string_var
+from ecoscope.platform.tasks.config import title_case_var as title_case_var
+from ecoscope.platform.tasks.groupby import groupbykey as groupbykey
+from ecoscope.platform.tasks.groupby import split_groups as split_groups
+from ecoscope.platform.tasks.io import persist_text as persist_text
+from ecoscope.platform.tasks.preprocessing import (
     process_relocations as process_relocations,
 )
-from ecoscope_workflows_ext_ecoscope.tasks.preprocessing import (
+from ecoscope.platform.tasks.preprocessing import (
     relocations_to_trajectory as relocations_to_trajectory,
 )
-from ecoscope_workflows_ext_ecoscope.tasks.results import (
-    create_point_layer as create_point_layer,
+from ecoscope.platform.tasks.results import (
+    create_map_widget_single_view as create_map_widget_single_view,
 )
-from ecoscope_workflows_ext_ecoscope.tasks.results import (
-    create_polygon_layer as create_polygon_layer,
+from ecoscope.platform.tasks.results import (
+    create_plot_widget_single_view as create_plot_widget_single_view,
 )
-from ecoscope_workflows_ext_ecoscope.tasks.results import (
+from ecoscope.platform.tasks.results import create_point_layer as create_point_layer
+from ecoscope.platform.tasks.results import create_polygon_layer as create_polygon_layer
+from ecoscope.platform.tasks.results import (
     create_polyline_layer as create_polyline_layer,
 )
-from ecoscope_workflows_ext_ecoscope.tasks.results import draw_ecomap as draw_ecomap
-from ecoscope_workflows_ext_ecoscope.tasks.results import (
-    draw_pie_chart as draw_pie_chart,
+from ecoscope.platform.tasks.results import (
+    create_single_value_widget_single_view as create_single_value_widget_single_view,
 )
-from ecoscope_workflows_ext_ecoscope.tasks.results import (
+from ecoscope.platform.tasks.results import draw_ecomap as draw_ecomap
+from ecoscope.platform.tasks.results import draw_pie_chart as draw_pie_chart
+from ecoscope.platform.tasks.results import (
     draw_time_series_bar_chart as draw_time_series_bar_chart,
 )
-from ecoscope_workflows_ext_ecoscope.tasks.results import set_base_maps as set_base_maps
-from ecoscope_workflows_ext_ecoscope.tasks.skip import (
-    all_geometry_are_none as all_geometry_are_none,
+from ecoscope.platform.tasks.results import gather_dashboard as gather_dashboard
+from ecoscope.platform.tasks.results import merge_widget_views as merge_widget_views
+from ecoscope.platform.tasks.results import set_base_maps as set_base_maps
+from ecoscope.platform.tasks.skip import all_geometry_are_none as all_geometry_are_none
+from ecoscope.platform.tasks.skip import (
+    all_keyed_iterables_are_skips as all_keyed_iterables_are_skips,
 )
-from ecoscope_workflows_ext_ecoscope.tasks.transformation import (
+from ecoscope.platform.tasks.skip import never as never
+from ecoscope.platform.tasks.transformation import (
     add_spatial_index as add_spatial_index,
 )
-from ecoscope_workflows_ext_ecoscope.tasks.transformation import (
-    apply_color_map as apply_color_map,
+from ecoscope.platform.tasks.transformation import (
+    add_temporal_index as add_temporal_index,
 )
-from ecoscope_workflows_ext_ecoscope.tasks.transformation import (
+from ecoscope.platform.tasks.transformation import apply_color_map as apply_color_map
+from ecoscope.platform.tasks.transformation import (
     apply_reloc_coord_filter as apply_reloc_coord_filter,
 )
-from ecoscope_workflows_ext_ecoscope.tasks.transformation import (
+from ecoscope.platform.tasks.transformation import (
+    convert_column_values_to_string as convert_column_values_to_string,
+)
+from ecoscope.platform.tasks.transformation import (
     drop_nan_values_by_column as drop_nan_values_by_column,
 )
-from ecoscope_workflows_ext_ecoscope.tasks.transformation import (
+from ecoscope.platform.tasks.transformation import map_columns as map_columns
+from ecoscope.platform.tasks.transformation import map_values as map_values
+from ecoscope.platform.tasks.transformation import (
+    map_values_with_unit as map_values_with_unit,
+)
+from ecoscope.platform.tasks.transformation import (
     resolve_spatial_feature_groups_for_spatial_groupers as resolve_spatial_feature_groups_for_spatial_groupers,
 )
+from ecoscope.platform.tasks.transformation import sort_values as sort_values
+from ecoscope.platform.tasks.transformation import with_unit as with_unit
 
 from ..params import Params
 
@@ -169,7 +156,8 @@ def main(params: Params):
     params_dict = json.loads(params.model_dump_json(exclude_unset=True))
 
     workflow_details = (
-        set_workflow_details.validate()
+        task(set_workflow_details)
+        .validate()
         .set_task_instance_id("workflow_details")
         .handle_errors()
         .with_tracing()
@@ -185,7 +173,8 @@ def main(params: Params):
     )
 
     er_client_name = (
-        set_er_connection.validate()
+        task(set_er_connection)
+        .validate()
         .set_task_instance_id("er_client_name")
         .handle_errors()
         .with_tracing()
@@ -201,7 +190,8 @@ def main(params: Params):
     )
 
     time_range = (
-        set_time_range.validate()
+        task(set_time_range)
+        .validate()
         .set_task_instance_id("time_range")
         .handle_errors()
         .with_tracing()
@@ -219,7 +209,8 @@ def main(params: Params):
     )
 
     get_timezone = (
-        get_timezone_from_time_range.validate()
+        task(get_timezone_from_time_range)
+        .validate()
         .set_task_instance_id("get_timezone")
         .handle_errors()
         .with_tracing()
@@ -235,7 +226,8 @@ def main(params: Params):
     )
 
     er_patrol_and_events_params = (
-        set_patrols_and_patrol_events_params.validate()
+        task(set_patrols_and_patrol_events_params)
+        .validate()
         .set_task_instance_id("er_patrol_and_events_params")
         .handle_errors()
         .with_tracing()
@@ -253,13 +245,15 @@ def main(params: Params):
             raise_on_empty=False,
             truncate_to_time_range=True,
             sub_page_size=100,
+            patrols_overlap_daterange=True,
             **(params_dict.get("er_patrol_and_events_params") or {}),
         )
         .call()
     )
 
     prefetch_patrols = (
-        get_patrols_from_combined_params.validate()
+        task(get_patrols_from_combined_params)
+        # 🧪 validation omitted for mocked IO task (returns pre-loaded example data)
         .set_task_instance_id("prefetch_patrols")
         .handle_errors()
         .with_tracing()
@@ -278,7 +272,8 @@ def main(params: Params):
     )
 
     patrol_obs = (
-        get_patrol_observations_from_patrols_df_and_combined_params.validate()
+        task(get_patrol_observations_from_patrols_df_and_combined_params)
+        # 🧪 validation omitted for mocked IO task (returns pre-loaded example data)
         .set_task_instance_id("patrol_obs")
         .handle_errors()
         .with_tracing()
@@ -298,7 +293,8 @@ def main(params: Params):
     )
 
     patrol_events = (
-        unpack_events_from_patrols_df_and_combined_params.validate()
+        task(unpack_events_from_patrols_df_and_combined_params)
+        .validate()
         .set_task_instance_id("patrol_events")
         .handle_errors()
         .with_tracing()
@@ -318,7 +314,8 @@ def main(params: Params):
     )
 
     event_type_display_names = (
-        get_event_type_display_names_from_events.validate()
+        task(get_event_type_display_names_from_events)
+        # 🧪 validation omitted for mocked IO task (returns pre-loaded example data)
         .set_task_instance_id("event_type_display_names")
         .handle_errors()
         .with_tracing()
@@ -339,7 +336,8 @@ def main(params: Params):
     )
 
     convert_patrols_to_user_timezone = (
-        convert_values_to_timezone.validate()
+        task(convert_values_to_timezone)
+        .validate()
         .set_task_instance_id("convert_patrols_to_user_timezone")
         .handle_errors()
         .with_tracing()
@@ -360,7 +358,8 @@ def main(params: Params):
     )
 
     convert_events_to_user_timezone = (
-        convert_values_to_timezone.validate()
+        task(convert_values_to_timezone)
+        .validate()
         .set_task_instance_id("convert_events_to_user_timezone")
         .handle_errors()
         .with_tracing()
@@ -381,7 +380,8 @@ def main(params: Params):
     )
 
     groupers = (
-        set_groupers.validate()
+        task(set_groupers)
+        .validate()
         .set_task_instance_id("groupers")
         .handle_errors()
         .with_tracing()
@@ -397,7 +397,8 @@ def main(params: Params):
     )
 
     spatial_group_ids = (
-        extract_spatial_grouper_feature_group_names.validate()
+        task(extract_spatial_grouper_feature_group_names)
+        .validate()
         .set_task_instance_id("spatial_group_ids")
         .handle_errors()
         .with_tracing()
@@ -413,7 +414,8 @@ def main(params: Params):
     )
 
     fetch_all_spatial_feature_groups = (
-        get_spatial_features_group.validate()
+        task(get_spatial_features_group)
+        # 🧪 validation omitted for mocked IO task (returns pre-loaded example data)
         .set_task_instance_id("fetch_all_spatial_feature_groups")
         .handle_errors()
         .with_tracing()
@@ -432,7 +434,8 @@ def main(params: Params):
     )
 
     resolved_groupers = (
-        resolve_spatial_feature_groups_for_spatial_groupers.validate()
+        task(resolve_spatial_feature_groups_for_spatial_groupers)
+        .validate()
         .set_task_instance_id("resolved_groupers")
         .handle_errors()
         .with_tracing()
@@ -451,7 +454,8 @@ def main(params: Params):
     )
 
     set_patrol_traj_color_column = (
-        set_string_var.validate()
+        task(set_string_var)
+        .validate()
         .set_task_instance_id("set_patrol_traj_color_column")
         .handle_errors()
         .with_tracing()
@@ -467,7 +471,8 @@ def main(params: Params):
     )
 
     patrol_traj_color_column_display = (
-        title_case_var.validate()
+        task(title_case_var)
+        .validate()
         .set_task_instance_id("patrol_traj_color_column_display")
         .handle_errors()
         .with_tracing()
@@ -486,7 +491,8 @@ def main(params: Params):
     )
 
     patrol_reloc = (
-        process_relocations.validate()
+        task(process_relocations)
+        .validate()
         .set_task_instance_id("patrol_reloc")
         .handle_errors()
         .with_tracing()
@@ -525,7 +531,8 @@ def main(params: Params):
     )
 
     patrol_traj = (
-        relocations_to_trajectory.validate()
+        task(relocations_to_trajectory)
+        .validate()
         .set_task_instance_id("patrol_traj")
         .handle_errors()
         .with_tracing()
@@ -541,7 +548,8 @@ def main(params: Params):
     )
 
     traj_add_temporal_index = (
-        add_temporal_index.validate()
+        task(add_temporal_index)
+        .validate()
         .set_task_instance_id("traj_add_temporal_index")
         .handle_errors()
         .with_tracing()
@@ -564,7 +572,8 @@ def main(params: Params):
     )
 
     traj_add_spatial_index = (
-        add_spatial_index.validate()
+        task(add_spatial_index)
+        .validate()
         .set_task_instance_id("traj_add_spatial_index")
         .handle_errors()
         .with_tracing()
@@ -584,7 +593,8 @@ def main(params: Params):
     )
 
     traj_rename_grouper_columns = (
-        map_columns.validate()
+        task(map_columns)
+        .validate()
         .set_task_instance_id("traj_rename_grouper_columns")
         .handle_errors()
         .with_tracing()
@@ -612,7 +622,8 @@ def main(params: Params):
     )
 
     traj_colormap = (
-        apply_color_map.validate()
+        task(apply_color_map)
+        .validate()
         .set_task_instance_id("traj_colormap")
         .handle_errors()
         .with_tracing()
@@ -651,7 +662,8 @@ def main(params: Params):
     )
 
     filter_patrol_events = (
-        apply_reloc_coord_filter.validate()
+        task(apply_reloc_coord_filter)
+        .validate()
         .set_task_instance_id("filter_patrol_events")
         .handle_errors()
         .with_tracing()
@@ -673,7 +685,8 @@ def main(params: Params):
     )
 
     pe_add_temporal_index = (
-        add_temporal_index.validate()
+        task(add_temporal_index)
+        .validate()
         .set_task_instance_id("pe_add_temporal_index")
         .handle_errors()
         .with_tracing()
@@ -696,7 +709,8 @@ def main(params: Params):
     )
 
     pe_add_spatial_index = (
-        add_spatial_index.validate()
+        task(add_spatial_index)
+        .validate()
         .set_task_instance_id("pe_add_spatial_index")
         .handle_errors()
         .with_tracing()
@@ -716,7 +730,8 @@ def main(params: Params):
     )
 
     pe_colormap = (
-        apply_color_map.validate()
+        task(apply_color_map)
+        .validate()
         .set_task_instance_id("pe_colormap")
         .handle_errors()
         .with_tracing()
@@ -738,7 +753,8 @@ def main(params: Params):
     )
 
     patrol_traj_cols_to_string = (
-        convert_column_values_to_string.validate()
+        task(convert_column_values_to_string)
+        .validate()
         .set_task_instance_id("patrol_traj_cols_to_string")
         .handle_errors()
         .with_tracing()
@@ -758,7 +774,8 @@ def main(params: Params):
     )
 
     pe_cols_to_string = (
-        convert_column_values_to_string.validate()
+        task(convert_column_values_to_string)
+        .validate()
         .set_task_instance_id("pe_cols_to_string")
         .handle_errors()
         .with_tracing()
@@ -778,7 +795,8 @@ def main(params: Params):
     )
 
     set_traj_pe_map_title = (
-        set_string_var.validate()
+        task(set_string_var)
+        .validate()
         .set_task_instance_id("set_traj_pe_map_title")
         .handle_errors()
         .with_tracing()
@@ -797,7 +815,8 @@ def main(params: Params):
     )
 
     set_ltd_map_title = (
-        set_string_var.validate()
+        task(set_string_var)
+        .validate()
         .set_task_instance_id("set_ltd_map_title")
         .handle_errors()
         .with_tracing()
@@ -813,7 +832,8 @@ def main(params: Params):
     )
 
     set_bar_chart_title = (
-        set_string_var.validate()
+        task(set_string_var)
+        .validate()
         .set_task_instance_id("set_bar_chart_title")
         .handle_errors()
         .with_tracing()
@@ -832,7 +852,8 @@ def main(params: Params):
     )
 
     set_pie_chart_title = (
-        set_string_var.validate()
+        task(set_string_var)
+        .validate()
         .set_task_instance_id("set_pie_chart_title")
         .handle_errors()
         .with_tracing()
@@ -851,7 +872,8 @@ def main(params: Params):
     )
 
     split_patrol_traj_groups = (
-        split_groups.validate()
+        task(split_groups)
+        .validate()
         .set_task_instance_id("split_patrol_traj_groups")
         .handle_errors()
         .with_tracing()
@@ -871,7 +893,8 @@ def main(params: Params):
     )
 
     split_pe_groups = (
-        split_groups.validate()
+        task(split_groups)
+        .validate()
         .set_task_instance_id("split_pe_groups")
         .handle_errors()
         .with_tracing()
@@ -891,7 +914,8 @@ def main(params: Params):
     )
 
     base_map_defs = (
-        set_base_maps.validate()
+        task(set_base_maps)
+        .validate()
         .set_task_instance_id("base_map_defs")
         .handle_errors()
         .with_tracing()
@@ -907,7 +931,8 @@ def main(params: Params):
     )
 
     pe_rename_display_columns = (
-        map_columns.validate()
+        task(map_columns)
+        .validate()
         .set_task_instance_id("pe_rename_display_columns")
         .handle_errors()
         .with_tracing()
@@ -934,7 +959,8 @@ def main(params: Params):
     )
 
     patrol_events_map_layers = (
-        create_point_layer.validate()
+        task(create_point_layer)
+        .validate()
         .set_task_instance_id("patrol_events_map_layers")
         .handle_errors()
         .with_tracing()
@@ -961,7 +987,8 @@ def main(params: Params):
     )
 
     speed_val_with_unit = (
-        map_values_with_unit.validate()
+        task(map_values_with_unit)
+        .validate()
         .set_task_instance_id("speed_val_with_unit")
         .handle_errors()
         .with_tracing()
@@ -984,7 +1011,8 @@ def main(params: Params):
     )
 
     patrol_traj_rename_columns = (
-        map_columns.validate()
+        task(map_columns)
+        .validate()
         .set_task_instance_id("patrol_traj_rename_columns")
         .handle_errors()
         .with_tracing()
@@ -1014,7 +1042,8 @@ def main(params: Params):
     )
 
     patrol_traj_rename_status = (
-        map_values.validate()
+        task(map_values)
+        .validate()
         .set_task_instance_id("patrol_traj_rename_status")
         .handle_errors()
         .with_tracing()
@@ -1041,7 +1070,8 @@ def main(params: Params):
     )
 
     patrol_traj_map_layers = (
-        create_polyline_layer.validate()
+        task(create_polyline_layer)
+        .validate()
         .set_task_instance_id("patrol_traj_map_layers")
         .handle_errors()
         .with_tracing()
@@ -1081,7 +1111,8 @@ def main(params: Params):
     )
 
     combined_traj_and_pe_map_layers = (
-        groupbykey.validate()
+        task(groupbykey)
+        .validate()
         .set_task_instance_id("combined_traj_and_pe_map_layers")
         .handle_errors()
         .with_tracing()
@@ -1099,7 +1130,8 @@ def main(params: Params):
     )
 
     traj_patrol_events_ecomap = (
-        draw_ecomap.validate()
+        task(draw_ecomap)
+        .validate()
         .set_task_instance_id("traj_patrol_events_ecomap")
         .handle_errors()
         .with_tracing()
@@ -1128,7 +1160,8 @@ def main(params: Params):
     )
 
     traj_pe_ecomap_html_urls = (
-        persist_text.validate()
+        task(persist_text)
+        .validate()
         .set_task_instance_id("traj_pe_ecomap_html_urls")
         .handle_errors()
         .with_tracing()
@@ -1148,7 +1181,8 @@ def main(params: Params):
     )
 
     traj_pe_map_widgets_single_views = (
-        create_map_widget_single_view.validate()
+        task(create_map_widget_single_view)
+        .validate()
         .set_task_instance_id("traj_pe_map_widgets_single_views")
         .handle_errors()
         .with_tracing()
@@ -1166,7 +1200,8 @@ def main(params: Params):
     )
 
     traj_pe_grouped_map_widget = (
-        merge_widget_views.validate()
+        task(merge_widget_views)
+        .validate()
         .set_task_instance_id("traj_pe_grouped_map_widget")
         .handle_errors()
         .with_tracing()
@@ -1185,7 +1220,8 @@ def main(params: Params):
     )
 
     total_patrols = (
-        dataframe_column_nunique.validate()
+        task(dataframe_column_nunique)
+        .validate()
         .set_task_instance_id("total_patrols")
         .handle_errors()
         .with_tracing()
@@ -1203,7 +1239,8 @@ def main(params: Params):
     )
 
     total_patrols_sv_widgets = (
-        create_single_value_widget_single_view.validate()
+        task(create_single_value_widget_single_view)
+        .validate()
         .set_task_instance_id("total_patrols_sv_widgets")
         .handle_errors()
         .with_tracing()
@@ -1222,7 +1259,8 @@ def main(params: Params):
     )
 
     total_patrols_grouped_sv_widget = (
-        merge_widget_views.validate()
+        task(merge_widget_views)
+        .validate()
         .set_task_instance_id("total_patrols_grouped_sv_widget")
         .handle_errors()
         .with_tracing()
@@ -1241,7 +1279,8 @@ def main(params: Params):
     )
 
     total_patrol_time = (
-        dataframe_column_sum.validate()
+        task(dataframe_column_sum)
+        .validate()
         .set_task_instance_id("total_patrol_time")
         .handle_errors()
         .with_tracing()
@@ -1260,7 +1299,8 @@ def main(params: Params):
     )
 
     total_patrol_time_converted = (
-        with_unit.validate()
+        task(with_unit)
+        .validate()
         .set_task_instance_id("total_patrol_time_converted")
         .handle_errors()
         .with_tracing()
@@ -1280,7 +1320,8 @@ def main(params: Params):
     )
 
     total_patrol_time_sv_widgets = (
-        create_single_value_widget_single_view.validate()
+        task(create_single_value_widget_single_view)
+        .validate()
         .set_task_instance_id("total_patrol_time_sv_widgets")
         .handle_errors()
         .with_tracing()
@@ -1299,7 +1340,8 @@ def main(params: Params):
     )
 
     patrol_time_grouped_widget = (
-        merge_widget_views.validate()
+        task(merge_widget_views)
+        .validate()
         .set_task_instance_id("patrol_time_grouped_widget")
         .handle_errors()
         .with_tracing()
@@ -1318,7 +1360,8 @@ def main(params: Params):
     )
 
     total_patrol_dist = (
-        dataframe_column_sum.validate()
+        task(dataframe_column_sum)
+        .validate()
         .set_task_instance_id("total_patrol_dist")
         .handle_errors()
         .with_tracing()
@@ -1336,7 +1379,8 @@ def main(params: Params):
     )
 
     total_patrol_dist_converted = (
-        with_unit.validate()
+        task(with_unit)
+        .validate()
         .set_task_instance_id("total_patrol_dist_converted")
         .handle_errors()
         .with_tracing()
@@ -1356,7 +1400,8 @@ def main(params: Params):
     )
 
     total_patrol_dist_sv_widgets = (
-        create_single_value_widget_single_view.validate()
+        task(create_single_value_widget_single_view)
+        .validate()
         .set_task_instance_id("total_patrol_dist_sv_widgets")
         .handle_errors()
         .with_tracing()
@@ -1375,7 +1420,8 @@ def main(params: Params):
     )
 
     patrol_dist_grouped_widget = (
-        merge_widget_views.validate()
+        task(merge_widget_views)
+        .validate()
         .set_task_instance_id("patrol_dist_grouped_widget")
         .handle_errors()
         .with_tracing()
@@ -1394,7 +1440,8 @@ def main(params: Params):
     )
 
     avg_speed = (
-        dataframe_column_mean.validate()
+        task(dataframe_column_mean)
+        .validate()
         .set_task_instance_id("avg_speed")
         .handle_errors()
         .with_tracing()
@@ -1410,7 +1457,8 @@ def main(params: Params):
     )
 
     average_speed_converted = (
-        with_unit.validate()
+        task(with_unit)
+        .validate()
         .set_task_instance_id("average_speed_converted")
         .handle_errors()
         .with_tracing()
@@ -1430,7 +1478,8 @@ def main(params: Params):
     )
 
     avg_speed_sv_widgets = (
-        create_single_value_widget_single_view.validate()
+        task(create_single_value_widget_single_view)
+        .validate()
         .set_task_instance_id("avg_speed_sv_widgets")
         .handle_errors()
         .with_tracing()
@@ -1449,7 +1498,8 @@ def main(params: Params):
     )
 
     avg_speed_grouped_widget = (
-        merge_widget_views.validate()
+        task(merge_widget_views)
+        .validate()
         .set_task_instance_id("avg_speed_grouped_widget")
         .handle_errors()
         .with_tracing()
@@ -1468,7 +1518,8 @@ def main(params: Params):
     )
 
     max_speed = (
-        dataframe_column_max.validate()
+        task(dataframe_column_max)
+        .validate()
         .set_task_instance_id("max_speed")
         .handle_errors()
         .with_tracing()
@@ -1484,7 +1535,8 @@ def main(params: Params):
     )
 
     max_speed_converted = (
-        with_unit.validate()
+        task(with_unit)
+        .validate()
         .set_task_instance_id("max_speed_converted")
         .handle_errors()
         .with_tracing()
@@ -1504,7 +1556,8 @@ def main(params: Params):
     )
 
     max_speed_sv_widgets = (
-        create_single_value_widget_single_view.validate()
+        task(create_single_value_widget_single_view)
+        .validate()
         .set_task_instance_id("max_speed_sv_widgets")
         .handle_errors()
         .with_tracing()
@@ -1523,7 +1576,8 @@ def main(params: Params):
     )
 
     max_speed_grouped_widget = (
-        merge_widget_views.validate()
+        task(merge_widget_views)
+        .validate()
         .set_task_instance_id("max_speed_grouped_widget")
         .handle_errors()
         .with_tracing()
@@ -1542,7 +1596,8 @@ def main(params: Params):
     )
 
     patrol_events_bar_chart = (
-        draw_time_series_bar_chart.validate()
+        task(draw_time_series_bar_chart)
+        .validate()
         .set_task_instance_id("patrol_events_bar_chart")
         .handle_errors()
         .with_tracing()
@@ -1568,7 +1623,8 @@ def main(params: Params):
     )
 
     patrol_events_bar_chart_html_url = (
-        persist_text.validate()
+        task(persist_text)
+        .validate()
         .set_task_instance_id("patrol_events_bar_chart_html_url")
         .handle_errors()
         .with_tracing()
@@ -1588,7 +1644,8 @@ def main(params: Params):
     )
 
     patrol_events_bar_chart_widget = (
-        create_plot_widget_single_view.validate()
+        task(create_plot_widget_single_view)
+        .validate()
         .set_task_instance_id("patrol_events_bar_chart_widget")
         .handle_errors()
         .with_tracing()
@@ -1606,7 +1663,8 @@ def main(params: Params):
     )
 
     grouped_bar_plot_widget_merge = (
-        merge_widget_views.validate()
+        task(merge_widget_views)
+        .validate()
         .set_task_instance_id("grouped_bar_plot_widget_merge")
         .handle_errors()
         .with_tracing()
@@ -1625,7 +1683,8 @@ def main(params: Params):
     )
 
     patrol_events_pie_chart = (
-        draw_pie_chart.validate()
+        task(draw_pie_chart)
+        .validate()
         .set_task_instance_id("patrol_events_pie_chart")
         .handle_errors()
         .with_tracing()
@@ -1649,7 +1708,8 @@ def main(params: Params):
     )
 
     pe_pie_chart_html_urls = (
-        persist_text.validate()
+        task(persist_text)
+        .validate()
         .set_task_instance_id("pe_pie_chart_html_urls")
         .handle_errors()
         .with_tracing()
@@ -1669,7 +1729,8 @@ def main(params: Params):
     )
 
     patrol_events_pie_chart_widgets = (
-        create_plot_widget_single_view.validate()
+        task(create_plot_widget_single_view)
+        .validate()
         .set_task_instance_id("patrol_events_pie_chart_widgets")
         .handle_errors()
         .with_tracing()
@@ -1687,7 +1748,8 @@ def main(params: Params):
     )
 
     patrol_events_pie_widget_grouped = (
-        merge_widget_views.validate()
+        task(merge_widget_views)
+        .validate()
         .set_task_instance_id("patrol_events_pie_widget_grouped")
         .handle_errors()
         .with_tracing()
@@ -1706,7 +1768,8 @@ def main(params: Params):
     )
 
     set_ltd_args = (
-        set_ltd_args_with_opacity.validate()
+        task(set_ltd_args_with_opacity)
+        .validate()
         .set_task_instance_id("set_ltd_args")
         .handle_errors()
         .with_tracing()
@@ -1722,7 +1785,8 @@ def main(params: Params):
     )
 
     ltd_meshgrid = (
-        call_meshgrid_from_combined_params.validate()
+        task(call_meshgrid_from_combined_params)
+        .validate()
         .set_task_instance_id("ltd_meshgrid")
         .handle_errors()
         .with_tracing()
@@ -1740,7 +1804,8 @@ def main(params: Params):
     )
 
     ltd_opacity = (
-        get_opacity_from_combined_params.validate()
+        task(get_opacity_from_combined_params)
+        .validate()
         .set_task_instance_id("ltd_opacity")
         .handle_errors()
         .with_tracing()
@@ -1756,7 +1821,8 @@ def main(params: Params):
     )
 
     group_meshgrid_and_traj = (
-        groupbykey.validate()
+        task(groupbykey)
+        .validate()
         .set_task_instance_id("group_meshgrid_and_traj")
         .handle_errors()
         .with_tracing()
@@ -1775,7 +1841,8 @@ def main(params: Params):
     )
 
     ltd = (
-        call_ltd_from_combined_params.validate()
+        task(call_ltd_from_combined_params)
+        .validate()
         .set_task_instance_id("ltd")
         .handle_errors()
         .with_tracing()
@@ -1793,7 +1860,8 @@ def main(params: Params):
     )
 
     drop_nan_percentiles = (
-        drop_nan_values_by_column.validate()
+        task(drop_nan_values_by_column)
+        .validate()
         .set_task_instance_id("drop_nan_percentiles")
         .handle_errors()
         .with_tracing()
@@ -1811,7 +1879,8 @@ def main(params: Params):
     )
 
     sort_percentile_values = (
-        sort_values.validate()
+        task(sort_values)
+        .validate()
         .set_task_instance_id("sort_percentile_values")
         .handle_errors()
         .with_tracing()
@@ -1832,7 +1901,8 @@ def main(params: Params):
     )
 
     percentile_col_to_string = (
-        convert_column_values_to_string.validate()
+        task(convert_column_values_to_string)
+        .validate()
         .set_task_instance_id("percentile_col_to_string")
         .handle_errors()
         .with_tracing()
@@ -1851,7 +1921,8 @@ def main(params: Params):
     )
 
     td_colormap = (
-        apply_color_map.validate()
+        task(apply_color_map)
+        .validate()
         .set_task_instance_id("td_colormap")
         .handle_errors()
         .with_tracing()
@@ -1872,7 +1943,8 @@ def main(params: Params):
     )
 
     patrol_td_rename_columns = (
-        map_columns.validate()
+        task(map_columns)
+        .validate()
         .set_task_instance_id("patrol_td_rename_columns")
         .handle_errors()
         .with_tracing()
@@ -1894,7 +1966,8 @@ def main(params: Params):
     )
 
     td_map_layer = (
-        create_polygon_layer.validate()
+        task(create_polygon_layer)
+        .validate()
         .set_task_instance_id("td_map_layer")
         .handle_errors()
         .with_tracing()
@@ -1924,7 +1997,8 @@ def main(params: Params):
     )
 
     td_ecomap = (
-        draw_ecomap.validate()
+        task(draw_ecomap)
+        .validate()
         .set_task_instance_id("td_ecomap")
         .handle_errors()
         .with_tracing()
@@ -1953,7 +2027,8 @@ def main(params: Params):
     )
 
     td_ecomap_html_url = (
-        persist_text.validate()
+        task(persist_text)
+        .validate()
         .set_task_instance_id("td_ecomap_html_url")
         .handle_errors()
         .with_tracing()
@@ -1973,7 +2048,8 @@ def main(params: Params):
     )
 
     td_map_widget = (
-        create_map_widget_single_view.validate()
+        task(create_map_widget_single_view)
+        .validate()
         .set_task_instance_id("td_map_widget")
         .handle_errors()
         .with_tracing()
@@ -1988,7 +2064,8 @@ def main(params: Params):
     )
 
     td_grouped_map_widget = (
-        merge_widget_views.validate()
+        task(merge_widget_views)
+        .validate()
         .set_task_instance_id("td_grouped_map_widget")
         .handle_errors()
         .with_tracing()
@@ -2006,7 +2083,8 @@ def main(params: Params):
     )
 
     patrol_dashboard = (
-        gather_dashboard.validate()
+        task(gather_dashboard)
+        .validate()
         .set_task_instance_id("patrol_dashboard")
         .handle_errors()
         .with_tracing()
