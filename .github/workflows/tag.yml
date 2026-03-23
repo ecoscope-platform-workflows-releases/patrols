@@ -13,27 +13,27 @@ jobs:
     outputs:
       tag: ${{ steps.create_tag.outputs.result }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
-          fetch-depth: 0  # get existing tags
+          fetch-depth: 0
       - name: List existing tags
+        run: git tag -l
+      - name: Find release directory
+        id: find_release_dir
         run: |
-          git tag -l
-      - name: Get workflow id from spec.yaml
-        id: get_workflow_id
-        uses: mikefarah/yq@v4
-        with:
-          cmd: yq -r '.id' spec.yaml
-      - name: Transform workflow id to workflow directory name
-        id: workflow_directory
-        run: |
-          export WORKFLOW_NAME=$(echo "${{ steps.get_workflow_id.outputs.result }}" | tr '[:upper:]' '[:lower:]' | sed 's/_/-/g')
-          echo "name=ecoscope-workflows-${WORKFLOW_NAME}-workflow" >> $GITHUB_OUTPUT
+          shopt -s nullglob
+          dirs=(*-workflow/)
+          if [ ${#dirs[@]} -eq 0 ]; then
+            echo "Error: no *-workflow directory found" >&2; exit 1
+          elif [ ${#dirs[@]} -gt 1 ]; then
+            echo "Error: multiple *-workflow directories found: ${dirs[*]}" >&2; exit 1
+          fi
+          echo "name=${dirs[0]%/}" >> $GITHUB_OUTPUT
       - name: Create tag from VERSION.yaml
         id: create_tag
         uses: mikefarah/yq@v4
         with:
-          cmd: yq -r '"v" + (.MAJ | tostring) + "." + (.MIN | tostring) + "." + (.PATCH | tostring)' ${{ steps.workflow_directory.outputs.name }}/VERSION.yaml
+          cmd: yq -r '"v" + (.MAJ | tostring) + "." + (.MIN | tostring) + "." + (.PATCH | tostring)' ${{ steps.find_release_dir.outputs.name }}/VERSION.yaml
       - name: Validate tag doesn't already exist
         run: |
           if git tag -l | grep -q "${{ steps.create_tag.outputs.result }}"; then
@@ -63,19 +63,17 @@ jobs:
 
   cut-release:
     needs: generate-tag
-    # only actually cut a tag + release when PRs to main or patch branches are merged
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ github.event.pull_request.merge_commit_sha }}
-          fetch-depth: 0  # get existing tags
+          fetch-depth: 0
       - name: List existing tags
-        run: |
-          git tag -l
+        run: git tag -l
       - name: Tag
         run: |
           echo "Tagging version ${{ needs.generate-tag.outputs.tag }}"
