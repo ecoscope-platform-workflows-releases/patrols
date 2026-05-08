@@ -1935,7 +1935,7 @@ def main(params: Params):
         )
         .partial(
             input_column_name="percentile",
-            colormap="RdYlGn",
+            colormap="bwr",
             output_column_name="percentile_colormap",
             **(params_dict.get("td_colormap") or {}),
         )
