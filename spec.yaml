@@ -848,7 +848,7 @@ workflow:
         task: apply_color_map
         partial:
           input_column_name: percentile
-          colormap: RdYlGn
+          colormap: bwr
           output_column_name: percentile_colormap
         mapvalues:
           argnames: df
