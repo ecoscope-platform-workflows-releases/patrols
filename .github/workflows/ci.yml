@@ -1,4 +1,3 @@
-{% raw %}
 name: CI
 
 on:
@@ -144,4 +143,3 @@ jobs:
           git add __results_snapshots__/
           git commit -m "auto: snapshot update"
           git push origin HEAD:${{ github.head_ref }}
-{% endraw %}
