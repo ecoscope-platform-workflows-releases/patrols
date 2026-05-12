@@ -12,6 +12,7 @@ ENV PATH="/root/.pixi/bin:$PATH"
 
 WORKDIR /app
 COPY . .
+RUN apt-get update && apt-get install -y git
 RUN pixi install -e default -e runner --locked
 
 FROM install AS app
