@@ -35,20 +35,44 @@ version = ">=2.0.0,<3.0.0"
 channel = "https://conda.anaconda.org/conda-forge/"
 
 [dependencies."ruamel.yaml"]
-version = ">=0.19.0,<0.20.0"
+version = ">=0.18.0,<0.19.0"
 channel = "https://conda.anaconda.org/conda-forge/"
 
 [dependencies.opentelemetry-api]
 version = ">=1.20.0,<2.0.0"
 channel = "https://conda.anaconda.org/conda-forge/"
 
-[dependencies.wt-task-gcp]
-version = ">=0.1.2,<1.0.0"
-channel = "https://repo.prefix.dev/ecoscope-workflows/"
+[pypi-dependencies.wt-contracts]
+git = "https://github.com/wildlife-dynamics/wt"
+subdirectory = "wt-contracts"
 
-[feature.runner.dependencies.wt-runner-gcp]
-version = ">=0.1.5,<1.0.0"
-channel = "https://repo.prefix.dev/ecoscope-workflows/"
+[pypi-dependencies.wt-registry]
+git = "https://github.com/wildlife-dynamics/wt"
+subdirectory = "wt-registry"
+
+[pypi-dependencies.wt-task-gcp]
+git = "https://github.com/wildlife-dynamics/wt"
+subdirectory = "wt-task-gcp"
+
+[feature.runner.dependencies.python]
+version = ">=3.10,<3.14"
+channel = "https://conda.anaconda.org/conda-forge/"
+
+[feature.runner.pypi-dependencies.wt-contracts]
+git = "https://github.com/wildlife-dynamics/wt"
+subdirectory = "wt-contracts"
+
+[feature.runner.pypi-dependencies.wt-invokers-gcp]
+git = "https://github.com/wildlife-dynamics/wt"
+subdirectory = "wt-invokers-gcp"
+
+[feature.runner.pypi-dependencies.wt-task-gcp]
+git = "https://github.com/wildlife-dynamics/wt"
+subdirectory = "wt-task-gcp"
+
+[feature.runner.pypi-dependencies.wt-runner-gcp]
+git = "https://github.com/wildlife-dynamics/wt"
+subdirectory = "wt-runner-gcp"
 
 [feature.runner.tasks]
 

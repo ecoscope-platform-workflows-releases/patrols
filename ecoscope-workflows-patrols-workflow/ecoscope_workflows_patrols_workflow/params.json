@@ -624,7 +624,20 @@
     "ValueGrouper": {
       "properties": {
         "index_name": {
-          "oneOf": [],
+          "oneOf": [
+            {
+              "const": "patrol_serial_number",
+              "title": "Patrol Serial Number"
+            },
+            {
+              "const": "patrol_type",
+              "title": "Patrol Type"
+            },
+            {
+              "const": "patrol_subject",
+              "title": "Patrol Subject"
+            }
+          ],
           "title": "Category",
           "type": "string"
         }
