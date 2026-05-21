@@ -391,7 +391,7 @@ workflow:
             - ${{ workflow.persist_events_parquet.return }}
       - name: Create map layers for each Patrols Events group
         id: patrol_events_map_layers
-        task: create_scatterplot_layer
+        task: create_geoarrow_scatterplot_layer
         skipif:
           conditions:
             - any_is_empty_df
@@ -477,7 +477,7 @@ workflow:
             - ${{ workflow.persist_traj_parquet.return }}
       - name: Create map layer for each Patrol Trajectories group
         id: patrol_traj_map_layers
-        task: create_polyline_layer
+        task: create_geoarrow_polyline_layer
         skipif:
           conditions:
             - any_is_empty_df
@@ -935,7 +935,7 @@ workflow:
             - ${{ workflow.persist_td_parquet.return }}
       - name: Create map layer from Time Density
         id: td_map_layer
-        task: create_polygon_layer
+        task: create_geoarrow_polygon_layer
         skipif:
           conditions:
             - any_is_empty_df
