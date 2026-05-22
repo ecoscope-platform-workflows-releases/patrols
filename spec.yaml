@@ -535,15 +535,6 @@ workflow:
         mapvalues:
           argnames: geo_layers
           argvalues: ${{ workflow.combined_traj_and_pe_map_layers.return }}
-      - name: Persist Patrols Ecomap as Text
-        id: traj_pe_ecomap_html_urls
-        task: persist_text
-        partial:
-          root_path: ${{ env.ECOSCOPE_WORKFLOWS_RESULTS }}
-          filename_suffix: v2
-        mapvalues:
-          argnames: text
-          argvalues: ${{ workflow.traj_patrol_events_ecomap.return }}
       - name: Create Map Widgets for Patrol Events
         id: traj_pe_map_widgets_single_views
         task: create_map_v2_widget_single_view
@@ -556,7 +547,7 @@ workflow:
           argnames:
             - view
             - data
-          argvalues: ${{ workflow.traj_pe_ecomap_html_urls.return }}
+          argvalues: ${{ workflow.traj_patrol_events_ecomap.return }}
       - name: Merge EcoMap Widget Views
         id: traj_pe_grouped_map_widget
         task: merge_widget_views
@@ -974,15 +965,6 @@ workflow:
         mapvalues:
           argnames: geo_layers
           argvalues: ${{ workflow.td_map_layer.return }}
-      - name: Persist Ecomap as Text
-        id: td_ecomap_html_url
-        task: persist_text
-        partial:
-          root_path: ${{ env.ECOSCOPE_WORKFLOWS_RESULTS }}
-          filename_suffix: v2
-        mapvalues:
-          argnames: text
-          argvalues: ${{ workflow.td_ecomap.return }}
       - name: Create Time Density Map Widget
         id: td_map_widget
         task: create_map_v2_widget_single_view
@@ -995,7 +977,7 @@ workflow:
           argnames:
             - view
             - data
-          argvalues: ${{ workflow.td_ecomap_html_url.return }}
+          argvalues: ${{ workflow.td_ecomap.return }}
       - name: Merge Time Density Map Widget Views
         id: td_grouped_map_widget
         task: merge_widget_views
