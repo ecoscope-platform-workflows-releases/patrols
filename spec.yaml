@@ -408,7 +408,7 @@ workflow:
             - Event Type
             - Event Time
         mapvalues:
-          argnames: geodataframe, data_url
+          argnames: [geodataframe, data_url]
           argvalues: ${{ workflow.combine_events_gdf_and_url.return }}
       - name: Format speed values for display
         id: speed_val_with_unit
@@ -477,7 +477,7 @@ workflow:
             - ${{ workflow.persist_traj_parquet.return }}
       - name: Create map layer for each Patrol Trajectories group
         id: patrol_traj_map_layers
-        task: create_geoarrow_polyline_layer
+        task: create_geoarrow_path_layer
         skipif:
           conditions:
             - any_is_empty_df
@@ -504,7 +504,7 @@ workflow:
             - Duration (s)
             - Speed (kph)
         mapvalues:
-          argnames: geodataframe, data_url
+          argnames: [geodataframe, data_url]
           argvalues: ${{ workflow.combine_traj_gdf_and_url.return }}
       - name: Combine Trajectories and Patrol Events layers
         id: combined_traj_and_pe_map_layers
@@ -954,7 +954,7 @@ workflow:
           tooltip_columns:
             - Percentile
         mapvalues:
-          argnames: geodataframe, data_url
+          argnames: [geodataframe, data_url]
           argvalues: ${{ workflow.combine_td_gdf_and_url.return }}
       - name: Draw Ecomap from Time Density
         id: td_ecomap
