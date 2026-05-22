@@ -904,6 +904,15 @@ workflow:
         mapvalues:
           argnames: df
           argvalues: ${{ workflow.td_colormap.return }}
+        # ltd by default outputs in EPSG:3857
+      - name: Convert patrol td crs
+        id: td_crs
+        task: convert_crs
+        partial:
+          crs: "EPSG:4326"
+        mapvalues:
+          argnames: df
+          argvalues: ${{ workflow.patrol_td_rename_columns.return }}
       - name: Persist patrol td to parquet
         id: persist_td_parquet
         task: persist_df
@@ -912,7 +921,7 @@ workflow:
           filetype: geoparquet
         mapvalues:
           argnames: df
-          argvalues: ${{ workflow.patrol_td_rename_columns.return }}
+          argvalues: ${{ workflow.td_crs.return }}
       - name: Combine patrol td gdf and data url
         id: combine_td_gdf_and_url
         skipif:
@@ -922,7 +931,7 @@ workflow:
         task: groupbykey
         partial:
           iterables:
-            - ${{ workflow.patrol_td_rename_columns.return }}
+            - ${{ workflow.td_crs.return }}
             - ${{ workflow.persist_td_parquet.return }}
       - name: Create map layer from Time Density
         id: td_map_layer
