@@ -371,10 +371,10 @@ workflow:
           argvalues: ${{ workflow.split_pe_groups.return }}
       - name: Persist patrol events to parquet
         id: persist_events_parquet
-        task: persist_df
+        task: persist_arrow
         partial:
-          root_path: ${{ env.ECOSCOPE_WORKFLOWS_RESULTS }}
-          filetype: geoparquet
+          root_path: ${{ env.ECOSCOPE_WORKFLOWS_RESULTS }}          
+          filename: null
         mapvalues:
           argnames: df
           argvalues: ${{ workflow.pe_rename_display_columns.return }}
@@ -457,10 +457,10 @@ workflow:
           argvalues: ${{ workflow.patrol_traj_rename_columns.return }}
       - name: Persist patrol traj to parquet
         id: persist_traj_parquet
-        task: persist_df
+        task: persist_arrow
         partial:
-          root_path: ${{ env.ECOSCOPE_WORKFLOWS_RESULTS }}
-          filetype: geoparquet
+          root_path: ${{ env.ECOSCOPE_WORKFLOWS_RESULTS }}          
+          filename: null
         mapvalues:
           argnames: df
           argvalues: ${{ workflow.patrol_traj_rename_status.return }}
@@ -488,9 +488,8 @@ workflow:
             auto_highlight: false
             opacity: 1.000000
             pickable: true
-            get_color: null
+            get_color: patrol_traj_colormap
             get_width: 3.000000
-            color_column: patrol_traj_colormap
             width_units: pixels
             cap_rounded: true
           legend:
@@ -740,7 +739,7 @@ workflow:
           y_axis: event_type_display
           category: event_type_display
           agg_function: count
-          color_column: event_type_colormap
+          get_color: event_type_colormap
           plot_style:
             xperiodalignment: middle
           layout_style: null
@@ -915,10 +914,10 @@ workflow:
           argvalues: ${{ workflow.patrol_td_rename_columns.return }}
       - name: Persist patrol td to parquet
         id: persist_td_parquet
-        task: persist_df
+        task: persist_arrow
         partial:
-          root_path: ${{ env.ECOSCOPE_WORKFLOWS_RESULTS }}
-          filetype: geoparquet
+          root_path: ${{ env.ECOSCOPE_WORKFLOWS_RESULTS }}          
+          filename: null
         mapvalues:
           argnames: df
           argvalues: ${{ workflow.td_crs.return }}
@@ -943,7 +942,7 @@ workflow:
             - all_geometry_are_none
         partial:
           layer_style:
-            fill_color_column: percentile_colormap
+            get_fill_color: percentile_colormap
             opacity: ${{ workflow.ltd_opacity.return }}
             get_line_width: 0
           legend:
