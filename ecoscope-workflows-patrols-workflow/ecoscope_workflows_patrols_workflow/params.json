@@ -427,6 +427,13 @@
           ],
           "title": "Time Interval",
           "type": "string"
+        },
+        "color_column": {
+          "default": null,
+          "title": "Color Column",
+          "type": "string",
+          "description": "The name of the dataframe column to color bars with.",
+          "ecoscope:advanced": true
         }
       },
       "required": [
@@ -787,6 +794,12 @@
       "ui:order": [
         "bounding_box",
         "filter_point_coords"
+      ]
+    },
+    "patrol_events_bar_chart": {
+      "ui:order": [
+        "time_interval",
+        "color_column"
       ]
     },
     "set_ltd_args": {

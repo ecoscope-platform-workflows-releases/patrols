@@ -90,7 +90,6 @@ from ecoscope.platform.tasks.config import title_case_var as title_case_var
 from ecoscope.platform.tasks.groupby import groupbykey as groupbykey
 from ecoscope.platform.tasks.groupby import split_groups as split_groups
 from ecoscope.platform.tasks.io import persist_text as persist_text
-from ecoscope.platform.tasks.io._persist import persist_arrow as persist_arrow
 from ecoscope.platform.tasks.preprocessing import (
     process_relocations as process_relocations,
 )
@@ -113,6 +112,9 @@ from ecoscope.platform.tasks.results import (
 )
 from ecoscope.platform.tasks.results import gather_dashboard as gather_dashboard
 from ecoscope.platform.tasks.results import merge_widget_views as merge_widget_views
+from ecoscope.platform.tasks.results import (
+    persist_geoarrow_for_pydeck as persist_geoarrow_for_pydeck,
+)
 from ecoscope.platform.tasks.results import set_base_maps as set_base_maps
 from ecoscope.platform.tasks.results._pydeck import (
     create_geoarrow_path_layer as create_geoarrow_path_layer,
@@ -963,7 +965,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
     )
 
     persist_events_parquet = (
-        task(persist_arrow)
+        task(persist_geoarrow_for_pydeck)
         .validate()
         .set_task_instance_id("persist_events_parquet")
         .handle_errors()
@@ -980,7 +982,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             filename=None,
             **(params.get("persist_events_parquet") or {}),
         )
-        .mapvalues(argnames=["df"], argvalues=pe_rename_display_columns)
+        .mapvalues(argnames=["gdf"], argvalues=pe_rename_display_columns)
     )
 
     combine_events_gdf_and_url = (
@@ -1117,7 +1119,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
     )
 
     persist_traj_parquet = (
-        task(persist_arrow)
+        task(persist_geoarrow_for_pydeck)
         .validate()
         .set_task_instance_id("persist_traj_parquet")
         .handle_errors()
@@ -1134,7 +1136,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             filename=None,
             **(params.get("persist_traj_parquet") or {}),
         )
-        .mapvalues(argnames=["df"], argvalues=patrol_traj_rename_status)
+        .mapvalues(argnames=["gdf"], argvalues=patrol_traj_rename_status)
     )
 
     combine_traj_gdf_and_url = (
@@ -2042,7 +2044,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
     )
 
     persist_td_parquet = (
-        task(persist_arrow)
+        task(persist_geoarrow_for_pydeck)
         .validate()
         .set_task_instance_id("persist_td_parquet")
         .handle_errors()
@@ -2059,7 +2061,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             filename=None,
             **(params.get("persist_td_parquet") or {}),
         )
-        .mapvalues(argnames=["df"], argvalues=td_crs)
+        .mapvalues(argnames=["gdf"], argvalues=td_crs)
     )
 
     combine_td_gdf_and_url = (

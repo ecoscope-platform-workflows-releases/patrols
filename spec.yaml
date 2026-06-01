@@ -1,11 +1,9 @@
 id: patrols
 requirements:
   - name: ecoscope
-    # git: https://github.com/wildlife-dynamics/ecoscope
-    # branch: am/bottleneck-tasks
-    path: /home/alex/Code/ecoscope__worktrees/am-pydeck-geoarrow-layers
+    git: https://github.com/wildlife-dynamics/ecoscope
+    branch: am/pydeck-geoarrow-layers
     extras: [analysis,mapping,plotting,platform]
-    editable: true
   # ecoscope-platform already declares this exact pydeck dependency. it is
   # re-stated here as a workaround for a known issue. for further detail, see:
   # https://github.com/wildlife-dynamics/wt/issues/167#issuecomment-4451993697
@@ -374,12 +372,12 @@ workflow:
           argvalues: ${{ workflow.split_pe_groups.return }}
       - name: Persist patrol events to parquet
         id: persist_events_parquet
-        task: persist_arrow
+        task: persist_geoarrow_for_pydeck
         partial:
           root_path: ${{ env.ECOSCOPE_WORKFLOWS_RESULTS }}          
           filename: null
         mapvalues:
-          argnames: df
+          argnames: gdf
           argvalues: ${{ workflow.pe_rename_display_columns.return }}
       - name: Combine patrol events gdf and data url
         id: combine_events_gdf_and_url
@@ -460,12 +458,12 @@ workflow:
           argvalues: ${{ workflow.patrol_traj_rename_columns.return }}
       - name: Persist patrol traj to parquet
         id: persist_traj_parquet
-        task: persist_arrow
+        task: persist_geoarrow_for_pydeck
         partial:
           root_path: ${{ env.ECOSCOPE_WORKFLOWS_RESULTS }}          
           filename: null
         mapvalues:
-          argnames: df
+          argnames: gdf
           argvalues: ${{ workflow.patrol_traj_rename_status.return }}
       - name: Combine patrol traj gdf and data url
         id: combine_traj_gdf_and_url
@@ -742,7 +740,7 @@ workflow:
           y_axis: event_type_display
           category: event_type_display
           agg_function: count
-          get_color: event_type_colormap
+          color_column: event_type_colormap
           plot_style:
             xperiodalignment: middle
           layout_style: null
@@ -917,12 +915,12 @@ workflow:
           argvalues: ${{ workflow.patrol_td_rename_columns.return }}
       - name: Persist patrol td to parquet
         id: persist_td_parquet
-        task: persist_arrow
+        task: persist_geoarrow_for_pydeck
         partial:
           root_path: ${{ env.ECOSCOPE_WORKFLOWS_RESULTS }}          
           filename: null
         mapvalues:
-          argnames: df
+          argnames: gdf
           argvalues: ${{ workflow.td_crs.return }}
       - name: Combine patrol td gdf and data url
         id: combine_td_gdf_and_url
