@@ -90,6 +90,7 @@ from ecoscope.platform.tasks.config import title_case_var as title_case_var
 from ecoscope.platform.tasks.groupby import groupbykey as groupbykey
 from ecoscope.platform.tasks.groupby import split_groups as split_groups
 from ecoscope.platform.tasks.io import persist_text as persist_text
+from ecoscope.platform.tasks.io._persist import persist_arrow as persist_arrow
 from ecoscope.platform.tasks.preprocessing import (
     process_relocations as process_relocations,
 )
@@ -97,20 +98,15 @@ from ecoscope.platform.tasks.preprocessing import (
     relocations_to_trajectory as relocations_to_trajectory,
 )
 from ecoscope.platform.tasks.results import (
-    create_map_widget_single_view as create_map_widget_single_view,
+    create_map_v2_widget_single_view as create_map_v2_widget_single_view,
 )
 from ecoscope.platform.tasks.results import (
     create_plot_widget_single_view as create_plot_widget_single_view,
 )
-from ecoscope.platform.tasks.results import create_point_layer as create_point_layer
-from ecoscope.platform.tasks.results import create_polygon_layer as create_polygon_layer
-from ecoscope.platform.tasks.results import (
-    create_polyline_layer as create_polyline_layer,
-)
 from ecoscope.platform.tasks.results import (
     create_single_value_widget_single_view as create_single_value_widget_single_view,
 )
-from ecoscope.platform.tasks.results import draw_ecomap as draw_ecomap
+from ecoscope.platform.tasks.results import draw_map as draw_map
 from ecoscope.platform.tasks.results import draw_pie_chart as draw_pie_chart
 from ecoscope.platform.tasks.results import (
     draw_time_series_bar_chart as draw_time_series_bar_chart,
@@ -118,6 +114,15 @@ from ecoscope.platform.tasks.results import (
 from ecoscope.platform.tasks.results import gather_dashboard as gather_dashboard
 from ecoscope.platform.tasks.results import merge_widget_views as merge_widget_views
 from ecoscope.platform.tasks.results import set_base_maps as set_base_maps
+from ecoscope.platform.tasks.results._pydeck import (
+    create_geoarrow_path_layer as create_geoarrow_path_layer,
+)
+from ecoscope.platform.tasks.results._pydeck import (
+    create_geoarrow_polygon_layer as create_geoarrow_polygon_layer,
+)
+from ecoscope.platform.tasks.results._pydeck import (
+    create_geoarrow_scatterplot_layer as create_geoarrow_scatterplot_layer,
+)
 from ecoscope.platform.tasks.skip import all_geometry_are_none as all_geometry_are_none
 from ecoscope.platform.tasks.skip import (
     all_keyed_iterables_are_skips as all_keyed_iterables_are_skips,
@@ -136,6 +141,7 @@ from ecoscope.platform.tasks.transformation import (
 from ecoscope.platform.tasks.transformation import (
     convert_column_values_to_string as convert_column_values_to_string,
 )
+from ecoscope.platform.tasks.transformation import convert_crs as convert_crs
 from ecoscope.platform.tasks.transformation import (
     drop_nan_values_by_column as drop_nan_values_by_column,
 )
@@ -956,8 +962,48 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
         .mapvalues(argnames=["df"], argvalues=split_pe_groups)
     )
 
+    persist_events_parquet = (
+        task(persist_arrow)
+        .validate()
+        .set_task_instance_id("persist_events_parquet")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            root_path=os.environ["ECOSCOPE_WORKFLOWS_RESULTS"],
+            filename=None,
+            **(params.get("persist_events_parquet") or {}),
+        )
+        .mapvalues(argnames=["df"], argvalues=pe_rename_display_columns)
+    )
+
+    combine_events_gdf_and_url = (
+        task(groupbykey)
+        .validate()
+        .set_task_instance_id("combine_events_gdf_and_url")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                all_keyed_iterables_are_skips,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            iterables=[pe_rename_display_columns, persist_events_parquet],
+            **(params.get("combine_events_gdf_and_url") or {}),
+        )
+        .call()
+    )
+
     patrol_events_map_layers = (
-        task(create_point_layer)
+        task(create_geoarrow_scatterplot_layer)
         .validate()
         .set_task_instance_id("patrol_events_map_layers")
         .handle_errors()
@@ -971,8 +1017,9 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             unpack_depth=1,
         )
         .partial(
-            layer_style={"fill_color_column": "event_type_colormap"},
+            layer_style={"get_fill_color": "event_type_colormap"},
             legend=None,
+            zoom=False,
             tooltip_columns=[
                 "Patrol Serial Number",
                 "Event Serial Number",
@@ -981,7 +1028,9 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             ],
             **(params.get("patrol_events_map_layers") or {}),
         )
-        .mapvalues(argnames=["geodataframe"], argvalues=pe_rename_display_columns)
+        .mapvalues(
+            argnames=["geodataframe", "data_url"], argvalues=combine_events_gdf_and_url
+        )
     )
 
     speed_val_with_unit = (
@@ -1067,8 +1116,48 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
         .mapvalues(argnames=["df"], argvalues=patrol_traj_rename_columns)
     )
 
+    persist_traj_parquet = (
+        task(persist_arrow)
+        .validate()
+        .set_task_instance_id("persist_traj_parquet")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            root_path=os.environ["ECOSCOPE_WORKFLOWS_RESULTS"],
+            filename=None,
+            **(params.get("persist_traj_parquet") or {}),
+        )
+        .mapvalues(argnames=["df"], argvalues=patrol_traj_rename_status)
+    )
+
+    combine_traj_gdf_and_url = (
+        task(groupbykey)
+        .validate()
+        .set_task_instance_id("combine_traj_gdf_and_url")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                all_keyed_iterables_are_skips,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            iterables=[patrol_traj_rename_status, persist_traj_parquet],
+            **(params.get("combine_traj_gdf_and_url") or {}),
+        )
+        .call()
+    )
+
     patrol_traj_map_layers = (
-        task(create_polyline_layer)
+        task(create_geoarrow_path_layer)
         .validate()
         .set_task_instance_id("patrol_traj_map_layers")
         .handle_errors()
@@ -1086,9 +1175,8 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
                 "auto_highlight": False,
                 "opacity": 1.0,
                 "pickable": True,
-                "get_color": None,
+                "get_color": "patrol_traj_colormap",
                 "get_width": 3.0,
-                "color_column": "patrol_traj_colormap",
                 "width_units": "pixels",
                 "cap_rounded": True,
             },
@@ -1096,6 +1184,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
                 "label_column": patrol_traj_color_column_display,
                 "color_column": "patrol_traj_colormap",
             },
+            zoom=False,
             tooltip_columns=[
                 "Patrol Serial Number",
                 "Patrol Type",
@@ -1105,7 +1194,9 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             ],
             **(params.get("patrol_traj_map_layers") or {}),
         )
-        .mapvalues(argnames=["geodataframe"], argvalues=patrol_traj_rename_status)
+        .mapvalues(
+            argnames=["geodataframe", "data_url"], argvalues=combine_traj_gdf_and_url
+        )
     )
 
     combined_traj_and_pe_map_layers = (
@@ -1128,7 +1219,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
     )
 
     traj_patrol_events_ecomap = (
-        task(draw_ecomap)
+        task(draw_map)
         .validate()
         .set_task_instance_id("traj_patrol_events_ecomap")
         .handle_errors()
@@ -1142,7 +1233,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
         )
         .partial(
             tile_layers=base_map_defs,
-            north_arrow_style={"placement": "top-left"},
+            output_type="json",
             legend_style={
                 "title": patrol_traj_color_column_display,
                 "format_title": True,
@@ -1150,6 +1241,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             },
             static=False,
             title=None,
+            view_state=None,
             max_zoom=20,
             widget_id=set_traj_pe_map_title,
             **(params.get("traj_patrol_events_ecomap") or {}),
@@ -1157,29 +1249,8 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
         .mapvalues(argnames=["geo_layers"], argvalues=combined_traj_and_pe_map_layers)
     )
 
-    traj_pe_ecomap_html_urls = (
-        task(persist_text)
-        .validate()
-        .set_task_instance_id("traj_pe_ecomap_html_urls")
-        .handle_errors()
-        .with_tracing()
-        .skipif(
-            conditions=[
-                any_is_empty_df,
-                any_dependency_skipped,
-            ],
-            unpack_depth=1,
-        )
-        .partial(
-            root_path=os.environ["ECOSCOPE_WORKFLOWS_RESULTS"],
-            filename_suffix="v2",
-            **(params.get("traj_pe_ecomap_html_urls") or {}),
-        )
-        .mapvalues(argnames=["text"], argvalues=traj_patrol_events_ecomap)
-    )
-
     traj_pe_map_widgets_single_views = (
-        task(create_map_widget_single_view)
+        task(create_map_v2_widget_single_view)
         .validate()
         .set_task_instance_id("traj_pe_map_widgets_single_views")
         .handle_errors()
@@ -1194,7 +1265,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             title=set_traj_pe_map_title,
             **(params.get("traj_pe_map_widgets_single_views") or {}),
         )
-        .map(argnames=["view", "data"], argvalues=traj_pe_ecomap_html_urls)
+        .map(argnames=["view", "data"], argvalues=traj_patrol_events_ecomap)
     )
 
     traj_pe_grouped_map_widget = (
@@ -1953,8 +2024,65 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
         .mapvalues(argnames=["df"], argvalues=td_colormap)
     )
 
+    td_crs = (
+        task(convert_crs)
+        .validate()
+        .set_task_instance_id("td_crs")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(crs="EPSG:4326", **(params.get("td_crs") or {}))
+        .mapvalues(argnames=["df"], argvalues=patrol_td_rename_columns)
+    )
+
+    persist_td_parquet = (
+        task(persist_arrow)
+        .validate()
+        .set_task_instance_id("persist_td_parquet")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            root_path=os.environ["ECOSCOPE_WORKFLOWS_RESULTS"],
+            filename=None,
+            **(params.get("persist_td_parquet") or {}),
+        )
+        .mapvalues(argnames=["df"], argvalues=td_crs)
+    )
+
+    combine_td_gdf_and_url = (
+        task(groupbykey)
+        .validate()
+        .set_task_instance_id("combine_td_gdf_and_url")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                all_keyed_iterables_are_skips,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            iterables=[td_crs, persist_td_parquet],
+            **(params.get("combine_td_gdf_and_url") or {}),
+        )
+        .call()
+    )
+
     td_map_layer = (
-        task(create_polygon_layer)
+        task(create_geoarrow_polygon_layer)
         .validate()
         .set_task_instance_id("td_map_layer")
         .handle_errors()
@@ -1969,7 +2097,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
         )
         .partial(
             layer_style={
-                "fill_color_column": "percentile_colormap",
+                "get_fill_color": "percentile_colormap",
                 "opacity": ltd_opacity,
                 "get_line_width": 0,
             },
@@ -1978,14 +2106,17 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
                 "label_suffix": " %",
                 "color_column": "percentile_colormap",
             },
+            zoom=False,
             tooltip_columns=["Percentile"],
             **(params.get("td_map_layer") or {}),
         )
-        .mapvalues(argnames=["geodataframe"], argvalues=patrol_td_rename_columns)
+        .mapvalues(
+            argnames=["geodataframe", "data_url"], argvalues=combine_td_gdf_and_url
+        )
     )
 
     td_ecomap = (
-        task(draw_ecomap)
+        task(draw_map)
         .validate()
         .set_task_instance_id("td_ecomap")
         .handle_errors()
@@ -1999,7 +2130,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
         )
         .partial(
             tile_layers=base_map_defs,
-            north_arrow_style={"placement": "top-left"},
+            output_type="json",
             legend_style={
                 "title": "Time Spent",
                 "format_title": False,
@@ -2007,6 +2138,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             },
             static=False,
             title=None,
+            view_state=None,
             max_zoom=20,
             widget_id=set_ltd_map_title,
             **(params.get("td_ecomap") or {}),
@@ -2014,29 +2146,8 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
         .mapvalues(argnames=["geo_layers"], argvalues=td_map_layer)
     )
 
-    td_ecomap_html_url = (
-        task(persist_text)
-        .validate()
-        .set_task_instance_id("td_ecomap_html_url")
-        .handle_errors()
-        .with_tracing()
-        .skipif(
-            conditions=[
-                any_is_empty_df,
-                any_dependency_skipped,
-            ],
-            unpack_depth=1,
-        )
-        .partial(
-            root_path=os.environ["ECOSCOPE_WORKFLOWS_RESULTS"],
-            filename_suffix="v2",
-            **(params.get("td_ecomap_html_url") or {}),
-        )
-        .mapvalues(argnames=["text"], argvalues=td_ecomap)
-    )
-
     td_map_widget = (
-        task(create_map_widget_single_view)
+        task(create_map_v2_widget_single_view)
         .validate()
         .set_task_instance_id("td_map_widget")
         .handle_errors()
@@ -2048,7 +2159,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             unpack_depth=1,
         )
         .partial(title=set_ltd_map_title, **(params.get("td_map_widget") or {}))
-        .map(argnames=["view", "data"], argvalues=td_ecomap_html_url)
+        .map(argnames=["view", "data"], argvalues=td_ecomap)
     )
 
     td_grouped_map_widget = (
