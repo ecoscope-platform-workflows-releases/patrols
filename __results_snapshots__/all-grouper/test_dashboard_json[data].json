@@ -35,63 +35,325 @@
     "views": {
       "{\"All\": \"True\"}": [
         {
-          "data": "str",
+          "data": {
+            "initialViewState": {
+              "bearing": 0,
+              "latitude": -2.499941249117215,
+              "longitude": 38.762770802026495,
+              "pitch": 0,
+              "zoom": 7.0
+            },
+            "layers": [
+              {
+                "@@type": "TiledBitmapLayer",
+                "data": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
+                "id": "uuid",
+                "maxZoom": 20,
+                "minZoom": 0,
+                "opacity": 1.0,
+                "tileSize": 256,
+                "widgetId": "Trajectories & Patrol Events Map"
+              },
+              {
+                "@@type": "TiledBitmapLayer",
+                "data": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+                "id": "uuid",
+                "maxZoom": 17,
+                "minZoom": 0,
+                "opacity": 0.5,
+                "tileSize": 256,
+                "widgetId": "Trajectories & Patrol Events Map"
+              },
+              {
+                "@@type": "GeoArrowPathLayer",
+                "autoHighlight": false,
+                "billboard": false,
+                "capRounded": true,
+                "data": "tmpfile",
+                "getColor": "patrol_traj_colormap",
+                "getWidth": 3.0,
+                "id": "GeoArrowPathLayer-0",
+                "jointRounded": false,
+                "opacity": 1.0,
+                "pickable": true,
+                "widthMinPixels": 0,
+                "widthScale": 1,
+                "widthUnits": "pixels"
+              },
+              {
+                "@@type": "GeoArrowScatterplotLayer",
+                "autoHighlight": false,
+                "billboard": false,
+                "data": "tmpfile",
+                "elevationScale": 1,
+                "filled": true,
+                "getFillColor": "event_type_colormap",
+                "getLineWidth": 1,
+                "getRadius": 5,
+                "id": "GeoArrowScatterplotLayer-1",
+                "lineWidthMinPixels": 0,
+                "lineWidthScale": 1,
+                "lineWidthUnits": "pixels",
+                "opacity": 1,
+                "pickable": true,
+                "radiusMinPixels": 0,
+                "radiusScale": 1,
+                "radiusUnits": "pixels",
+                "stroked": false
+              }
+            ],
+            "mapProvider": "carto",
+            "mapStyle": "https://basemaps.cartocdn.com/gl/positron-nolabels-gl-style/style.json",
+            "parameters": {
+              "depthTest": false
+            },
+            "views": {
+              "@@type": "MapView",
+              "controller": true,
+              "repeat": true
+            },
+            "widgets": [
+              {
+                "@@type": "NorthArrowWidget",
+                "id": "uuid",
+                "placement": "top-left",
+                "style": {
+                  "transform": "scale(0.8)"
+                }
+              },
+              {
+                "@@type": "ScaleWidget",
+                "id": "uuid",
+                "placement": "bottom-left"
+              },
+              {
+                "@@type": "SaveImageWidget",
+                "id": "uuid",
+                "placement": "top-right"
+              },
+              {
+                "@@type": "LegendWidget",
+                "id": "uuid",
+                "legendValues": [
+                  {
+                    "title": "Legend",
+                    "values": [
+                      {
+                        "color": "rgba(255, 150, 0, 1.0)",
+                        "label": "eco_2"
+                      },
+                      {
+                        "color": "rgba(242, 59, 14, 1.0)",
+                        "label": "eco_1"
+                      }
+                    ]
+                  }
+                ],
+                "placement": "bottom-right"
+              },
+              {
+                "@@type": "TooltipWidget",
+                "id": "TooltipWidget",
+                "layerColumns": {
+                  "GeoArrowPathLayer-0": [
+                    "Patrol Serial Number",
+                    "Patrol Type",
+                    "Start",
+                    "Duration (s)",
+                    "Speed (kph)"
+                  ],
+                  "GeoArrowScatterplotLayer-1": [
+                    "Patrol Serial Number",
+                    "Event Serial Number",
+                    "Event Type",
+                    "Event Time"
+                  ]
+                }
+              }
+            ]
+          },
           "id": 0,
           "is_filtered": true,
           "title": "Trajectories & Patrol Events Map",
-          "widget_type": "map"
+          "widget_type": "map_v2"
         },
         {
-          "data": "str",
+          "data": {
+            "initialViewState": {
+              "bearing": 0,
+              "latitude": -2.4971611286456885,
+              "longitude": 38.759474816612375,
+              "pitch": 0,
+              "zoom": 7.0
+            },
+            "layers": [
+              {
+                "@@type": "TiledBitmapLayer",
+                "data": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
+                "id": "uuid",
+                "maxZoom": 20,
+                "minZoom": 0,
+                "opacity": 1.0,
+                "tileSize": 256,
+                "widgetId": "Time Density Map"
+              },
+              {
+                "@@type": "TiledBitmapLayer",
+                "data": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+                "id": "uuid",
+                "maxZoom": 17,
+                "minZoom": 0,
+                "opacity": 0.5,
+                "tileSize": 256,
+                "widgetId": "Time Density Map"
+              },
+              {
+                "@@type": "GeoArrowPolygonLayer",
+                "antialiasing": true,
+                "autoHighlight": false,
+                "billboard": false,
+                "data": "tmpfile",
+                "extruded": false,
+                "filled": true,
+                "getFillColor": "percentile_colormap",
+                "getLineWidth": 0.0,
+                "id": "GeoArrowPolygonLayer-0",
+                "lineJointRounded": false,
+                "lineMiterLimit": 4,
+                "lineWidthMinPixels": 0,
+                "lineWidthScale": 1,
+                "lineWidthUnits": "pixels",
+                "opacity": 0.7,
+                "pickable": true,
+                "stroked": false,
+                "wireframe": true
+              }
+            ],
+            "mapProvider": "carto",
+            "mapStyle": "https://basemaps.cartocdn.com/gl/positron-nolabels-gl-style/style.json",
+            "parameters": {
+              "depthTest": false
+            },
+            "views": {
+              "@@type": "MapView",
+              "controller": true,
+              "repeat": true
+            },
+            "widgets": [
+              {
+                "@@type": "NorthArrowWidget",
+                "id": "uuid",
+                "placement": "top-left",
+                "style": {
+                  "transform": "scale(0.8)"
+                }
+              },
+              {
+                "@@type": "ScaleWidget",
+                "id": "uuid",
+                "placement": "bottom-left"
+              },
+              {
+                "@@type": "SaveImageWidget",
+                "id": "uuid",
+                "placement": "top-right"
+              },
+              {
+                "@@type": "LegendWidget",
+                "id": "uuid",
+                "legendValues": [
+                  {
+                    "title": "Legend",
+                    "values": [
+                      {
+                        "color": "rgba(165, 0, 38, 1.0)",
+                        "label": "50.0 %"
+                      },
+                      {
+                        "color": "rgba(244, 109, 67, 1.0)",
+                        "label": "60.0 %"
+                      },
+                      {
+                        "color": "rgba(254, 224, 139, 1.0)",
+                        "label": "70.0 %"
+                      },
+                      {
+                        "color": "rgba(217, 239, 139, 1.0)",
+                        "label": "80.0 %"
+                      },
+                      {
+                        "color": "rgba(102, 189, 99, 1.0)",
+                        "label": "90.0 %"
+                      },
+                      {
+                        "color": "rgba(0, 104, 55, 1.0)",
+                        "label": "100.0 %"
+                      }
+                    ]
+                  }
+                ],
+                "placement": "bottom-right"
+              },
+              {
+                "@@type": "TooltipWidget",
+                "id": "TooltipWidget",
+                "layerColumns": {
+                  "GeoArrowPolygonLayer-0": [
+                    "Percentile"
+                  ]
+                }
+              }
+            ]
+          },
           "id": 1,
           "is_filtered": true,
           "title": "Time Density Map",
-          "widget_type": "map"
+          "widget_type": "map_v2"
         },
         {
-          "data": "str",
+          "data": "tmpfile",
           "id": 2,
           "is_filtered": true,
           "title": "Patrol Events Bar Chart",
           "widget_type": "graph"
         },
         {
-          "data": "str",
+          "data": "tmpfile",
           "id": 3,
           "is_filtered": true,
           "title": "Patrol Events Pie Chart",
           "widget_type": "graph"
         },
         {
-          "data": "str",
+          "data": "59",
           "id": 4,
           "is_filtered": true,
           "title": "Total Patrols",
           "widget_type": "stat"
         },
         {
-          "data": "str",
+          "data": "1220.7 h",
           "id": 5,
           "is_filtered": true,
           "title": "Total Time",
           "widget_type": "stat"
         },
         {
-          "data": "str",
+          "data": "3315.8 km",
           "id": 6,
           "is_filtered": true,
           "title": "Total Distance",
           "widget_type": "stat"
         },
         {
-          "data": "str",
+          "data": "2.7 km/h",
           "id": 7,
           "is_filtered": true,
           "title": "Average Speed",
           "widget_type": "stat"
         },
         {
-          "data": "str",
+          "data": "30.4 km/h",
           "id": 8,
           "is_filtered": true,
           "title": "Max Speed",
