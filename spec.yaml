@@ -1,7 +1,7 @@
 id: patrols
 requirements:
   - name: ecoscope-platform
-    version: 2.13.0
+    version: 2.14.0
     channel: https://repo.prefix.dev/ecoscope-workflows/
   # ecoscope-platform already declares this exact pydeck dependency. it is
   # re-stated here as a workaround for a known issue. for further detail, see:
@@ -369,9 +369,29 @@ workflow:
         mapvalues:
           argnames: df
           argvalues: ${{ workflow.split_pe_groups.return }}
+      - name: Persist patrol events to parquet
+        id: persist_events_parquet
+        task: persist_geoarrow_for_pydeck
+        partial:
+          root_path: ${{ env.ECOSCOPE_WORKFLOWS_RESULTS }}          
+          filename: null
+        mapvalues:
+          argnames: gdf
+          argvalues: ${{ workflow.pe_rename_display_columns.return }}
+      - name: Combine patrol events gdf and data url
+        id: combine_events_gdf_and_url
+        skipif:
+          conditions:
+            - all_keyed_iterables_are_skips
+          unpack_depth: 1
+        task: groupbykey
+        partial:
+          iterables:
+            - ${{ workflow.pe_rename_display_columns.return }}
+            - ${{ workflow.persist_events_parquet.return }}
       - name: Create map layers for each Patrols Events group
         id: patrol_events_map_layers
-        task: create_point_layer
+        task: create_geoarrow_scatterplot_layer
         skipif:
           conditions:
             - any_is_empty_df
@@ -379,16 +399,17 @@ workflow:
             - all_geometry_are_none
         partial:
           layer_style:
-            fill_color_column: event_type_colormap
+            get_fill_color: event_type_colormap
           legend: null
+          zoom: false          
           tooltip_columns:
             - Patrol Serial Number
             - Event Serial Number
             - Event Type
             - Event Time
         mapvalues:
-          argnames: geodataframe
-          argvalues: ${{ workflow.pe_rename_display_columns.return }}
+          argnames: [geodataframe, data_url]
+          argvalues: ${{ workflow.combine_events_gdf_and_url.return }}
       - name: Format speed values for display
         id: speed_val_with_unit
         task: map_values_with_unit
@@ -434,9 +455,29 @@ workflow:
         mapvalues:
           argnames: df
           argvalues: ${{ workflow.patrol_traj_rename_columns.return }}
+      - name: Persist patrol traj to parquet
+        id: persist_traj_parquet
+        task: persist_geoarrow_for_pydeck
+        partial:
+          root_path: ${{ env.ECOSCOPE_WORKFLOWS_RESULTS }}          
+          filename: null
+        mapvalues:
+          argnames: gdf
+          argvalues: ${{ workflow.patrol_traj_rename_status.return }}
+      - name: Combine patrol traj gdf and data url
+        id: combine_traj_gdf_and_url
+        skipif:
+          conditions:
+            - all_keyed_iterables_are_skips
+          unpack_depth: 1
+        task: groupbykey
+        partial:
+          iterables:
+            - ${{ workflow.patrol_traj_rename_status.return }}
+            - ${{ workflow.persist_traj_parquet.return }}
       - name: Create map layer for each Patrol Trajectories group
         id: patrol_traj_map_layers
-        task: create_polyline_layer
+        task: create_geoarrow_path_layer
         skipif:
           conditions:
             - any_is_empty_df
@@ -447,14 +488,14 @@ workflow:
             auto_highlight: false
             opacity: 1.000000
             pickable: true
-            get_color: null
+            get_color: patrol_traj_colormap
             get_width: 3.000000
-            color_column: patrol_traj_colormap
             width_units: pixels
             cap_rounded: true
           legend:
             label_column: ${{ workflow.patrol_traj_color_column_display.return }}
             color_column: patrol_traj_colormap
+          zoom: false
           tooltip_columns:
             - Patrol Serial Number
             - Patrol Type
@@ -462,8 +503,8 @@ workflow:
             - Duration (s)
             - Speed (kph)
         mapvalues:
-          argnames: geodataframe
-          argvalues: ${{ workflow.patrol_traj_rename_status.return }}
+          argnames: [geodataframe, data_url]
+          argvalues: ${{ workflow.combine_traj_gdf_and_url.return }}
       - name: Combine Trajectories and Patrol Events layers
         id: combined_traj_and_pe_map_layers
         skipif:
@@ -477,34 +518,25 @@ workflow:
             - ${{ workflow.patrol_events_map_layers.return }}
       - name: Draw Ecomaps for each combined Trajectory and Patrol Events group
         id: traj_patrol_events_ecomap
-        task: draw_ecomap
+        task: draw_map
         partial:
           tile_layers: ${{ workflow.base_map_defs.return }}
-          north_arrow_style:
-            placement: top-left
+          output_type: json
           legend_style:
             title: ${{ workflow.patrol_traj_color_column_display.return }}
             format_title: true
             placement: bottom-right
           static: false
           title: null
+          view_state: null
           max_zoom: 20
           widget_id: ${{ workflow.set_traj_pe_map_title.return }}
         mapvalues:
           argnames: geo_layers
           argvalues: ${{ workflow.combined_traj_and_pe_map_layers.return }}
-      - name: Persist Patrols Ecomap as Text
-        id: traj_pe_ecomap_html_urls
-        task: persist_text
-        partial:
-          root_path: ${{ env.ECOSCOPE_WORKFLOWS_RESULTS }}
-          filename_suffix: v2
-        mapvalues:
-          argnames: text
-          argvalues: ${{ workflow.traj_patrol_events_ecomap.return }}
       - name: Create Map Widgets for Patrol Events
         id: traj_pe_map_widgets_single_views
-        task: create_map_widget_single_view
+        task: create_map_v2_widget_single_view
         skipif:
           conditions:
             - never
@@ -514,7 +546,7 @@ workflow:
           argnames:
             - view
             - data
-          argvalues: ${{ workflow.traj_pe_ecomap_html_urls.return }}
+          argvalues: ${{ workflow.traj_patrol_events_ecomap.return }}
       - name: Merge EcoMap Widget Views
         id: traj_pe_grouped_map_widget
         task: merge_widget_views
@@ -871,9 +903,38 @@ workflow:
         mapvalues:
           argnames: df
           argvalues: ${{ workflow.td_colormap.return }}
+        # ltd by default outputs in EPSG:3857
+      - name: Convert patrol td crs
+        id: td_crs
+        task: convert_crs
+        partial:
+          crs: "EPSG:4326"
+        mapvalues:
+          argnames: df
+          argvalues: ${{ workflow.patrol_td_rename_columns.return }}
+      - name: Persist patrol td to parquet
+        id: persist_td_parquet
+        task: persist_geoarrow_for_pydeck
+        partial:
+          root_path: ${{ env.ECOSCOPE_WORKFLOWS_RESULTS }}          
+          filename: null
+        mapvalues:
+          argnames: gdf
+          argvalues: ${{ workflow.td_crs.return }}
+      - name: Combine patrol td gdf and data url
+        id: combine_td_gdf_and_url
+        skipif:
+          conditions:
+            - all_keyed_iterables_are_skips
+          unpack_depth: 1
+        task: groupbykey
+        partial:
+          iterables:
+            - ${{ workflow.td_crs.return }}
+            - ${{ workflow.persist_td_parquet.return }}
       - name: Create map layer from Time Density
         id: td_map_layer
-        task: create_polygon_layer
+        task: create_geoarrow_polygon_layer
         skipif:
           conditions:
             - any_is_empty_df
@@ -881,48 +942,40 @@ workflow:
             - all_geometry_are_none
         partial:
           layer_style:
-            fill_color_column: percentile_colormap
+            get_fill_color: percentile_colormap
             opacity: ${{ workflow.ltd_opacity.return }}
             get_line_width: 0
           legend:
             label_column: Percentile
             label_suffix: ' %'
             color_column: percentile_colormap
+          zoom: false
           tooltip_columns:
             - Percentile
         mapvalues:
-          argnames: geodataframe
-          argvalues: ${{ workflow.patrol_td_rename_columns.return }}
+          argnames: [geodataframe, data_url]
+          argvalues: ${{ workflow.combine_td_gdf_and_url.return }}
       - name: Draw Ecomap from Time Density
         id: td_ecomap
-        task: draw_ecomap
+        task: draw_map
         partial:
           tile_layers: ${{ workflow.base_map_defs.return }}
-          north_arrow_style:
-            placement: top-left
+          output_type: json
           legend_style:
             title: Time Spent
             format_title: false
             placement: bottom-right
           static: false
           title: null
+          view_state: null
           max_zoom: 20
           widget_id: ${{ workflow.set_ltd_map_title.return }}
         mapvalues:
           argnames: geo_layers
           argvalues: ${{ workflow.td_map_layer.return }}
-      - name: Persist Ecomap as Text
-        id: td_ecomap_html_url
-        task: persist_text
-        partial:
-          root_path: ${{ env.ECOSCOPE_WORKFLOWS_RESULTS }}
-          filename_suffix: v2
-        mapvalues:
-          argnames: text
-          argvalues: ${{ workflow.td_ecomap.return }}
       - name: Create Time Density Map Widget
         id: td_map_widget
-        task: create_map_widget_single_view
+        task: create_map_v2_widget_single_view
         skipif:
           conditions:
             - never
@@ -932,7 +985,7 @@ workflow:
           argnames:
             - view
             - data
-          argvalues: ${{ workflow.td_ecomap_html_url.return }}
+          argvalues: ${{ workflow.td_ecomap.return }}
       - name: Merge Time Density Map Widget Views
         id: td_grouped_map_widget
         task: merge_widget_views

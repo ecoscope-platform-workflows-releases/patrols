@@ -5,6 +5,7 @@ on:
     types: [opened, reopened, synchronize, closed]
     branches:
       - 'main'
+      - 'ecoscope-web'
       - 'patch-*'
 
 jobs:
