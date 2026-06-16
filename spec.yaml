@@ -753,7 +753,11 @@ workflow:
           color_column: event_type_colormap
           plot_style:
             xperiodalignment: middle
-          layout_style: null
+          layout_style:
+            yaxis:
+              title: "Event Type"
+            xaxis:
+              title: "Time"
           widget_id: ${{ workflow.set_bar_chart_title.return }}
         mapvalues:
           argnames: dataframe
