@@ -754,7 +754,7 @@ workflow:
             xperiodalignment: middle
           layout_style:
             yaxis:
-              title: "Event Type"
+              title: "Number of Events"
             xaxis:
               title: "Time"
           widget_id: ${{ workflow.set_bar_chart_title.return }}
