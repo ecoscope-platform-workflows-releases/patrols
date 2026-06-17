@@ -1587,7 +1587,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             color_column="event_type_colormap",
             plot_style={"xperiodalignment": "middle"},
             layout_style={
-                "yaxis": {"title": "Number of Events"},
+                "yaxis": {"title": "Count of Events by Type"},
                 "xaxis": {"title": "Time"},
             },
             widget_id=set_bar_chart_title,
