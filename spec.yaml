@@ -1,7 +1,7 @@
 id: patrols
 requirements:
   - name: ecoscope-platform
-    version: 2.15.0
+    version: 2.16.0
     channel: https://repo.prefix.dev/ecoscope-workflows/
   # ecoscope-platform already declares this exact pydeck dependency. it is
   # re-stated here as a workaround for a known issue. for further detail, see:
@@ -752,7 +752,11 @@ workflow:
           color_column: event_type_colormap
           plot_style:
             xperiodalignment: middle
-          layout_style: null
+          layout_style:
+            yaxis:
+              title: "Count of Events by Type"
+            xaxis:
+              title: "Time"
           widget_id: ${{ workflow.set_bar_chart_title.return }}
         mapvalues:
           argnames: dataframe
@@ -901,6 +905,18 @@ workflow:
         mapvalues:
           argnames: df
           argvalues: ${{ workflow.percentile_col_to_string.return }}
+      - name: Format area values for display
+        id: sqkm_display
+        task: map_values_with_unit
+        partial:
+          input_column_name: area_sqkm
+          output_column_name: area_sqkm
+          original_unit: "km²"
+          new_unit: "km²"
+          decimal_places: 2
+        mapvalues:
+          argnames: df
+          argvalues: ${{ workflow.td_colormap.return }}
       - name: Rename patrol traj columns for map tooltip display
         id: patrol_td_rename_columns
         task: map_columns
@@ -909,10 +925,11 @@ workflow:
           retain_columns: []
           rename_columns:
             percentile: Percentile
+            area_sqkm: "Area"
           raise_if_not_found: true
         mapvalues:
           argnames: df
-          argvalues: ${{ workflow.td_colormap.return }}
+          argvalues: ${{ workflow.sqkm_display.return }}
         # ltd by default outputs in EPSG:3857
       - name: Convert patrol td crs
         id: td_crs
@@ -967,6 +984,7 @@ workflow:
           zoom: false
           tooltip_columns:
             - Percentile
+            - Area
         mapvalues:
           argnames: [geodataframe, data_url]
           argvalues: ${{ workflow.combine_td_gdf_and_url.return }}
