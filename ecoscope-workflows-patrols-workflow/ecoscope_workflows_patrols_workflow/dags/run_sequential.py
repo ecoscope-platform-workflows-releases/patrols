@@ -1586,7 +1586,10 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             agg_function="count",
             color_column="event_type_colormap",
             plot_style={"xperiodalignment": "middle"},
-            layout_style=None,
+            layout_style={
+                "yaxis": {"title": "Count of Events by Type"},
+                "xaxis": {"title": "Time"},
+            },
             widget_id=set_bar_chart_title,
             **(params.get("patrol_events_bar_chart") or {}),
         )
@@ -1908,6 +1911,30 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
         .mapvalues(argnames=["df"], argvalues=percentile_col_to_string)
     )
 
+    sqkm_display = (
+        task(map_values_with_unit)
+        .validate()
+        .set_task_instance_id("sqkm_display")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            input_column_name="area_sqkm",
+            output_column_name="area_sqkm",
+            original_unit="km²",
+            new_unit="km²",
+            decimal_places=2,
+            **(params.get("sqkm_display") or {}),
+        )
+        .mapvalues(argnames=["df"], argvalues=td_colormap)
+    )
+
     patrol_td_rename_columns = (
         task(map_columns)
         .validate()
@@ -1924,11 +1951,11 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
         .partial(
             drop_columns=[],
             retain_columns=[],
-            rename_columns={"percentile": "Percentile"},
+            rename_columns={"percentile": "Percentile", "area_sqkm": "Area"},
             raise_if_not_found=True,
             **(params.get("patrol_td_rename_columns") or {}),
         )
-        .mapvalues(argnames=["df"], argvalues=td_colormap)
+        .mapvalues(argnames=["df"], argvalues=sqkm_display)
     )
 
     td_map_layer = (
@@ -1956,7 +1983,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
                 "label_suffix": " %",
                 "color_column": "percentile_colormap",
             },
-            tooltip_columns=["Percentile"],
+            tooltip_columns=["Percentile", "Area"],
             **(params.get("td_map_layer") or {}),
         )
         .mapvalues(argnames=["geodataframe"], argvalues=patrol_td_rename_columns)
