@@ -14,6 +14,7 @@ from ecoscope.platform.tasks.analysis import (
 from ecoscope.platform.tasks.analysis import (
     dataframe_column_sum as dataframe_column_sum,
 )
+from ecoscope.platform.tasks.analysis import test_function as test_function
 from ecoscope.platform.tasks.config import (
     call_ltd_from_combined_params as call_ltd_from_combined_params,
 )
@@ -200,6 +201,23 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             unpack_depth=1,
         )
         .partial(time_range=time_range, **(params.get("get_timezone") or {}))
+        .call()
+    )
+
+    test_long_import_path = (
+        task(test_function)
+        .validate()
+        .set_task_instance_id("test_long_import_path")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(name="test", **(params.get("test_long_import_path") or {}))
         .call()
     )
 

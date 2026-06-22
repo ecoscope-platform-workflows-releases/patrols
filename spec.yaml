@@ -1,8 +1,15 @@
 id: patrols
 requirements:
-  - name: ecoscope-platform
-    version: 2.16.0
-    channel: https://repo.prefix.dev/ecoscope-workflows/
+  - name: python
+    version: '3.12.*'
+    channel: conda-forge
+  - name: numpy
+    version: '>=2,<2.5'
+    channel: conda-forge
+  - name: ecoscope
+    git: https://github.com/wildlife-dynamics/ecoscope
+    branch: am/path-length-test2
+    extras: [analysis,mapping,plotting,platform]
   # ecoscope-platform already declares this exact pydeck dependency. it is
   # re-stated here as a workaround for a known issue. for further detail, see:
   # https://github.com/wildlife-dynamics/wt/issues/167#issuecomment-4451993697
@@ -91,6 +98,11 @@ workflow:
     task: get_timezone_from_time_range
     partial:
       time_range: ${{ workflow.time_range.return }}
+  - name: Test if this breaks windows
+    id: test_long_import_path
+    task: test_function
+    partial:
+      name: "test"
   - title: Patrol and Event Types
     type: task-group
     description: ' '

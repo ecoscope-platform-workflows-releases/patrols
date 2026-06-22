@@ -11,6 +11,7 @@ import os
 import warnings  # 🧪
 from typing import Any
 
+from ecoscope.platform.tasks.analysis import test_function as test_function
 from ecoscope.platform.tasks.config import set_workflow_details as set_workflow_details
 from ecoscope.platform.tasks.filter import (
     get_timezone_from_time_range as get_timezone_from_time_range,
@@ -222,6 +223,23 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             unpack_depth=1,
         )
         .partial(time_range=time_range, **(params.get("get_timezone") or {}))
+        .call()
+    )
+
+    test_long_import_path = (
+        task(test_function)
+        .validate()
+        .set_task_instance_id("test_long_import_path")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(name="test", **(params.get("test_long_import_path") or {}))
         .call()
     )
 
