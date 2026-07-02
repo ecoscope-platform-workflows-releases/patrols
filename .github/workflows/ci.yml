@@ -17,7 +17,7 @@ jobs:
       case_flags: ${{ steps.parse.outputs.case_flags }}
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Parse test cases
         id: parse
         run: |
@@ -53,6 +53,17 @@ jobs:
           echo "cases=$keys" >> $GITHUB_OUTPUT
           echo "first_case=$(yq 'keys | .[0]' test-cases.yaml)" >> $GITHUB_OUTPUT
 
+  get-workflow-id:
+    runs-on: ubuntu-latest
+    outputs:
+      workflow_id: ${{ steps.get_workflow_id.outputs.workflow_id }}
+    
+    steps:
+      - uses: actions/checkout@v7
+      - name: Get workflow id
+        id: get_workflow_id
+        run: echo workflow_id=$(yq .id spec.yaml) >> $GITHUB_OUTPUT
+
   test:
     needs: parse-test-cases
     runs-on: ubuntu-latest
@@ -62,7 +73,7 @@ jobs:
         case: ${{ fromJSON(needs.parse-test-cases.outputs.cases) }}
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Install pixi
         run: curl -fsSL https://pixi.sh/install.sh | bash && echo "$HOME/.pixi/bin" >> $GITHUB_PATH
       - name: Set CI variables
@@ -86,7 +97,7 @@ jobs:
     needs: parse-test-cases
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Install pixi
         run: curl -fsSL https://pixi.sh/install.sh | bash && echo "$HOME/.pixi/bin" >> $GITHUB_PATH
       - name: Set CI variables
@@ -121,7 +132,7 @@ jobs:
       group: snapshot-update-${{ github.head_ref }}
       cancel-in-progress: true
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           ref: ${{ github.head_ref }}
       - name: Install pixi
@@ -143,3 +154,69 @@ jobs:
           git add __results_snapshots__/
           git commit -m "auto: snapshot update"
           git push origin HEAD:${{ github.head_ref }}
+
+  recompile-workflows:
+    needs: get-workflow-id
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - uses: prefix-dev/setup-pixi@v0.9.6
+        with:
+          run-install: false
+
+      - name: Install compiler
+        run: pixi global install wt-compiler --channel https://prefix.dev/ecoscope-workflows --channel conda-forge
+
+      - name: Recompile workflow
+        run: |
+          wt-compiler compile \
+            --spec spec.yaml \
+            --pkg-name-prefix=ecoscope-workflows \
+            --results-env-var=ECOSCOPE_WORKFLOWS_RESULTS \
+            --variant=gcp \
+            --no-progress \
+            --clobber --update
+
+      - name: Check for differences in generated files
+        run: |
+          WORKFLOW_DIR_NAME=$(echo "${{ needs.get-workflow-id.outputs.workflow_id }}" | tr '_' '-')
+          GENERATED_DIR="ecoscope-workflows-${WORKFLOW_DIR_NAME}-workflow"
+          EXCLUDE_PATTERNS=":(exclude)${GENERATED_DIR}/pixi.lock :(exclude)${GENERATED_DIR}/README.md :(exclude)${GENERATED_DIR}/VERSION.yaml :(exclude)${GENERATED_DIR}/graph.png"
+
+          echo "Checking for differences in ${GENERATED_DIR}"
+
+          if [ ! -d "${GENERATED_DIR}" ]; then
+            echo "::error::Generated directory ${GENERATED_DIR} does not exist!"
+            exit 1
+          fi
+
+          # Exclude auto-generated files: pixi.lock (dependency resolution), VERSION.yaml (auto-versioned), graph.png (binary)
+          if ! git diff --exit-code -- "${GENERATED_DIR}" ${EXCLUDE_PATTERNS}; then
+            echo ""
+            echo "::error::Generated files differ from committed files in ${GENERATED_DIR}"
+            echo "::error::Please run the compilation locally and commit the changes."
+            exit 1
+          else
+            echo "No differences found - generated files are up to date!"
+          fi
+
+      - name: Validate excluded files exist
+        run: |
+          WORKFLOW_DIR_NAME=$(echo "${{ needs.get-workflow-id.outputs.workflow_id }}" | tr '_' '-')
+          GENERATED_DIR="ecoscope-workflows-${WORKFLOW_DIR_NAME}-workflow"
+          errors=0
+
+          for file in pixi.lock VERSION.yaml README.md; do
+            if [ ! -f "${GENERATED_DIR}/${file}" ]; then
+              echo "::error::${GENERATED_DIR}/${file} does not exist!"
+              errors=$((errors + 1))
+            else
+              echo "OK: ${GENERATED_DIR}/${file}"
+            fi
+          done
+
+          if [ $errors -gt 0 ]; then
+            exit 1
+          fi
