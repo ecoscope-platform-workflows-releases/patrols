@@ -36,7 +36,9 @@ jobs:
         with:
           cmd: yq -r '"v" + (.MAJ | tostring) + "." + (.MIN | tostring) + "." + (.PATCH | tostring)' ${{ steps.find_release_dir.outputs.name }}/VERSION.yaml
       - name: Validate tag doesn't already exist
-        if: github.base_ref != 'main'
+        # we are currently cutting tags from the ecoscope-web branch
+        # and so we allow the version.yaml in `main` to be identical to `ecoscope-web`
+        if: github.base_ref == 'ecoscope-web'
         run: |
           if git tag -l | grep -q "${{ steps.create_tag.outputs.result }}"; then
             echo "Tag ${{ steps.create_tag.outputs.result }} already exists. Exiting."
