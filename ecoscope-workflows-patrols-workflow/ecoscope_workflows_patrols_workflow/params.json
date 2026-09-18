@@ -455,27 +455,6 @@
       "required": [],
       "title": "Map Base Layers"
     },
-    "patrol_traj_rename_columns": {
-      "additionalProperties": false,
-      "properties": {
-        "duplicate_strategy": {
-          "default": "suffix",
-          "enum": [
-            "suffix",
-            "skip",
-            "overwrite",
-            "error"
-          ],
-          "title": "Duplicate Strategy",
-          "type": "string",
-          "description": "Strategy for handling a rename whose new name is already taken. 'suffix': append _1, _2, etc. to the new name; 'skip': skip the rename, leaving the column under its original name; 'overwrite': replace the existing column; 'error': raise ValueError.",
-          "ecoscope:advanced": true
-        }
-      },
-      "required": [],
-      "type": "object",
-      "title": "Rename patrol traj columns for map tooltip display"
-    },
     "patrol_events_bar_chart": {
       "additionalProperties": false,
       "properties": {
@@ -870,7 +849,6 @@
       "patrol_traj",
       "filter_patrol_events",
       "base_map_defs",
-      "patrol_traj_rename_columns",
       "patrol_events_bar_chart",
       "set_ltd_args"
     ]

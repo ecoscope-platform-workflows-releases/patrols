@@ -1069,6 +1069,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
                 "speed_kmhr": "Speed (kph)",
             },
             raise_if_not_found=True,
+            duplicate_strategy="overwrite",
             **(params.get("patrol_traj_rename_columns") or {}),
         )
         .mapvalues(argnames=["df"], argvalues=speed_val_with_unit)
