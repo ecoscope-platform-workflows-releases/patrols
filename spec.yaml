@@ -444,6 +444,7 @@ workflow:
             timespan_seconds: Duration (s)
             speed_kmhr: Speed (kph)
           raise_if_not_found: true
+          duplicate_strategy: overwrite
         mapvalues:
           argnames: df
           argvalues: ${{ workflow.speed_val_with_unit.return }}
