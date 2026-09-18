@@ -228,27 +228,6 @@
       "type": "object",
       "title": ""
     },
-    "traj_rename_grouper_columns": {
-      "additionalProperties": false,
-      "properties": {
-        "duplicate_strategy": {
-          "default": "suffix",
-          "enum": [
-            "suffix",
-            "skip",
-            "overwrite",
-            "error"
-          ],
-          "title": "Duplicate Strategy",
-          "type": "string",
-          "description": "Strategy for handling a rename whose new name is already taken. 'suffix': append _1, _2, etc. to the new name; 'skip': skip the rename, leaving the column under its original name; 'overwrite': replace the existing column; 'error': raise ValueError.",
-          "ecoscope:advanced": true
-        }
-      },
-      "required": [],
-      "type": "object",
-      "title": "Rename value grouper columns for Trajectories"
-    },
     "filter_patrol_events": {
       "additionalProperties": false,
       "properties": {
@@ -476,27 +455,6 @@
       "required": [],
       "title": "Map Base Layers"
     },
-    "pe_rename_display_columns": {
-      "additionalProperties": false,
-      "properties": {
-        "duplicate_strategy": {
-          "default": "suffix",
-          "enum": [
-            "suffix",
-            "skip",
-            "overwrite",
-            "error"
-          ],
-          "title": "Duplicate Strategy",
-          "type": "string",
-          "description": "Strategy for handling a rename whose new name is already taken. 'suffix': append _1, _2, etc. to the new name; 'skip': skip the rename, leaving the column under its original name; 'overwrite': replace the existing column; 'error': raise ValueError.",
-          "ecoscope:advanced": true
-        }
-      },
-      "required": [],
-      "type": "object",
-      "title": "Rename patrol events columns for map tooltip display"
-    },
     "patrol_traj_rename_columns": {
       "additionalProperties": false,
       "properties": {
@@ -607,27 +565,6 @@
       "type": "object",
       "required": [],
       "title": ""
-    },
-    "patrol_td_rename_columns": {
-      "additionalProperties": false,
-      "properties": {
-        "duplicate_strategy": {
-          "default": "suffix",
-          "enum": [
-            "suffix",
-            "skip",
-            "overwrite",
-            "error"
-          ],
-          "title": "Duplicate Strategy",
-          "type": "string",
-          "description": "Strategy for handling a rename whose new name is already taken. 'suffix': append _1, _2, etc. to the new name; 'skip': skip the rename, leaving the column under its original name; 'overwrite': replace the existing column; 'error': raise ValueError.",
-          "ecoscope:advanced": true
-        }
-      },
-      "required": [],
-      "type": "object",
-      "title": "Rename patrol traj columns for map tooltip display"
     }
   },
   "$defs": {
@@ -931,14 +868,11 @@
       "groupers",
       "set_patrol_traj_color_column",
       "patrol_traj",
-      "traj_rename_grouper_columns",
       "filter_patrol_events",
       "base_map_defs",
-      "pe_rename_display_columns",
       "patrol_traj_rename_columns",
       "patrol_events_bar_chart",
-      "set_ltd_args",
-      "patrol_td_rename_columns"
+      "set_ltd_args"
     ]
   },
   "additionalProperties": false

@@ -626,6 +626,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
                 "extra__patrol_subject": "patrol_subject",
             },
             raise_if_not_found=True,
+            duplicate_strategy="overwrite",
             **(params.get("traj_rename_grouper_columns") or {}),
         )
         .call()
@@ -961,6 +962,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
                 "time": "Event Time",
             },
             raise_if_not_found=True,
+            duplicate_strategy="overwrite",
             **(params.get("pe_rename_display_columns") or {}),
         )
         .mapvalues(argnames=["df"], argvalues=split_pe_groups)
@@ -2052,6 +2054,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             retain_columns=[],
             rename_columns={"percentile": "Percentile", "area_sqkm": "Area"},
             raise_if_not_found=True,
+            duplicate_strategy="overwrite",
             **(params.get("patrol_td_rename_columns") or {}),
         )
         .mapvalues(argnames=["df"], argvalues=sqkm_display)

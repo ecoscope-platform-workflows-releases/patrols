@@ -292,27 +292,6 @@
           "required": [],
           "type": "object",
           "title": ""
-        },
-        "traj_rename_grouper_columns": {
-          "additionalProperties": false,
-          "properties": {
-            "duplicate_strategy": {
-              "default": "suffix",
-              "enum": [
-                "suffix",
-                "skip",
-                "overwrite",
-                "error"
-              ],
-              "title": "Duplicate Strategy",
-              "type": "string",
-              "description": "Strategy for handling a rename whose new name is already taken. 'suffix': append _1, _2, etc. to the new name; 'skip': skip the rename, leaving the column under its original name; 'overwrite': replace the existing column; 'error': raise ValueError.",
-              "ecoscope:advanced": true
-            }
-          },
-          "required": [],
-          "type": "object",
-          "title": "Rename value grouper columns for Trajectories"
         }
       }
     },
@@ -555,27 +534,6 @@
       "description": "Create a combined patrol trajectories and events map.",
       "ecoscope:task_group": true,
       "properties": {
-        "pe_rename_display_columns": {
-          "additionalProperties": false,
-          "properties": {
-            "duplicate_strategy": {
-              "default": "suffix",
-              "enum": [
-                "suffix",
-                "skip",
-                "overwrite",
-                "error"
-              ],
-              "title": "Duplicate Strategy",
-              "type": "string",
-              "description": "Strategy for handling a rename whose new name is already taken. 'suffix': append _1, _2, etc. to the new name; 'skip': skip the rename, leaving the column under its original name; 'overwrite': replace the existing column; 'error': raise ValueError.",
-              "ecoscope:advanced": true
-            }
-          },
-          "required": [],
-          "type": "object",
-          "title": "Rename patrol events columns for map tooltip display"
-        },
         "patrol_traj_rename_columns": {
           "additionalProperties": false,
           "properties": {
@@ -700,27 +658,6 @@
           "type": "object",
           "required": [],
           "title": ""
-        },
-        "patrol_td_rename_columns": {
-          "additionalProperties": false,
-          "properties": {
-            "duplicate_strategy": {
-              "default": "suffix",
-              "enum": [
-                "suffix",
-                "skip",
-                "overwrite",
-                "error"
-              ],
-              "title": "Duplicate Strategy",
-              "type": "string",
-              "description": "Strategy for handling a rename whose new name is already taken. 'suffix': append _1, _2, etc. to the new name; 'skip': skip the rename, leaving the column under its original name; 'overwrite': replace the existing column; 'error': raise ValueError.",
-              "ecoscope:advanced": true
-            }
-          },
-          "required": [],
-          "type": "object",
-          "title": "Rename patrol traj columns for map tooltip display"
         }
       }
     }
@@ -1020,12 +957,6 @@
         ]
       }
     },
-    "Trajectory Segment Filter": {
-      "ui:order": [
-        "patrol_traj",
-        "traj_rename_grouper_columns"
-      ]
-    },
     "Patrol Event Location Filter": {
       "filter_patrol_events": {
         "ui:order": [
@@ -1034,17 +965,7 @@
         ]
       }
     },
-    "Patrol Events and Trajectories Map": {
-      "ui:order": [
-        "pe_rename_display_columns",
-        "patrol_traj_rename_columns"
-      ]
-    },
     "Time Density Map": {
-      "ui:order": [
-        "set_ltd_args",
-        "patrol_td_rename_columns"
-      ],
       "set_ltd_args": {
         "ui:order": [
           "opacity",

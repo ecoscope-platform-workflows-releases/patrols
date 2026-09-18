@@ -240,6 +240,7 @@ workflow:
             extra__patrol_status: patrol_status
             extra__patrol_subject: patrol_subject
           raise_if_not_found: true
+          duplicate_strategy: overwrite
       - name: Patrol Traj Colormap
         id: traj_colormap
         task: apply_color_map
@@ -366,6 +367,7 @@ workflow:
             event_type_display: Event Type
             time: Event Time
           raise_if_not_found: true
+          duplicate_strategy: overwrite
         mapvalues:
           argnames: df
           argvalues: ${{ workflow.split_pe_groups.return }}
@@ -927,6 +929,7 @@ workflow:
             percentile: Percentile
             area_sqkm: "Area"
           raise_if_not_found: true
+          duplicate_strategy: overwrite
         mapvalues:
           argnames: df
           argvalues: ${{ workflow.sqkm_display.return }}
