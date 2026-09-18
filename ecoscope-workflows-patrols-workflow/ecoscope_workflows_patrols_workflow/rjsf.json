@@ -529,34 +529,6 @@
       "required": [],
       "title": "Map Base Layers"
     },
-    "Patrol Events and Trajectories Map": {
-      "type": "object",
-      "description": "Create a combined patrol trajectories and events map.",
-      "ecoscope:task_group": true,
-      "properties": {
-        "patrol_traj_rename_columns": {
-          "additionalProperties": false,
-          "properties": {
-            "duplicate_strategy": {
-              "default": "suffix",
-              "enum": [
-                "suffix",
-                "skip",
-                "overwrite",
-                "error"
-              ],
-              "title": "Duplicate Strategy",
-              "type": "string",
-              "description": "Strategy for handling a rename whose new name is already taken. 'suffix': append _1, _2, etc. to the new name; 'skip': skip the rename, leaving the column under its original name; 'overwrite': replace the existing column; 'error': raise ValueError.",
-              "ecoscope:advanced": true
-            }
-          },
-          "required": [],
-          "type": "object",
-          "title": "Rename patrol traj columns for map tooltip display"
-        }
-      }
-    },
     "Patrol Events Bar Chart": {
       "type": "object",
       "description": "The bar chart shows how many events of different types occurred over time. Choose the time interval for the x-axis to control how event counts are summarized over time.",
@@ -1011,7 +983,6 @@
       "Trajectory Segment Filter",
       "Patrol Event Location Filter",
       "base_map_defs",
-      "Patrol Events and Trajectories Map",
       "Patrol Events Bar Chart",
       "Time Density Map"
     ],
