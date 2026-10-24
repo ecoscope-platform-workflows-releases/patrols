@@ -16,7 +16,7 @@ Planted shape (what the test cases assert):
   -> one Team view, two Member views (full credit each), one Asset view.
 - one fix every 10 minutes per leg (25 + 19 + 13 = 57), each leg walking east along
   lat -1.4 so a north-south boundary splits the track ~3:1 between the two polygons
-  of the `LegTestRegions` spatial feature group (West / East).
+  of the `LegTestRegions` spatial feature group (West / East; display name SpatialGrouperTest, the same key the packaged fixture carries, so the case resolves in CI too).
 - 7 events planted on the track inside the legs: 3 wildlife_sighting_rep, 2 fire_rep,
   2 poacher_camp_rep (>= 2 categories for the pie / bar charts; every leg has >= 2).
 - the flag-off case needs no fixture here: it runs on the packaged 2015 fixtures and the
@@ -288,7 +288,7 @@ def build_spatial_features(obs: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
             "arcgis_item": None,
             "das_tenant": TENANT_ID,
             "pk": [fake_id(f"spatial-feature/{n}") for n in polys],
-            "metadata": [{"display_name": "LegTestRegions", "id": group_id}] * len(polys),
+            "metadata": [{"display_name": "SpatialGrouperTest", "id": group_id}] * len(polys),
         },
         geometry=list(polys.values()),
         crs=4326,
