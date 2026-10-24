@@ -1,8 +1,34 @@
 id: patrols
 requirements:
-  - name: ecoscope-platform
-    version: 2.23.0
+  # DEV ONLY: local editable ecoscope on the patrol-leg-metrics branch
+  # (wildlife-dynamics/ecoscope PR #859), which carries the leg fetch
+  # (get_patrol_segments_from_patrols_df_and_combined_params), the name
+  # resolvers (add_patrol_team_names, add_patrol_roster_names),
+  # add_leg_names_to_tracks and explode_for_groupers. Before publish, revert
+  # to the first released ecoscope-platform that ships them (>= 2.24). Run
+  # dev/postcompile-editable.sh after every compile, then test with --frozen.
+  - name: python
+    version: "3.12.*"
+  - name: ecoscope
+    path: /Users/yunwu/MEP/wt-tasks/ecoscope/.claude/worktrees/patrol-leg-metrics-plan
+    editable: true
+    extras: ["platform", "mapping", "analysis", "plotting"]  # plotting: the bar and pie charts import plotly
+  # Editable-mode conda pins (reference spec.md "Editable / path requirements").
+  - name: lonboard
+    version: "==0.0.8"
     channel: https://repo.prefix.dev/ecoscope-workflows/
+  - name: numpy
+    version: ">=2,<2.1"
+    channel: conda-forge
+  - name: pyarrow
+    version: ">=20,<24"
+    channel: conda-forge
+  - name: pydantic
+    version: ">=2.0.0,<2.9.0"
+    channel: conda-forge
+  - name: rasterio
+    version: ">=1.3,<1.5"
+    channel: conda-forge
   # ecoscope-platform already declares this exact pydeck dependency. it is
   # re-stated here as a workaround for a known issue. for further detail, see:
   # https://github.com/wildlife-dynamics/wt/issues/167#issuecomment-4451993697
@@ -46,6 +72,16 @@ rjsf-overrides:
         title: Patrol Type
       - const: patrol_subject
         title: Patrol Subject
+      # Patrol leg roster (EarthRanger patrol_schemas flag). Resolved to names
+      # on the leg frame and copied onto the tracks and events; "None" on
+      # sites without the flag. Member / Asset are list columns and are
+      # exploded (full credit per member or asset) before split_groups.
+      - const: patrol_team_name
+        title: Team
+      - const: patrol_member_names
+        title: Member
+      - const: patrol_asset_names
+        title: Asset
   uiSchema:
     groupers.groupers.items.anyOf:
       - ui:options:
@@ -125,6 +161,28 @@ workflow:
           client: ${{ workflow.er_client_name.return }}
           events_gdf: ${{ workflow.patrol_events.return }}
           append_category_names: duplicates
+  # ---------- Patrol legs: name carrier for the Team / Member / Asset groupers ----------
+  # One row per patrol segment; team / member / asset ids are resolved to names
+  # here once and copied onto the observation and event frames by
+  # patrol_segment_id (add_leg_names_to_tracks). No leg metric is computed here.
+  - name: Get Patrol Legs
+    id: patrol_legs
+    task: get_patrol_segments_from_patrols_df_and_combined_params
+    partial:
+      patrols_df: ${{ workflow.prefetch_patrols.return }}
+      combined_params: ${{ workflow.er_patrol_and_events_params.return }}
+  - name: Add Team Names to Patrol Legs
+    id: legs_team_names
+    task: add_patrol_team_names
+    partial:
+      df: ${{ workflow.patrol_legs.return }}
+      client: ${{ workflow.er_client_name.return }}
+  - name: Add Member and Asset Names to Patrol Legs
+    id: legs_roster_names
+    task: add_patrol_roster_names
+    partial:
+      df: ${{ workflow.legs_team_names.return }}
+      client: ${{ workflow.er_client_name.return }}
   - name: Convert patrols to timezone
     id: convert_patrols_to_user_timezone
     task: convert_values_to_timezone
@@ -177,11 +235,22 @@ workflow:
         task: title_case_var
         partial:
           var: ${{ workflow.set_patrol_traj_color_column.return }}
+  # Team / Member / Asset names from the leg frame, joined onto the observations
+  # by patrol_segment_id before the relocation column whitelist below: the three
+  # name columns always exist ("None" where the site has no patrol_schemas flag
+  # or the observations predate patrol_segment_id), so the whitelist is safe on
+  # every data vintage.
+  - name: Add Leg Names to Patrol Observations
+    id: obs_leg_names
+    task: add_leg_names_to_tracks
+    partial:
+      df: ${{ workflow.convert_patrols_to_user_timezone.return }}
+      legs: ${{ workflow.legs_roster_names.return }}
   - name: Transform Observations to Relocations
     id: patrol_reloc
     task: process_relocations
     partial:
-      observations: ${{ workflow.convert_patrols_to_user_timezone.return }}
+      observations: ${{ workflow.obs_leg_names.return }}
       relocs_columns:
         - patrol_id
         - patrol_start_time
@@ -191,6 +260,9 @@ workflow:
         - patrol_serial_number
         - patrol_status
         - patrol_subject
+        - patrol_team_name
+        - patrol_member_names
+        - patrol_asset_names
         - groupby_col
         - fixtime
         - junk_status
@@ -239,6 +311,9 @@ workflow:
             extra__patrol_serial_number: patrol_serial_number
             extra__patrol_status: patrol_status
             extra__patrol_subject: patrol_subject
+            extra__patrol_team_name: patrol_team_name
+            extra__patrol_member_names: patrol_member_names
+            extra__patrol_asset_names: patrol_asset_names
           raise_if_not_found: true
           duplicate_strategy: overwrite
       - name: Patrol Traj Colormap
@@ -277,11 +352,19 @@ workflow:
           roi_gdf: null
           roi_name: null
           reset_index: true
+      # Events unpacked from patrol legs carry patrol_segment_id, so the same
+      # leg-name join applies to the event frame.
+      - name: Add Leg Names to Patrol Events
+        id: pe_leg_names
+        task: add_leg_names_to_tracks
+        partial:
+          df: ${{ workflow.filter_patrol_events.return }}
+          legs: ${{ workflow.legs_roster_names.return }}
       - name: Add temporal index to Patrol Events
         id: pe_add_temporal_index
         task: add_temporal_index
         partial:
-          df: ${{ workflow.filter_patrol_events.return }}
+          df: ${{ workflow.pe_leg_names.return }}
           time_col: patrol_start_time
           groupers: ${{ workflow.resolved_groupers.return }}
           cast_to_datetime: true
@@ -300,6 +383,8 @@ workflow:
           input_column_name: event_type
           colormap: tab20b
           output_column_name: event_type_colormap
+  # The two list columns (patrol_member_names, patrol_asset_names) are never
+  # cast: explode_for_groupers needs real lists.
   - name: Cast Patrol Trajectory Columns
     id: patrol_traj_cols_to_string
     task: convert_column_values_to_string
@@ -308,6 +393,7 @@ workflow:
       columns:
         - patrol_serial_number
         - patrol_type
+        - patrol_team_name
   - name: Cast Patrol Events Columns
     id: pe_cols_to_string
     task: convert_column_values_to_string
@@ -316,6 +402,22 @@ workflow:
       columns:
         - patrol_serial_number
         - patrol_type
+        - patrol_team_name
+  # Member / Asset groupers: one row per list element (full credit per member
+  # or asset); no-op for other groupers. Runs after the index passes,
+  # immediately before split_groups.
+  - name: Explode Patrol Trajectories for Groupers
+    id: traj_exploded
+    task: explode_for_groupers
+    partial:
+      df: ${{ workflow.patrol_traj_cols_to_string.return }}
+      groupers: ${{ workflow.resolved_groupers.return }}
+  - name: Explode Patrol Events for Groupers
+    id: pe_exploded
+    task: explode_for_groupers
+    partial:
+      df: ${{ workflow.pe_cols_to_string.return }}
+      groupers: ${{ workflow.resolved_groupers.return }}
   - name: Set Combined Trajectory & Event Map Title
     id: set_traj_pe_map_title
     task: set_string_var
@@ -340,13 +442,13 @@ workflow:
     id: split_patrol_traj_groups
     task: split_groups
     partial:
-      df: ${{ workflow.patrol_traj_cols_to_string.return }}
+      df: ${{ workflow.traj_exploded.return }}
       groupers: ${{ workflow.resolved_groupers.return }}
   - name: Split Patrol Events by Group
     id: split_pe_groups
     task: split_groups
     partial:
-      df: ${{ workflow.pe_cols_to_string.return }}
+      df: ${{ workflow.pe_exploded.return }}
       groupers: ${{ workflow.resolved_groupers.return }}
   - name: Map Base Layers
     id: base_map_defs
