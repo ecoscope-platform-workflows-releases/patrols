@@ -302,6 +302,8 @@ legs-base:
     Synthetic patrol-leg fixtures (dev/fixtures/legs: 2 patrols, 3 legs, one team, two members,
     one vehicle, 7 events) with no grouper: every widget renders in a single view.
   mock_io: true
+  # CI (ci.yml, pytest harness) ignores mock_io_overrides and runs this case on the packaged fixtures;
+  # the synthetic fixtures are exercised by dev/run-test-cases.sh locally.
   mock_io_overrides:
     ecoscope.platform.tasks.io.get_patrols_from_combined_params: dev/fixtures/legs/patrols.parquet
     ecoscope.platform.tasks.io.get_patrol_observations_from_patrols_df_and_combined_params: dev/fixtures/legs/observations.parquet
@@ -367,6 +369,8 @@ legs-team-grouper:
   name: Legs Team Grouper
   description: Team grouper on the leg fixtures fans out to one view, "Leg Test Team".
   mock_io: true
+  # CI (ci.yml, pytest harness) ignores mock_io_overrides and runs this case on the packaged fixtures;
+  # the synthetic fixtures are exercised by dev/run-test-cases.sh locally.
   mock_io_overrides:
     ecoscope.platform.tasks.io.get_patrols_from_combined_params: dev/fixtures/legs/patrols.parquet
     ecoscope.platform.tasks.io.get_patrol_observations_from_patrols_df_and_combined_params: dev/fixtures/legs/observations.parquet
@@ -435,6 +439,8 @@ legs-member-grouper:
     Member grouper on the leg fixtures: the member list is exploded, giving two views (Ranger Amani,
     Ranger Baraka) that each carry the full tracks and all 7 events (full credit per member).
   mock_io: true
+  # CI (ci.yml, pytest harness) ignores mock_io_overrides and runs this case on the packaged fixtures;
+  # the synthetic fixtures are exercised by dev/run-test-cases.sh locally.
   mock_io_overrides:
     ecoscope.platform.tasks.io.get_patrols_from_combined_params: dev/fixtures/legs/patrols.parquet
     ecoscope.platform.tasks.io.get_patrol_observations_from_patrols_df_and_combined_params: dev/fixtures/legs/observations.parquet
@@ -503,6 +509,8 @@ legs-asset-month-grouper:
     Asset grouper combined with a monthly temporal grouper: the explode keeps the index level,
     giving one view (Patrol Vehicle 1 / January); weekly bar chart.
   mock_io: true
+  # CI (ci.yml, pytest harness) ignores mock_io_overrides and runs this case on the packaged fixtures;
+  # the synthetic fixtures are exercised by dev/run-test-cases.sh locally.
   mock_io_overrides:
     ecoscope.platform.tasks.io.get_patrols_from_combined_params: dev/fixtures/legs/patrols.parquet
     ecoscope.platform.tasks.io.get_patrol_observations_from_patrols_df_and_combined_params: dev/fixtures/legs/observations.parquet
@@ -569,9 +577,11 @@ legs-asset-month-grouper:
 legs-team-spatial-grouper:
   name: Legs Team and Spatial Grouper
   description: >-
-    Team grouper combined with the LegTestRegions spatial feature group (dev/fixtures/legs/spatial-features.parquet):
+    Team grouper combined with a spatial feature group (dev/fixtures/legs/spatial-features.parquet, two polygons West / East keyed SpatialGrouperTest):
     the spatial index pass is unaffected by the new columns, giving West and East views.
   mock_io: true
+  # CI (ci.yml, pytest harness) ignores mock_io_overrides and runs this case on the packaged fixtures;
+  # the synthetic fixtures are exercised by dev/run-test-cases.sh locally.
   mock_io_overrides:
     ecoscope.platform.tasks.io.get_patrols_from_combined_params: dev/fixtures/legs/patrols.parquet
     ecoscope.platform.tasks.io.get_patrol_observations_from_patrols_df_and_combined_params: dev/fixtures/legs/observations.parquet
@@ -595,7 +605,7 @@ legs-team-spatial-grouper:
     groupers:
       groupers: 
         - index_name: "patrol_team_name"
-        - spatial_index_name: "LegTestRegions"
+        - spatial_index_name: "SpatialGrouperTest"
     time_range:
       since: "2026-01-05T00:00:00"
       until: "2026-01-07T00:00:00"
@@ -703,6 +713,8 @@ empty:
   name: Empty
   description: Zero-row fixtures for every io task in the chain; the skip chain must complete without a task error.
   mock_io: true
+  # CI (ci.yml, pytest harness) ignores mock_io_overrides and runs this case on the packaged fixtures;
+  # the synthetic fixtures are exercised by dev/run-test-cases.sh locally.
   mock_io_overrides:
     ecoscope.platform.tasks.io.get_patrols_from_combined_params: dev/fixtures/empty/patrols.parquet
     ecoscope.platform.tasks.io.get_patrol_observations_from_patrols_df_and_combined_params: dev/fixtures/empty/observations.parquet
