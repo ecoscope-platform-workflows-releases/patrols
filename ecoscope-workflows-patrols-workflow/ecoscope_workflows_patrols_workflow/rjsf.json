@@ -25,8 +25,8 @@
       "properties": {
         "data_source": {
           "$ref": "#/$defs/EarthRangerConnection",
-          "title": "",
-          "description": "Select one of your configured data sources."
+          "description": "Select one of your configured data sources.",
+          "title": ""
         }
       },
       "required": [
@@ -39,23 +39,19 @@
       "additionalProperties": false,
       "properties": {
         "since": {
+          "description": "The start time",
           "format": "date-time",
           "title": "Since",
-          "type": "string",
-          "description": "The start time"
+          "type": "string"
         },
         "until": {
+          "description": "The end time",
           "format": "date-time",
           "title": "Until",
-          "type": "string",
-          "description": "The end time"
+          "type": "string"
         },
         "timezone": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/TimezoneInfo"
-            }
-          ],
+          "$ref": "#/$defs/TimezoneInfo",
           "default": null,
           "title": "Timezone"
         }
@@ -77,12 +73,12 @@
           "additionalProperties": false,
           "properties": {
             "patrol_types": {
+              "description": "Specify the patrol type(s) to analyze (optional). Leave empty to analyze all patrol types.",
               "items": {
                 "type": "string"
               },
               "title": "Patrol Types",
               "type": "array",
-              "description": "Specify the patrol type(s) to analyze (optional). Leave empty to analyze all patrol types.",
               "ecoscope:transform": [
                 {
                   "transformer": "EarthRangerEnumResolver",
@@ -94,12 +90,12 @@
               ]
             },
             "event_types": {
+              "description": "Specify the event type(s) to analyze (optional). Leave this section empty to analyze all event types.",
               "items": {
                 "type": "string"
               },
               "title": "Event Types",
               "type": "array",
-              "description": "Specify the event type(s) to analyze (optional). Leave this section empty to analyze all event types.",
               "ecoscope:transform": [
                 {
                   "transformer": "EarthRangerEnumResolver",
@@ -114,6 +110,8 @@
               "default": [
                 "done"
               ],
+              "description": "Choose to analyze patrols with a certain status. If left empty, patrols of all status will be analyzed",
+              "ecoscope:advanced": true,
               "items": {
                 "type": "string",
                 "oneOf": [
@@ -137,12 +135,12 @@
               },
               "title": "Patrol Status",
               "type": "array",
-              "description": "Choose to analyze patrols with a certain status. If left empty, patrols of all status will be analyzed",
-              "uniqueItems": true,
-              "ecoscope:advanced": true
+              "uniqueItems": true
             },
             "event_states": {
               "default": null,
+              "description": "Choose to analyze events with a certain state. If left empty, events of all states will be analyzed",
+              "ecoscope:advanced": true,
               "items": {
                 "type": "string",
                 "oneOf": [
@@ -166,9 +164,7 @@
               },
               "title": "Event State",
               "type": "array",
-              "description": "Choose to analyze events with a certain state. If left empty, events of all states will be analyzed",
-              "uniqueItems": true,
-              "ecoscope:advanced": true
+              "uniqueItems": true
             },
             "include_null_geometry": {
               "default": true,
@@ -190,6 +186,7 @@
       "properties": {
         "groupers": {
           "default": null,
+          "description": "            Specify how the data should be grouped to create the views for your dashboard.\n            This field is optional; if left blank, all the data will appear in a single view.\n            ",
           "items": {
             "anyOf": [
               {
@@ -206,7 +203,6 @@
           },
           "title": " ",
           "type": "array",
-          "description": "            Specify how the data should be grouped to create the views for your dashboard.\n            This field is optional; if left blank, all the data will appear in a single view.\n            ",
           "ecoscope:transform": [
             {
               "transformer": "EarthRangerEnumResolver",
@@ -271,11 +267,7 @@
           "additionalProperties": false,
           "properties": {
             "trajectory_segment_filter": {
-              "allOf": [
-                {
-                  "$ref": "#/$defs/TrajectorySegmentFilter"
-                }
-              ],
+              "$ref": "#/$defs/TrajectorySegmentFilter",
               "default": {
                 "min_length_meters": 0.001,
                 "max_length_meters": 100000,
@@ -284,9 +276,9 @@
                 "min_speed_kmhr": 0.01,
                 "max_speed_kmhr": 500
               },
-              "title": " ",
               "description": "Filter track data by setting limits on track segment length, duration, and speed. Segments outside these bounds are removed, reducing noise and to focus on meaningful movement patterns.",
-              "ecoscope:advanced": true
+              "ecoscope:advanced": true,
+              "title": " "
             }
           },
           "required": [],
@@ -304,30 +296,26 @@
           "additionalProperties": false,
           "properties": {
             "bounding_box": {
-              "allOf": [
-                {
-                  "$ref": "#/$defs/BoundingBox"
-                }
-              ],
+              "$ref": "#/$defs/BoundingBox",
               "default": {
                 "min_y": -90.0,
                 "max_y": 90.0,
                 "min_x": -180.0,
                 "max_x": 180.0
               },
-              "title": "Bounding Box",
               "description": "Filter events to inside these bounding coordinates.",
-              "ecoscope:advanced": true
+              "ecoscope:advanced": true,
+              "title": "Bounding Box"
             },
             "filter_point_coords": {
               "default": [],
+              "description": "By adding a filter, the workflow will not include events recorded at the specified coordinates.",
+              "ecoscope:advanced": true,
               "items": {
                 "$ref": "#/$defs/Coordinate"
               },
               "title": "Filter Exact Point Coordinates",
-              "type": "array",
-              "description": "By adding a filter, the workflow will not include events recorded at the specified coordinates.",
-              "ecoscope:advanced": true
+              "type": "array"
             }
           },
           "required": [],
@@ -354,8 +342,9 @@
               "min_zoom": 0
             }
           ],
+          "description": "Select tile layers to use as base layers in map outputs. The first layer in the list will be the bottommost layer displayed.",
+          "ecoscope:advanced": true,
           "items": {
-            "title": "Base Layer",
             "anyOf": [
               {
                 "description": "A tiled raster layer loaded on-demand from a URL template (e.g., base maps).",
@@ -373,8 +362,8 @@
                     "default": 1,
                     "description": "Set layer transparency from 1 (fully visible) to 0 (hidden).",
                     "ecoscope:advanced": true,
-                    "maximum": 1.0,
-                    "minimum": 0.0,
+                    "maximum": 1,
+                    "minimum": 0,
                     "title": "Layer Opacity",
                     "type": "number"
                   }
@@ -398,8 +387,8 @@
                     "default": 1,
                     "description": "Set layer transparency from 1 (fully visible) to 0 (hidden).",
                     "ecoscope:advanced": true,
-                    "maximum": 1.0,
-                    "minimum": 0.0,
+                    "maximum": 1,
+                    "minimum": 0,
                     "title": "Layer Opacity",
                     "type": "number"
                   }
@@ -423,8 +412,8 @@
                     "default": 1,
                     "description": "Set layer transparency from 1 (fully visible) to 0 (hidden).",
                     "ecoscope:advanced": true,
-                    "maximum": 1.0,
-                    "minimum": 0.0,
+                    "maximum": 1,
+                    "minimum": 0,
                     "title": "Layer Opacity",
                     "type": "number"
                   }
@@ -448,8 +437,8 @@
                     "default": 1,
                     "description": "Set layer transparency from 1 (fully visible) to 0 (hidden).",
                     "ecoscope:advanced": true,
-                    "maximum": 1.0,
-                    "minimum": 0.0,
+                    "maximum": 1,
+                    "minimum": 0,
                     "title": "Layer Opacity",
                     "type": "number"
                   }
@@ -473,8 +462,8 @@
                     "default": 1,
                     "description": "Set layer transparency from 1 (fully visible) to 0 (hidden).",
                     "ecoscope:advanced": true,
-                    "maximum": 1.0,
-                    "minimum": 0.0,
+                    "maximum": 1,
+                    "minimum": 0,
                     "title": "Layer Opacity",
                     "type": "number"
                   }
@@ -496,8 +485,8 @@
                     "default": 1,
                     "description": "Set layer transparency from 1 (fully visible) to 0 (hidden).",
                     "ecoscope:advanced": true,
-                    "maximum": 1.0,
-                    "minimum": 0.0,
+                    "maximum": 1,
+                    "minimum": 0,
                     "title": "Custom Layer Opacity",
                     "type": "number"
                   },
@@ -517,12 +506,11 @@
                 "title": "Custom Layer (Advanced)",
                 "type": "object"
               }
-            ]
+            ],
+            "title": "Base Layer"
           },
           "title": " ",
-          "type": "array",
-          "description": "Select tile layers to use as base layers in map outputs. The first layer in the list will be the bottommost layer displayed.",
-          "ecoscope:advanced": true
+          "type": "array"
         }
       },
       "type": "object",
@@ -567,12 +555,12 @@
           "properties": {
             "opacity": {
               "default": 0.7,
-              "maximum": 1.0,
-              "minimum": 0.0,
-              "title": "Layer Opacity",
-              "type": "number",
               "description": "Set layer transparency from 1 (fully visible) to 0 (hidden).",
-              "ecoscope:advanced": true
+              "ecoscope:advanced": true,
+              "maximum": 1,
+              "minimum": 0,
+              "title": "Layer Opacity",
+              "type": "number"
             },
             "auto_scale_or_custom_cell_size": {
               "anyOf": [
@@ -586,15 +574,15 @@
               "default": {
                 "auto_scale_or_custom": "Auto-scale"
               },
-              "title": "Grid Cell Size",
-              "ecoscope:advanced": true
+              "ecoscope:advanced": true,
+              "title": "Grid Cell Size"
             },
             "crs": {
               "default": "EPSG:3857",
-              "title": "Coordinate Reference System",
-              "type": "string",
               "description": "The coordinate reference system in which to perform the calculation, must be a valid CRS authority code, for example ESRI:53042",
-              "ecoscope:advanced": true
+              "ecoscope:advanced": true,
+              "title": "Coordinate Reference System",
+              "type": "string"
             },
             "percentiles": {
               "default": [
@@ -605,6 +593,8 @@
                 "90",
                 "100"
               ],
+              "description": "Choose the time density percentile bins to display.",
+              "ecoscope:advanced": true,
               "items": {
                 "enum": [
                   "50",
@@ -619,12 +609,10 @@
                 ],
                 "type": "string"
               },
+              "minItems": 1,
               "title": "Percentile Levels",
               "type": "array",
-              "description": "Choose the time density percentile bins to display.",
-              "uniqueItems": true,
-              "minItems": 1,
-              "ecoscope:advanced": true
+              "uniqueItems": true
             }
           },
           "type": "object",
@@ -879,9 +867,6 @@
           "const": "Auto-scale",
           "default": "Auto-scale",
           "ecoscope:advanced": true,
-          "enum": [
-            "Auto-scale"
-          ],
           "title": "Grid Cell Size",
           "type": "string"
         }
@@ -895,9 +880,6 @@
           "const": "Customize",
           "default": "Customize",
           "ecoscope:advanced": true,
-          "enum": [
-            "Customize"
-          ],
           "title": "Grid Cell Size",
           "type": "string"
         },
