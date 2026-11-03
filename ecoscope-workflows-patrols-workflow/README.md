@@ -5,20 +5,21 @@
 
 ```yaml
 # fingerprint:
-artifacts_sha256_basic: c49ade5955c4977d365a90e3b647ab3b59a38ceb63f68ca3a4b6720ae2133edc
-artifacts_sha256_strict: f852088bdb1c0ba2d3669f55901a61931bab67dc9a4e48055d80f0a2f8957196
+artifacts_sha256_basic: ff26e2e5a1d394a4bf61693158fcc69d09c7a165edb896ab70081111a7607b78
+artifacts_sha256_strict: b6e43f0c0e86de2938261394fe6c6db89e19456c50725fd1565fa7e5fe9f0a8f
 installed_requirements:
 - channel: https://repo.prefix.dev/ecoscope-workflows/
   name: ecoscope-platform
-  version: {version: ==2.23.0}
+  version: {version: ==2.29.0}
 - channel: conda-forge
   name: pydeck
   version: {version: ==0.9.2}
-params_sha256: d6f5fafd9b4ca81cde8f9552e603259352d285e9685e31cde847b3648d74d06c
-spec_sha256: e85aa90980a93b71e2960929cd941401635b97c0442f5928d153f7a1951eda23
+params_sha256: 7b810130e875aebd92b4f6f0d0abbd86b97f0f566c44c46a8265d524d4a83682
+spec_sha256: ab3371b765be38f14d0058c0071927ce19973ca67c77d0e8ed3a49f4f2b99764
 
 ```
 
 # ecoscope-workflows-patrols-workflow
 
 ![](graph.png)
+
