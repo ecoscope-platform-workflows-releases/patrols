@@ -884,7 +884,7 @@
           "type": "string"
         },
         "grid_cell_size": {
-          "default": 5000,
+          "default": 5000.0,
           "description": "Define the resolution of the raster grid (in the unit of measurement defined by the coordinate reference system set below). A smaller grid cell size provides more detail, while a larger size generalizes the data.",
           "exclusiveMaximum": 10000,
           "exclusiveMinimum": 0,
