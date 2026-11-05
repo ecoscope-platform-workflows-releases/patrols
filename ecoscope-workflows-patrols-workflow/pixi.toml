@@ -19,6 +19,10 @@ platforms = [
 version = "==2.29.0"
 channel = "https://repo.prefix.dev/ecoscope-workflows/"
 
+[dependencies.sqlalchemy]
+version = "<2.1"
+channel = "https://conda.anaconda.org/conda-forge/"
+
 [dependencies.pydeck]
 version = "==0.9.2"
 channel = "https://conda.anaconda.org/conda-forge/"
@@ -46,6 +50,10 @@ channel = "https://conda.anaconda.org/conda-forge/"
 [dependencies.wt-task-gcp]
 version = ">=0.2.0,<1.0.0"
 channel = "https://repo.prefix.dev/ecoscope-workflows/"
+
+[pypi-dependencies.ecoscope]
+git = "https://github.com/wildlife-dynamics/ecoscope.git"
+branch = "feat/traj-filter-presets"
 
 [feature.runner.dependencies.wt-runner-gcp]
 version = ">=0.3.2,<1.0.0"

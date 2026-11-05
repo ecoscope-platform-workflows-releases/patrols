@@ -270,15 +270,40 @@
               "$ref": "#/$defs/TrajectorySegmentFilter",
               "default": {
                 "min_length_meters": 0.001,
-                "max_length_meters": 100000,
-                "min_time_secs": 1,
-                "max_time_secs": 172800,
+                "max_length_meters": 100000.0,
+                "min_time_secs": 1.0,
+                "max_time_secs": 172800.0,
                 "min_speed_kmhr": 0.01,
-                "max_speed_kmhr": 500
+                "max_speed_kmhr": 500.0
               },
               "description": "Filter track data by setting limits on track segment length, duration, and speed. Segments outside these bounds are removed, reducing noise and to focus on meaningful movement patterns.",
               "ecoscope:advanced": true,
-              "title": " "
+              "title": " ",
+              "ecoscope:transform": [
+                {
+                  "transformer": "TrajectoryFilterPresetResolver",
+                  "transformer_kws": {}
+                }
+              ]
+            },
+            "trajectory_segment_filter_overrides": {
+              "default": null,
+              "description": "Use a different segment filter for specific values, e.g. a subject subtype or patrol type. Values without an override use the filter above. Only used by workflows that support per-type filtering.",
+              "ecoscope:advanced": true,
+              "items": {
+                "$ref": "#/$defs/TrajectorySegmentFilterOverride"
+              },
+              "title": "Filter Overrides",
+              "type": "array",
+              "ecoscope:transform": [
+                {
+                  "transformer": "TrajectoryFilterOverrideSuggester",
+                  "transformer_kws": {
+                    "kind": "patrol_type",
+                    "depends_on": "properties.Patrol and Event Types.properties.er_patrol_and_events_params.properties.patrol_types"
+                  }
+                }
+              ]
             }
           },
           "required": [],
@@ -811,6 +836,30 @@
       "title": "TrajectorySegmentFilter",
       "type": "object"
     },
+    "TrajectorySegmentFilterOverride": {
+      "properties": {
+        "key": {
+          "title": "Value",
+          "type": "string"
+        },
+        "filter": {
+          "$ref": "#/$defs/TrajectorySegmentFilter",
+          "title": "Filter",
+          "ecoscope:transform": [
+            {
+              "transformer": "TrajectoryFilterPresetResolver",
+              "transformer_kws": {}
+            }
+          ]
+        }
+      },
+      "required": [
+        "key",
+        "filter"
+      ],
+      "title": "TrajectorySegmentFilterOverride",
+      "type": "object"
+    },
     "BoundingBox": {
       "properties": {
         "min_y": {
@@ -884,7 +933,7 @@
           "type": "string"
         },
         "grid_cell_size": {
-          "default": 5000.0,
+          "default": 5000,
           "description": "Define the resolution of the raster grid (in the unit of measurement defined by the coordinate reference system set below). A smaller grid cell size provides more detail, while a larger size generalizes the data.",
           "exclusiveMaximum": 10000,
           "exclusiveMinimum": 0,
@@ -920,6 +969,14 @@
           "status",
           "event_states",
           "include_null_geometry"
+        ]
+      }
+    },
+    "Trajectory Segment Filter": {
+      "patrol_traj": {
+        "ui:order": [
+          "trajectory_segment_filter",
+          "trajectory_segment_filter_overrides"
         ]
       }
     },
