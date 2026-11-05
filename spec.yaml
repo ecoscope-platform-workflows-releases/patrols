@@ -3,6 +3,17 @@ requirements:
   - name: ecoscope-platform
     version: 2.29.0
     channel: https://repo.prefix.dev/ecoscope-workflows/
+  # WIP: trajectory filter presets/overrides. ecoscope-platform above supplies the
+  # conda deps; this git source overrides its ecoscope code. Revert to a released
+  # ecoscope-platform before merging.
+  - name: ecoscope
+    git: https://github.com/wildlife-dynamics/ecoscope.git
+    branch: feat/traj-filter-presets
+  # ecoscope's pyproject needs sqlalchemy<2.1, but its conda recipe doesn't pin it,
+  # so the conda solve picks 2.1 (win-64) and the git ecoscope then can't resolve.
+  - name: sqlalchemy
+    version: "<2.1"
+    channel: conda-forge
   # ecoscope-platform already declares this exact pydeck dependency. it is
   # re-stated here as a workaround for a known issue. for further detail, see:
   # https://github.com/wildlife-dynamics/wt/issues/167#issuecomment-4451993697
@@ -32,6 +43,14 @@ rjsf-overrides:
         transformer_kws:
           type: event_type
           depends_on: properties.er_client_name.properties.data_source.properties.name
+    Trajectory Segment Filter.properties.patrol_traj.properties.trajectory_segment_filter.ecoscope:transform:
+      - transformer: TrajectoryFilterPresetResolver
+        transformer_kws: {}
+    Trajectory Segment Filter.properties.patrol_traj.properties.trajectory_segment_filter_overrides.ecoscope:transform:
+      - transformer: TrajectoryFilterOverrideSuggester
+        transformer_kws:
+          kind: patrol_type
+          depends_on: properties.Patrol and Event Types.properties.er_patrol_and_events_params.properties.patrol_types
     groupers.properties.groupers.ecoscope:transform:
       - transformer: EarthRangerEnumResolver
         transformer_kws:
@@ -39,6 +58,9 @@ rjsf-overrides:
           depends_on: properties.er_client_name.properties.data_source.properties.name
     Time Density Map.properties.set_ltd_args.properties.opacity.default: 0.700000
   $defs:
+    TrajectorySegmentFilterOverride.properties.filter.ecoscope:transform:
+      - transformer: TrajectoryFilterPresetResolver
+        transformer_kws: {}
     ValueGrouper.properties.index_name.oneOf:
       - const: patrol_serial_number
         title: Patrol Serial Number
@@ -258,6 +280,7 @@ workflow:
         task: relocations_to_trajectory
         partial:
           relocations: ${{ workflow.patrol_reloc.return }}
+          trajectory_segment_filter_override_column: patrol_type__value
       - name: Add temporal index to Patrol Trajectories
         id: traj_add_temporal_index
         task: add_temporal_index

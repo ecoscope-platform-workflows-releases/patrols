@@ -295,3 +295,72 @@ task-instance-error:
         auto_scale_or_custom: "Customize"
         grid_cell_size: 0.5
       crs: "EPSG:3857"
+
+filter-overrides:
+  name: Filter Overrides
+  description: A demonstration of the patrols workflow with a per-patrol-type trajectory segment filter override.
+  params:
+    workflow_details:
+      name: "Patrols Dashboard"
+      description: "A dashboard for visualizing patrol trajectories, patrols events, and time density."
+    er_client_name:
+      data_source:
+        name: "mep_dev"
+    er_patrol_and_events_params:
+      patrol_types: ["ecoscope_patrol"]
+      status: ["done"]
+      event_types: []
+      include_null_geometry: false
+    groupers:
+      groupers: []
+    time_range:
+      since: "2015-01-01T00:00:00"
+      until: "2015-12-31T23:59:59"
+      timezone:
+        label: "Africa/Nairobi (UTC+03:00)"
+        tzCode: "Africa/Nairobi"
+        name: "(UTC+03:00) Nairobi"
+        utc: "+03:00"
+    patrol_traj:
+      trajectory_segment_filter:
+        min_length_meters: 0.001
+        max_length_meters: 10000.0
+        max_time_secs: 3600.0
+        min_time_secs: 1.0
+        max_speed_kmhr: 120.0
+        min_speed_kmhr: 0.01
+        preset: "custom"
+      trajectory_segment_filter_overrides:
+        - key: "ecoscope_patrol"
+          filter:
+            preset: "on_foot"
+            min_length_meters: 0.001
+            max_length_meters: 10000.0
+            max_time_secs: 3600.0
+            min_time_secs: 1.0
+            max_speed_kmhr: 8.0
+            min_speed_kmhr: 0.01
+    set_patrol_traj_color_column:
+      var: "patrol_subject"
+    filter_patrol_events:
+      bounding_box:
+        min_x: -180.0
+        max_x: 180.0
+        min_y: -90.0
+        max_y: 90.0
+      filter_point_coords: []
+    base_map_defs:
+      base_maps:
+        - url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
+          opacity: 1.0
+        - url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+          opacity: 0.5
+          max_zoom: 17
+    patrol_events_bar_chart:
+      time_interval: "month"
+    set_ltd_args:
+      opacity: 0.7
+      percentiles: ["50", "60", "70", "80", "90", "100"]
+      auto_scale_or_custom_cell_size:
+        auto_scale_or_custom: "Auto-scale"
+      crs: "EPSG:3857"
