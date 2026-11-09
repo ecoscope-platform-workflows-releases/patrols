@@ -4,7 +4,7 @@
 # Base image: Debian 12 (bookworm). Security support ends 2028-06-30.
 FROM debian:bookworm-slim AS fetch
 RUN apt-get update && apt-get install -y curl ca-certificates
-RUN curl -fsSL https://pixi.sh/install.sh | PIXI_VERSION=latest bash
+RUN curl -fsSL https://pixi.sh/install.sh | PIXI_VERSION=v0.79.0 bash
 
 FROM debian:bookworm-slim AS install
 COPY --from=fetch /root/.pixi /root/.pixi
