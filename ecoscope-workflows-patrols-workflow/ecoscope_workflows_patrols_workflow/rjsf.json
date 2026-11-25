@@ -299,7 +299,7 @@
                 }
               ],
               "default": null,
-              "description": "Use a different segment filter for specific values, e.g. a subject subtype or patrol type. Values without an override use the filter above. Only used by workflows that support per-type filtering.",
+              "description": "Use a different segment filter for specific values, e.g. a subject subtype or patrol type. Values without an override use the filter above. Leave empty unless the workflow supports per-type filtering.",
               "ecoscope:advanced": true,
               "title": "Filter Overrides",
               "ecoscope:transform": [
@@ -940,7 +940,7 @@
           "type": "string"
         },
         "grid_cell_size": {
-          "default": 5000,
+          "default": 5000.0,
           "description": "Define the resolution of the raster grid (in the unit of measurement defined by the coordinate reference system set below). A smaller grid cell size provides more detail, while a larger size generalizes the data.",
           "exclusiveMaximum": 10000,
           "exclusiveMinimum": 0,

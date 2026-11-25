@@ -4,16 +4,12 @@
 # Base image: Debian 12 (bookworm). Security support ends 2028-06-30.
 FROM debian:bookworm-slim AS fetch
 RUN apt-get update && apt-get install -y curl ca-certificates
-RUN curl -fsSL https://pixi.sh/install.sh | PIXI_VERSION=v0.79.0 bash
+RUN curl -fsSL https://pixi.sh/install.sh | PIXI_VERSION=latest bash
 
 FROM debian:bookworm-slim AS install
 COPY --from=fetch /root/.pixi /root/.pixi
 COPY --from=fetch /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 ENV PATH="/root/.pixi/bin:$PATH"
-# WIP hand edit (a recompile overwrites it): pixi needs git to fetch ecoscope's
-# git source (commit pinned in pixi.lock).
-RUN apt-get update && apt-get install -y --no-install-recommends git \
-    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 COPY . .
