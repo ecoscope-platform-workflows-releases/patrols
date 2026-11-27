@@ -661,7 +661,11 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             ],
             unpack_depth=1,
         )
-        .partial(relocations=patrol_reloc, **(params.get("patrol_traj") or {}))
+        .partial(
+            relocations=patrol_reloc,
+            trajectory_segment_filter_override_column="patrol_type__value",
+            **(params.get("patrol_traj") or {}),
+        )
         .call()
     )
 
